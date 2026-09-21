@@ -76,7 +76,21 @@
   #view{position:absolute;inset:0;width:100%;height:100%;display:block;}
   #crt{position:absolute;inset:0;pointer-events:none;z-index:5;
     background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.17) 3px,rgba(0,0,0,.17) 4px);
-    mix-blend-mode:multiply;opacity:.5;}
+    opacity:.5;}
+  /* _29: no mix-blend-mode. The stripes are pure black, and multiplying by
+     black at alpha a is exactly what normal blending does (backdrop x (1-a)),
+     so the look is unchanged -- but the compositor no longer has to blend a
+     full-screen layer against the canvas every frame. */
+  /* _29: FPS METER (OPTIONS). Above the touch layer, never takes a touch. */
+  #perfHud{position:absolute;left:max(10px,calc(var(--hs)*2.8));top:38%;z-index:13;pointer-events:none;
+    display:none;white-space:pre;font:600 var(--hu-foot)/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    letter-spacing:0;color:#d8ff7a;background:rgba(4,0,14,.66);border:1px solid rgba(182,255,0,.38);
+    padding:6px 10px;}
+  #perfHud.on{display:block;}
+  #perfHud b{color:#b6ff00;font-weight:800;}
+  #perfHud b.low{color:#ff4f86;}
+  /* a phone has 390 px of height: keep the meter to about a quarter of it */
+  @media (pointer:coarse){ #perfHud{font-size:11px;padding:4px 7px;} }
   #vig{position:absolute;inset:0;pointer-events:none;z-index:6;
     background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(10,0,25,.78) 100%);}
   #dmgv{position:absolute;inset:0;pointer-events:none;z-index:7;opacity:0;
@@ -234,6 +248,10 @@
     -webkit-mask-image:linear-gradient(270deg,#000 0%,rgba(0,0,0,.30) 52%,transparent 100%);
             mask-image:linear-gradient(270deg,#000 0%,rgba(0,0,0,.30) 52%,transparent 100%);}
   @keyframes slickrun{from{background-position:0 0;}to{background-position:0 -46px;}}
+  /* _29: background-position is not a compositor animation, so the streaks
+     were repainted every frame of every run even at opacity 0. They only
+     move while they are showing (.run is set by update()). */
+  #slickfx:not(.run) i{animation-play-state:paused;}
   #hpBar{width:calc(var(--hs)*20.25);height:max(8px,calc(var(--hs)*1.95));border:2px solid rgba(255,255,255,.32);margin-top:calc(var(--hs)*.6);
     background:rgba(0,0,0,.45);position:relative;overflow:hidden;}
   /* five chunks, not a hundred percent — losing one is something you feel */
@@ -700,8 +718,14 @@
   #pFoot .v{font-size:calc(60 * var(--u));margin-right:0;}
 
   #optPanel{left:calc(75 * var(--u));top:calc(270 * var(--u));width:calc(900 * var(--u));
-    height:calc(45 * var(--u) + 150 * var(--u) + 5 * var(--pitch) + 35 * var(--u));}
+    height:calc(45 * var(--u) + 140 * var(--u) + 7 * var(--pitch) * .88 + 35 * var(--u));}
   #optPanel .nlab{font-size:calc(44 * var(--u));}
+  /* _29: FRAME RATE and FPS METER make seven rows under the slider. The sheet
+     keeps its footprint (it has to fit a 390 px phone and a laptop window)
+     by running these rows at 88% pitch -- 37 px on a phone -- and the slider
+     row 10 units shorter; the slider itself still fits inside it. */
+  #optPanel .nrow:not(.tall){height:calc(var(--pitch) * .88);}
+  #optPanel .nrow.tall{height:calc(140 * var(--u));}
   .nrow.tall{height:calc(150 * var(--u));align-items:flex-start;padding-top:calc(26 * var(--u));}
   .nrow.tall .chev{margin-top:calc(-4 * var(--u));}
   .nrow.tall .nval{margin-top:calc(4 * var(--u));}
@@ -928,6 +952,7 @@
   <div id="vig"></div>
   <div id="dmgv"></div>
   <div id="slickfx"><i class="l"></i><i class="r"></i></div>
+  <div id="perfHud" aria-hidden="true"></div>
   <div id="galWarn"></div>
   <div id="galEdge"><i class="l"></i><i class="r"></i></div>
   <div id="galCov"><i></i></div>
@@ -1147,6 +1172,8 @@
           <input type="range" class="sens" id="sensSlider" min="40" max="260" step="5" value="100"></div>
         <div class="nrow hasVal" data-act="sound" data-adj="1"><i class="chev"></i><span class="nlab" data-t="O_SOUND">SOUND</span><span class="nval"><i>&#8249;</i><b class="optAu">ALL ON</b><i>&#8250;</i></span></div>
         <div class="nrow hasVal" data-act="fx" data-adj="1"><i class="chev"></i><span class="nlab" data-t="O_FX">EFFECTS</span><span class="nval"><i>&#8249;</i><b class="optFx">FULL</b><i>&#8250;</i></span></div>
+        <div class="nrow hasVal" data-act="fps" data-adj="1"><i class="chev"></i><span class="nlab" data-t="O_FPS">FRAME RATE</span><span class="nval"><i>&#8249;</i><b class="optFps">60 FPS</b><i>&#8250;</i></span></div>
+        <div class="nrow hasVal" data-act="perf" data-adj="1"><i class="chev"></i><span class="nlab" data-t="O_PERF">FPS METER</span><span class="nval"><i>&#8249;</i><b class="optPerf">OFF</b><i>&#8250;</i></span></div>
         <div class="nrow hasVal" data-act="lang" data-adj="1"><i class="chev"></i><span class="nlab" data-t="O_LANG">LANGUAGE</span><span class="nval"><i>&#8249;</i><b class="optLang">ENGLISH</b><i>&#8250;</i></span></div>
         <div class="nrow hasVal" data-act="fs" data-adj="1" id="optFsRow"><i class="chev"></i><span class="nlab" data-t="O_FS">FULLSCREEN</span><span class="nval"><i>&#8249;</i><b class="optFs">OFF</b><i>&#8250;</i></span></div>
         <div class="nrow" id="optBack" data-act="back"><i class="chev"></i><span class="nlab" data-t="M_BACK">BACK</span><span class="naux" data-t="K_ESC">ESC</span></div>
@@ -1238,6 +1265,7 @@ en:{
   O_SOUND:'SOUND', O_FX:'EFFECTS', O_LANG:'LANGUAGE', O_FS:'FULLSCREEN',
   O_AU0:'ALL ON', O_AU1:'SFX ONLY', O_AU2:'MUSIC ONLY', O_AU3:'MUTED',
   O_FXF:'FULL', O_FXL:'LITE', O_LANGV:'ENGLISH', O_ON:'ON', O_OFF:'OFF',
+  O_FPS:'FRAME RATE', O_FPS60:'60 FPS', O_FPSMAX:'MAX', O_PERF:'FPS METER',
   C_KEYS:'KEYBOARD', C_TOUCH:'TOUCH',
   CT_FIRE:'HOLD TO SHOOT', CT_RELOAD:'RELOAD', CT_SWAPK:'SWAP', CT_SWAP:'NEXT WEAPON',
   CT_BREACH:'BREACH A WALL', CT_COVER:'TAKE COVER', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSE',
@@ -1374,6 +1402,7 @@ es:{
   O_SOUND:'SONIDO', O_FX:'EFECTOS', O_LANG:'IDIOMA', O_FS:'PANTALLA COMPLETA',
   O_AU0:'TODO', O_AU1:'SOLO EFECTOS', O_AU2:'SOLO MÚSICA', O_AU3:'SILENCIO',
   O_FXF:'COMPLETOS', O_FXL:'LIGEROS', O_LANGV:'ESPAÑOL', O_ON:'SÍ', O_OFF:'NO',
+  O_FPS:'FOTOGRAMAS', O_FPS60:'60 FPS', O_FPSMAX:'MÁX', O_PERF:'MEDIDOR FPS',
   C_KEYS:'TECLADO', C_TOUCH:'TÁCTIL',
   CT_FIRE:'DISPARAR', CT_RELOAD:'RECARGAR', CT_SWAPK:'CAMBIO', CT_SWAP:'SIGUIENTE ARMA',
   CT_BREACH:'ABRIR UN MURO', CT_COVER:'A CUBIERTO', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSA',
@@ -3653,6 +3682,100 @@ applyFx();
 /* _28: console-tunable. See the particle draw in render() and update(). */
 let PART_NEAR=0.40, PART_MAXF=0.045, KILLFX_TAU=0.40;
 
+/* _29: sprite spans for the enemy draw. span[tx] is the first texel row in
+   column tx with alpha >= 20 (the draw's own cut-off), span[SPR+tx] the last;
+   -1 when the column is empty. Built once per sprite array, on first use. */
+const SPANS=new WeakMap();
+let SROW=new Int32Array(1);
+const SFIRST=new Int32Array(SPR+2);
+function sprSpan(spr){
+  let s=SPANS.get(spr); if(s) return s;
+  s=new Int16Array(SPR*2);
+  for(let x=0;x<SPR;x++){
+    let t0=-1,t1=-1;
+    for(let y=0;y<SPR;y++) if((spr[y*SPR+x]>>>24)>=20){ if(t0<0) t0=y; t1=y; }
+    s[x]=t0; s[SPR+x]=t1;
+  }
+  SPANS.set(spr,s); return s;
+}
+
+/* _29: FRAME RATE. On a 90/120/144 Hz screen requestAnimationFrame fires at
+   the screen's rate, so the whole raycaster ran twice as often with half the
+   time per frame. The cap keeps 60 whatever the screen: frame() adds up the
+   real time between callbacks and only runs once at least a 60th of a second
+   is owed (CAP_MIN leaves slack for vsync jitter on a 60 Hz screen, where it
+   never skips). The carry is kept, but only up to CAP_CARRY, so a 90 Hz screen
+   still gets two frames in three while a jittery 120 Hz one can never run two
+   callbacks back to back. A negative carry is dropped, so a 60.5 Hz screen
+   cannot drift into a skip. MAX turns it off. Persisted as np_fps. */
+let fpsCap=true;
+try{ const v=localStorage.getItem('np_fps'); if(v!==null) fpsCap=(v!=='max'); }catch(e){}
+const CAP_MS=1000/60, CAP_MIN=13, CAP_CARRY=3;
+let capAcc=0, capPrev=0;
+function toggleFpsCap(){
+  fpsCap=!fpsCap; capAcc=0;
+  try{ localStorage.setItem('np_fps', fpsCap?'60':'max'); }catch(e){}
+}
+
+/* _29: FPS METER. A diagnostic overlay (OPTIONS) so the laptop and the phone
+   can say what they actually spend, which no headless run can. When it is off
+   nothing is timed. When on: frames per second, the screen's refresh rate
+   (median of the raw callback spacing), the worst gap between frames and how
+   many frames came late, JavaScript time per frame and its split across the
+   renderer, and the render buffer vs the canvas it is scaled onto. If the
+   frame rate falls while JS stays low, the time is going to the browser/GPU.
+   acc slots: 0 update, 1 floor+ceiling, 2 walls, 3 sprite list + sort,
+   4 enemies, 5 particles, 6 other billboards, 7 blit + bloom, 8 gun. */
+const PF={on:false, acc:new Float64Array(9), frames:0, jsSum:0, jsMax:0, ivMax:0, slow:0,
+          lastTs:0, t0:0, want:1000/60, raws:new Float32Array(64), ri:0, rn:0, el:null, placed:false};
+try{ PF.on=localStorage.getItem('np_perf')==='1'; }catch(e){}
+function togglePerf(){
+  PF.on=!PF.on; PF.t0=0; PF.lastTs=0; PF.placed=false;
+  try{ localStorage.setItem('np_perf', PF.on?'1':'0'); }catch(e){}
+  const o=document.getElementById('perfHud'); if(o&&!PF.on) o.classList.remove('on');
+}
+function pfRaw(d){ PF.raws[PF.ri]=d; PF.ri=(PF.ri+1)&63; if(PF.rn<64) PF.rn++; }
+function pfFrame(ts,js){
+  const iv=PF.lastTs?ts-PF.lastTs:0; PF.lastTs=ts;
+  if(!PF.t0){ PF.t0=ts; PF.acc.fill(0); PF.frames=0; PF.jsSum=0; PF.jsMax=0; PF.ivMax=0; PF.slow=0; return; }
+  PF.frames++; PF.jsSum+=js; if(js>PF.jsMax) PF.jsMax=js;
+  if(iv>PF.ivMax) PF.ivMax=iv;
+  if(iv>PF.want*1.5) PF.slow++;               /* "late": 50% past the expected gap */
+  if(ts-PF.t0>=1000) pfShow(ts);
+}
+function pfShow(ts){
+  /* refresh rate = median raw callback gap; the expected gap is that, or a
+     60th of a second when the cap is on */
+  const r=PF.rn?PF.raws.slice(0,PF.rn).sort():null, med=r?r[r.length>>1]:CAP_MS;
+  const want=fpsCap?Math.max(CAP_MS,med):med; PF.want=want;
+  const o=PF.el||(PF.el=document.getElementById('perfHud'));
+  const show=PF.on&&G&&G.mode==='play';
+  if(o){
+    o.classList.toggle('on',show);
+    if(show&&!PF.placed){
+      /* just under the top-left cluster; measured, like placeSysBtns, because
+         that cluster is a different height on a phone */
+      const tl=document.getElementById('topL'), r=tl&&tl.getBoundingClientRect();
+      if(r&&r.height){ o.style.top=Math.round(r.bottom+12)+'px'; PF.placed=true; }
+    }
+    if(show){
+      const n=Math.max(1,PF.frames), a=PF.acc, f=v=>(v/n).toFixed(1);
+      const fps=Math.round(PF.frames*1000/(ts-PF.t0)), hz=Math.round(1000/med);
+      const low=fps<Math.round(1000/want)*0.9;
+      o.innerHTML='<b'+(low?' class="low"':'')+'>'+fps+' FPS</b>  '+hz+' Hz  '+(fpsCap?'CAP 60':'NO CAP')+'\n'+
+        'worst '+PF.ivMax.toFixed(0)+' ms  late '+PF.slow+'\n'+
+        'JS '+(PF.jsSum/n).toFixed(1)+' ms  max '+PF.jsMax.toFixed(1)+'\n'+
+        'update '+f(a[0])+'  floor '+f(a[1])+'\n'+
+        'walls '+f(a[2])+'  enemies '+f(a[4])+'\n'+
+        'fx '+f(a[5])+'  other '+f(a[3]+a[6])+'\n'+
+        'blit '+f(a[7])+'  gun '+f(a[8])+'\n'+
+        RW+'x'+RH+' > '+view.width+'x'+view.height;
+    }
+  }
+  PF.t0=ts; PF.acc.fill(0); PF.frames=0; PF.jsSum=0; PF.jsMax=0; PF.ivMax=0; PF.slow=0;
+}
+addEventListener('resize',()=>{ PF.placed=false; },{passive:true});
+
 /* pooled entries for the per-frame sprite list — see the note where it is
    filled. Grows to the high-water mark and is then reused forever. */
 const list=[], LPOOL=[]; let lpN=0;
@@ -4556,6 +4679,8 @@ let FOGE=FOG_END;
 
 function render(){
   const W=RW,H=RH;
+  /* _29: FPS METER section timers -- skipped entirely when the meter is off */
+  const pfOn=PF.on; let pt=pfOn?performance.now():0, pc=-1;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
   const pitchPx=clamp(G.pitch,-0.42,0.42)*H;
@@ -4602,17 +4727,26 @@ function render(){
     }
 
     const lineW=clamp((Math.abs(stepX)+Math.abs(stepY))*1.6,0.006,0.36)+0.012;
+    /* _29: the four tile colours and the out-of-bounds colour, fogged once
+       per row. An unpainted floor pixel is now a pick and a store; only a
+       pixel under a paint bucket takes the long path below. Same formula,
+       same pixels. */
+    const fR=FOGR*ifi, fG=FOGG*ifi, fB=FOGB*ifi;
+    const pk=c=>(0xFF000000|((((c[2]*fi+fB)>>8)&255)<<16)|((((c[1]*fi+fG)>>8)&255)<<8)|(((c[0]*fi+fR)>>8)&255))>>>0;
+    const PLA=pk(RL.lineA), PLB=pk(RL.lineB), PTA=pk(RL.tileA), PTB=pk(RL.tileB), POOB=pk(RL.oob);
+    const lw1=1-lineW;
     for(let x=0;x<W;x++){
       const cx=fx|0, cy=fy|0;
       let r,g,b;
-      if(fx<0||fy<0||cx>=MW||cy>=MH){ r=RL.oob[0];g=RL.oob[1];b=RL.oob[2]; }
+      if(fx<0||fy<0||cx>=MW||cy>=MH){ buf[row+x]=POOB; fx+=stepX; fy+=stepY; continue; }
       else{
         const ux=fx-cx, uy=fy-cy;
         const alt=(cx+cy)&1;
-        const c4 = (ux<lineW||ux>1-lineW||uy<lineW||uy>1-lineW)
-                 ? (alt?RL.lineA:RL.lineB) : (alt?RL.tileA:RL.tileB);
-        r=c4[0]; g=c4[1]; b=c4[2];
+        const onLine=(ux<lineW||ux>lw1||uy<lineW||uy>lw1);
         const bucket=floorSplats[((fy*BSUB)|0)*BW+((fx*BSUB)|0)];
+        if(!bucket){ buf[row+x]=onLine?(alt?PLA:PLB):(alt?PTA:PTB); fx+=stepX; fy+=stepY; continue; }
+        const c4 = onLine ? (alt?RL.lineA:RL.lineB) : (alt?RL.tileA:RL.tileB);
+        r=c4[0]; g=c4[1]; b=c4[2];
         if(bucket){
           for(let s=0;s<bucket.length;s++){
             const rec=bucket[s], L=rec.l;
@@ -4635,6 +4769,7 @@ function render(){
     }
   }
 
+  if(pfOn){ const n=performance.now(); PF.acc[1]+=n-pt; pt=n; }
   /* walls */
   for(let x=0;x<W;x++){
     const camX=2*x/W-1;
@@ -4739,6 +4874,7 @@ function render(){
     }
   }
 
+  if(pfOn){ const n=performance.now(); PF.acc[2]+=n-pt; pt=n; }
   /* sprites + particles.
      The entries are pooled. Building this list used to allocate one object per
      particle per frame — up to 340 of them, 20k objects a second — and on a
@@ -4778,9 +4914,11 @@ function render(){
   }
   list.sort((a,b)=>b.d-a.d);
   const invDet=1/(planeX*dirY-dirX*planeY);
+  if(pfOn){ const n=performance.now(); PF.acc[3]+=n-pt; pt=n; }
 
   for(let k=0;k<list.length;k++){
     const it=list[k];
+    if(pfOn){ const n=performance.now(); if(pc>=0) PF.acc[pc]+=n-pt; pt=n; pc=it.e?4:(it.p?5:6); }
     if(it.e){
       const e=it.e, T=ETYPE[e.t];
       const sx=e.x-px, sy=e.y-py;
@@ -4818,13 +4956,51 @@ function render(){
         if(e.charger){ tf=0.46+0.32*Math.sin(G.t*24); tr=255; tg=232; tb=130; }
         else { tf=0.40+0.30*Math.sin(G.t*17); tr=255; tg=46; tb=40; }
       }
+      /* _29: an enemy used to be drawn over its whole square box -- about
+         three quarters of it transparent -- with a division per pixel, so
+         three to five of them at your face cost 1.5 screens of pixel work.
+         Now only the opaque run of each texture column is visited
+         (sprSpan), the row -> texel lookup is done once per sprite, and the
+         common case (no tint, no flash, no blackout) has its own loop.
+         Same expressions as before: the pixels are identical. */
+      const span=sprSpan(spr);
+      if(SROW.length<H) SROW=new Int32Array(H);
+      for(let syp=cy0;syp<cy1;syp++) SROW[syp]=((syp-y0)*SPR/hgt)|0;
+      for(let t=0,q=cy0;t<=SPR;t++){ while(q<cy1&&SROW[q]<t) q++; SFIRST[t]=q; }
+      if(!tf&&!fl&&!e.gdark){
+        const fr=FOGR*ifi, fg=FOGG*ifi, fb=FOGB*ifi;
+        for(let sxp=cx0;sxp<cx1;sxp++){
+          if(trY>=zbuf[sxp]) continue;
+          const txp=((sxp-x0)*SPR/wid)|0;
+          if(txp<0||txp>=SPR) continue;
+          const t0=span[txp]; if(t0<0) continue;
+          const re=SFIRST[span[SPR+txp]+1];
+          for(let syp=SFIRST[t0];syp<re;syp++){
+            const c=spr[SROW[syp]*SPR+txp], a=c>>>24;
+            if(a<20) continue;
+            const r=((c&255)*fi+fr)>>8, g=(((c>>>8)&255)*fi+fg)>>8, b=(((c>>>16)&255)*fi+fb)>>8;
+            const k=syp*W+sxp;
+            if(a>=245){
+              buf[k]=(0xFF000000|((b&255)<<16)|((g&255)<<8)|(r&255))>>>0;
+            } else {
+              const o=buf[k], ia=255-a;
+              buf[k]=(0xFF000000|
+                ((((b*a+((o>>>16)&255)*ia)/255)|0)<<16)|
+                ((((g*a+((o>>>8)&255)*ia)/255)|0)<<8)|
+                (((r*a+(o&255)*ia)/255)|0))>>>0;
+            }
+          }
+        }
+        continue;
+      }
       for(let sxp=cx0;sxp<cx1;sxp++){
         if(trY>=zbuf[sxp]) continue;
         const txp=((sxp-x0)*SPR/wid)|0;
         if(txp<0||txp>=SPR) continue;
-        for(let syp=cy0;syp<cy1;syp++){
-          const typ=((syp-y0)*SPR/hgt)|0;
-          if(typ<0||typ>=SPR) continue;
+        const t0=span[txp]; if(t0<0) continue;
+        const re=SFIRST[span[SPR+txp]+1];
+        for(let syp=SFIRST[t0];syp<re;syp++){
+          const typ=SROW[syp];
           const c=spr[typ*SPR+txp], a=c>>>24;
           if(a<20) continue;
           let r=c&255, g=(c>>>8)&255, b=(c>>>16)&255;
@@ -5021,6 +5197,7 @@ function render(){
     }
   }
 
+  if(pfOn){ const n=performance.now(); if(pc>=0) PF.acc[pc]+=n-pt; pt=n; }
   /* blit + bloom + view model */
   rctx.putImageData(img,0,0);
   const dw=view.width, dh=view.height;
@@ -5037,7 +5214,9 @@ function render(){
   vctx.imageSmoothingEnabled=true;
   vctx.drawImage(bloomCv,shx,shy,dw,dh);
   vctx.globalAlpha=1; vctx.globalCompositeOperation='source-over';
+  if(pfOn){ const n=performance.now(); PF.acc[7]+=n-pt; pt=n; }
   drawGun(dw,dh);
+  if(pfOn) PF.acc[8]+=performance.now()-pt;
 }
 
 /* ---------- SPLATTER GUN view model ----------
@@ -8085,8 +8264,9 @@ function update(dt){
      the effect reads as speed, which is the thing it is reporting. */
   const fxAmt=G.slick*Math.min(1,Math.hypot(fwd,str));
   const want=fxAmt>0.06?clamp((fxAmt-0.06)*0.85,0,0.52):0;
-  if(Math.abs(want-slickFxShown)>0.035){
+  if(Math.abs(want-slickFxShown)>0.035||(want===0&&slickFxShown!==0)){
     slickFxShown=want; slickEl.style.opacity=String(want);
+    slickEl.classList.toggle('run',want>0);     /* _29: animate only while visible */
   }
   if(want>0){
     const rec=paintColAt(G.px,G.py);
@@ -8315,7 +8495,18 @@ let last=0;
 let menuUp=false;
 function frame(ts){
   requestAnimationFrame(frame);
-  if(!last){ last=ts; return; }
+  if(!last){ last=ts; capPrev=ts; capAcc=0; return; }
+  /* _29: FRAME RATE cap -- see fpsCap. A skipped callback leaves `last`
+     alone, so the next real frame's dt covers the whole gap. */
+  const raw=ts-capPrev; capPrev=ts;
+  if(PF.on) pfRaw(raw);
+  if(fpsCap){
+    capAcc+=raw;
+    if(capAcc<CAP_MIN) return;
+    capAcc-=CAP_MS;
+    if(capAcc<0) capAcc=0; else if(capAcc>CAP_CARRY) capAcc=CAP_CARRY;
+  }
+  const pj=PF.on?performance.now():0;
   let dt=(ts-last)/1000; last=ts;
   if(dt>0.1) dt=0.1;
   /* _18: refill the sound-voice budget on EVERY frame. It used to live inside
@@ -8338,9 +8529,11 @@ function frame(ts){
     if(MODEL&&ovTitle.classList.contains('arenaLit')&&!ovTitle.classList.contains('bgOnly')) MODEL.step(dt);
     return;
   } else if(G.mode!=='paused'){
-    update(dt);
+    if(PF.on){ const u0=performance.now(); update(dt); PF.acc[0]+=performance.now()-u0; }
+    else update(dt);
   }
   render();   // keep drawing while paused so the frozen scene shows through
+  if(PF.on) pfFrame(ts,performance.now()-pj);
 }
 
 /* The title's backdrop: one cached gradient, repainted each frame so nothing
@@ -9131,6 +9324,8 @@ function syncOptRows(){
     const set=(sel,txt)=>document.querySelectorAll(sel).forEach(e=>{ e.textContent=txt; });
     set('.optAu',T('O_AU'+audioMode));
     set('.optFx',T(fxLite?'O_FXL':'O_FXF'));
+    set('.optFps',T(fpsCap?'O_FPS60':'O_FPSMAX'));
+    set('.optPerf',T(PF.on?'O_ON':'O_OFF'));
     set('.optLang',T('O_LANGV'));
     set('.optFs',T(isFs()?'O_ON':'O_OFF'));
     const d=document.documentElement, fr=document.getElementById('optFsRow');
@@ -9146,6 +9341,8 @@ const OPTS=makeList(el('optList'),{ tick:function(){ A.init(); A.resume(); A.mti
     if(a==='sens') setLookSens(Math.round((lookSens+d*0.05)*100)/100);
     else if(a==='sound') setAudioMode(audioMode+d);
     else if(a==='fx') toggleFx();
+    else if(a==='fps') toggleFpsCap();
+    else if(a==='perf') togglePerf();
     else if(a==='lang') toggleLang();
     else if(a==='fs') toggleFullscreen();
     syncOptRows(); A.mtick();
