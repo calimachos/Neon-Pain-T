@@ -74,6 +74,10 @@
 
   #wrap{position:fixed;inset:0;}
   #view{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  /* _30: on EFFECTS LITE the canvas is 1 canvas pixel per CSS pixel; the
+     browser's upscale to the screen stays nearest-neighbour so the game
+     image keeps its hard pixels (see setupRender). */
+  #view.lo{image-rendering:pixelated;}
   #crt{position:absolute;inset:0;pointer-events:none;z-index:5;
     background:repeating-linear-gradient(180deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.17) 3px,rgba(0,0,0,.17) 4px);
     opacity:.5;}
@@ -144,6 +148,10 @@
   #chainBar{height:max(3px,calc(var(--hs)*.38));margin-top:calc(var(--hs)*.5);background:rgba(255,255,255,.14);}
   #chainBar i{display:block;height:100%;float:right;background:#ff2d95;
     box-shadow:0 0 10px rgba(255,45,149,.9);transition:width .1s linear;}
+  /* _30 LITE: the bar is scaled on its own layer instead of resized, so a
+     running chain no longer costs a layout + repaint of a glowing box every
+     frame -- chains are exactly when the phone dropped frames (updChain). */
+  html.lite #chainBar i{width:100%;transform-origin:right center;transition:none;will-change:transform;}
   #payRow{margin-top:calc(var(--hs)*.85);font-size:var(--hu-foot);letter-spacing:.14em;font-weight:800;
     color:rgba(255,255,255,.55);}
   #payRow b{color:#ffe800;font-weight:800;}
@@ -290,6 +298,9 @@
   #combo{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);
     font-size:clamp(26px,6vw,44px);font-weight:800;opacity:0;color:#ff2d95;white-space:nowrap;
     text-shadow:0 0 20px rgba(255,45,149,.95),0 0 50px rgba(255,45,149,.5);}
+  /* _30 LITE: the chain text is re-rastered on every kill; a 50 px blur is
+     the expensive part, so LITE keeps one tighter glow. */
+  html.lite #combo{text-shadow:0 0 12px rgba(255,45,149,.9);}
   #toast{position:absolute;left:50%;top:37%;transform:translate(-50%,-50%);text-align:center;opacity:0;}
   #toast .big{font-size:clamp(32px,9vw,72px);font-weight:800;letter-spacing:.1em;color:#fff;
     text-shadow:0 0 22px rgba(0,240,255,.9),0 0 60px rgba(255,45,149,.6);}
@@ -423,6 +434,7 @@
   .tbtn{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-size:var(--fz-lbl);font-weight:800;letter-spacing:.1em;pointer-events:auto;}
   .tbtn svg{fill:none;stroke:currentColor;stroke-width:2.6;stroke-linejoin:round;}
+  .aring{display:none;}   /* _30: the ammo ring round FIRE, phone landscape only */
   #fireBtn{right:calc(22px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));
     width:96px;height:96px;border:3px solid rgba(255,45,149,.75);background:rgba(255,45,149,.16);
     box-shadow:0 0 26px rgba(255,45,149,.4);}
@@ -879,30 +891,49 @@
      --hs the way the readouts do.
      ====================================================================== */
   @media (pointer:coarse) and (max-height:560px){
-    /* one row along the bottom: BREACH | SWAP | RELOAD | FIRE */
-    #fireBtn{width:84px;height:84px;
-      right:calc(14px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));}
-    #reBtn{width:58px;height:58px;
-      right:calc(110px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));}
-    #swapBtn{width:54px;height:54px;
-      right:calc(178px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));}
-    #brBtn{width:64px;height:64px;
-      right:calc(242px + env(safe-area-inset-right));bottom:calc(17px + env(safe-area-inset-bottom));}
+    /* _30: THE THUMB ARC (Carlos picked mockup A, 2026-09-22). The _17 row
+       read as sloppy: four ring colours, four sizes, four baselines, and
+       BREACH sat on the gun. Now FIRE owns the corner and the other three
+       sit on one arc round it (r 100 at 180 / 142 / 104 degrees), each in a
+       fixed slot, so a thumb learns it even while SWAP or BREACH is absent.
+       One neutral ring for the secondaries; colour only where it means
+       something: magenta FIRE, lime BREACH when a charge is ready (filled
+       lime, .hot, when the wall in the crosshair will open).
+       Still px thumb targets at 392 px of height and up (the mockup); below
+       that --tk shrinks them ~0.4% per px (0.87 at 360, floor 0.8) so the
+       gun readout still fits between PAUSE and the arc. setupRender() uses
+       the same curve (GUN_ARC) to keep the gun sprite left of the arc. */
+    :root{ --tk:clamp(0.8px, calc(1px - (392px - 100svh) * 0.00406), 1px); }
+    #fireBtn{width:calc(88 * var(--tk));height:calc(88 * var(--tk));
+      right:calc(32 * var(--tk) + env(safe-area-inset-right));bottom:calc(30 * var(--tk) + env(safe-area-inset-bottom));
+      border:3px solid rgba(255,45,149,.9);background:rgba(40,0,24,.5);color:#fff;
+      box-shadow:0 0 22px rgba(255,45,149,.45);}
+    #fireBtn.dn{background:rgba(255,45,149,.45);box-shadow:0 0 34px rgba(255,45,149,.85);}
+    #reBtn,#swapBtn,#brBtn{width:calc(54 * var(--tk));height:calc(54 * var(--tk));
+      border:2px solid rgba(200,225,255,.5);background:rgba(6,0,20,.55);color:#e8f4ff;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,.35);}
+    #reBtn{right:calc(149 * var(--tk) + env(safe-area-inset-right));bottom:calc(47 * var(--tk) + env(safe-area-inset-bottom));}
+    #swapBtn{right:calc(128 * var(--tk) + env(safe-area-inset-right));bottom:calc(109 * var(--tk) + env(safe-area-inset-bottom));}
+    #brBtn{right:calc(73 * var(--tk) + env(safe-area-inset-right));bottom:calc(144 * var(--tk) + env(safe-area-inset-bottom));
+      border-color:#b6ff00;color:#b6ff00;background:rgba(10,20,0,.55);box-shadow:0 0 16px rgba(182,255,0,.5);}
+    #reBtn.dn,#swapBtn.dn{background:rgba(200,225,255,.28);}
+    #brBtn.dn{background:rgba(182,255,0,.35);}
+    /* the magazine is a ring round FIRE, one segment per round (updRing) */
+    #fireBtn .aring{display:block;position:absolute;left:50%;top:50%;
+      width:calc(120 * var(--tk));height:calc(120 * var(--tk));
+      transform:translate(-50%,-50%) rotate(-90deg);pointer-events:none;overflow:visible;}
+    #fireBtn .aring circle{fill:none;stroke-width:4;}
+    #fireBtn .aring .trk{stroke:rgba(255,255,255,.18);}
+    #fireBtn .aring .lit{stroke:#b6ff00;}
 
-    /* the gun cluster becomes one strip sitting ABOVE that row */
-    #botR{right:calc(14px + env(safe-area-inset-right));
-      bottom:calc(106px + env(safe-area-inset-bottom));
-      display:flex;flex-direction:row;align-items:center;gap:calc(var(--hs)*1.6);}
+    /* the gun readout sits above the arc: name + count, no bar, no brackets */
+    #botR{right:calc(20px + env(safe-area-inset-right));
+      bottom:calc(206 * var(--tk) + env(safe-area-inset-bottom));padding:0;
+      display:flex;flex-direction:row;align-items:baseline;gap:calc(var(--hs)*1.6);}
+    #botR::before,#botR::after{display:none;}
     #botR #wname{order:1;}
-    #botR #ammo{order:2;font-size:calc(var(--hs)*4.4);}
-    /* _27: vertical -- frees horizontal room for the gun name + ammo
-       number next to it (the old horizontal strip ate that space, and the
-       RELOADING text -- now gone entirely, see the HTML/JS below -- used
-       to eat even more of it). */
-    #botR #magBar{order:3;margin-top:0;width:max(6px,calc(var(--hs)*1.4));height:calc(var(--hs)*7.5);}
-    #botR #magFill{transform-origin:bottom;}
-    #botR #magBar::after{background:repeating-linear-gradient(180deg,transparent 0 calc(100%/6 - 3px),
-      rgba(6,0,18,.92) calc(100%/6 - 3px) calc(100%/6));}
+    #botR #ammo{order:2;font-size:calc(var(--hs)*4.4);color:#fff;text-shadow:0 0 10px rgba(255,255,255,.4);}
+    #botR #magBar{display:none;}
     #slotRow{display:none;}          /* the weapon name already says which gun */
 
     /* PAUSE stays top-right, tucked under the credits cluster — see
@@ -920,6 +951,10 @@
     #toast .big{font-size:calc(var(--hs)*7.4);}
     #combo{font-size:calc(var(--hs)*6);}
   }
+  /* _30: a 320-tall phone has no room for the gun readout between PAUSE and
+     the thumb arc; the ring round FIRE still shows the magazine, and the
+     gun sprite shows which gun is up. */
+  @media (pointer:coarse) and (max-height:340px){ #botR{display:none;} }
   /* _26: Carlos -- "mini text again on phone on in-game HUDs", wants at
      least a 25% size increase, mobile only. One block, appended last so it
      wins the cascade over every base HUD rule above. --hs carries most
@@ -1016,6 +1051,7 @@
         <line x1="10" y1="16" x2="14" y2="16"/>
         <line x1="34" y1="16" x2="38" y2="16"/>
       </svg>
+      <svg class="aring" viewBox="0 0 120 120" aria-hidden="true"><circle class="trk" cx="60" cy="60" r="53"/><circle class="lit" cx="60" cy="60" r="53"/></svg>
     </div>
     <div class="tbtn" id="reBtn">
       <svg viewBox="0 0 48 32" width="30" height="20" aria-hidden="true">
@@ -3656,8 +3692,12 @@ function unstick(){
 }
 
 /* ---------- render surfaces ---------- */
-const view=document.getElementById('view'), vctx=view.getContext('2d');
+/* _30: opaque. Every frame overwrites the whole canvas, so an alpha channel
+   only made the compositor blend this full-screen layer with the page
+   behind it, every frame, for nothing. */
+const view=document.getElementById('view'), vctx=view.getContext('2d',{alpha:false});
 let RW=0,RH=0,rcv=null,rctx=null,img=null,buf=null,zbuf=null,bloomCv=null,bloomCtx=null;
+let GUN_ARC=1;   // _30: see setupRender()
 const QUALITY = matchMedia('(pointer:coarse)').matches ? 0.46 : 0.60;
 /* ---------- effects budget ----------
    Measured at a phone-shaped viewport with a full room: particles are ~40% of
@@ -3677,8 +3717,17 @@ function applyFx(){
   FX.cap    = fxLite?150:340;  // live particles allowed at once
   FX.cullD2 = fxLite?150:900;  // squared distance past which a fleck is skipped
   FX.voices = fxLite?8:18;     // sound graphs allowed to start in one frame
+  document.documentElement.classList.toggle('lite',fxLite);   // _30: LITE-only CSS
 }
 applyFx();
+/* _30: LITE also means a 1x output canvas, so a toggle rebuilds the render
+   surfaces (the same path a window resize takes) and clears the chain bar's
+   inline size so the other mode's property cannot linger. */
+function fxResize(){
+  if(RW) setupRender();
+  const b=document.getElementById('chainBar'), i=b&&b.firstElementChild;
+  if(i){ i.style.width=''; i.style.transform=''; }
+}
 /* _28: console-tunable. See the particle draw in render() and update(). */
 let PART_NEAR=0.40, PART_MAXF=0.045, KILLFX_TAU=0.40;
 
@@ -3787,7 +3836,20 @@ function lent(){
   return o;
 }
 function setupRender(){
-  const dpr=Math.min(devicePixelRatio||1,2), cw=innerWidth, ch=innerHeight;
+  /* _30: EFFECTS LITE draws the output canvas at 1x CSS pixels -- 4x fewer
+     pixels for the blit, the additive bloom and the gun on a 2x phone. That
+     GPU fill is what the phone's FPS METER showed dropping frames while JS
+     stayed under 9 ms. The game image is RW x RH either way, and #view.lo
+     keeps the browser's upscale nearest-neighbour. FULL is unchanged. */
+  const dpr=fxLite?1:Math.min(devicePixelRatio||1,2), cw=innerWidth, ch=innerHeight;
+  view.classList.toggle('lo',fxLite);
+  /* _30: on the phone's thumb arc, the fraction of the width the gun sprite
+     must stay left of (the arc's left edge + 8 px, same --tk curve as the
+     CSS). 1 everywhere else, so the gun never moves off the arc layout. */
+  if(magVertQ.matches){
+    const tk=Math.min(1,Math.max(0.8,1-(392-ch)*0.00406));
+    GUN_ARC=1-(203*tk+8)/cw;
+  } else GUN_ARC=1;
   view.width=Math.max(2,Math.floor(cw*dpr)); view.height=Math.max(2,Math.floor(ch*dpr));
   view.style.width=cw+'px'; view.style.height=ch+'px';
   RW=clamp(Math.floor(cw*QUALITY),200,760);
@@ -4446,9 +4508,10 @@ function newGame(){
 /* ---------- input ---------- */
 const keys={}, mouse={dx:0,dy:0,down:false};
 const touchMode=matchMedia('(pointer:coarse)').matches;
-/* _27: live-checked (unlike touchMode above) -- decides which axis the
-   mag-bar fraction fills. Same query as the CSS block that lays out #botR
-   as a row, so JS and CSS always agree. */
+/* _27: live-checked (unlike touchMode above). _30: it now decides whether
+   the magazine is the ring round FIRE (phone landscape, the thumb arc) or
+   the horizontal strip. Same query as the CSS block that lays out the arc,
+   so JS and CSS always agree. */
 const magVertQ=matchMedia('(pointer:coarse) and (max-height:560px)');
 
 /* ---------- look sensitivity ---------- */
@@ -4659,7 +4722,7 @@ function syncFxLabels(){
 }
 document.querySelectorAll('.fxBtn').forEach(b=>b.addEventListener('click',e=>{
   e.stopPropagation();
-  fxLite=!fxLite; applyFx(); syncFxLabels();
+  fxLite=!fxLite; applyFx(); syncFxLabels(); fxResize();
   try{ localStorage.setItem('np_fx', fxLite?'1':'0'); }catch(err){}
   if(G&&G.parts.length>FX.cap) G.parts.length=FX.cap;
 }));
@@ -5450,7 +5513,8 @@ function drawGun(dw,dh){
   const w=wpn();
   const bobX=Math.sin(t*7)*8*s*G.bobAmt;
   const bobY=Math.abs(Math.cos(t*7))*7*s*G.bobAmt;
-  const offX=Math.min(212*s, dw*0.30);           // tuck into the corner, but stay on-screen in portrait
+  const offX=Math.min(212*s, dw*0.30,             // tuck into the corner, but stay on-screen in portrait
+                     dw*(GUN_ARC-0.5)-140*s);     // _30: and left of the phone's thumb arc (16:9 phones)
   const cx=dw*0.5+offX+bobX, cy=dh-26*s+bobY+k*w.kickPx*s;
   const rot=-0.04+k*0.06;
   const charge=clamp(G.ammo[G.curW]/Math.max(1,wMag()),0,1);
@@ -7875,13 +7939,35 @@ function updHud(){
   el('wname').textContent=T(wpn().k);
   el('hpFill').style.transform='scaleX('+clamp(G.hp/G.maxhp,0,1)+')';
   el('hpNum').textContent=Math.max(0,Math.round(G.hp));
-  /* the magazine strip. A fraction rather than a fixed pip count, because the
-     mag upgrades change wMag() mid-run. _27: vertical on the mobile gun
-     strip (magVertQ), horizontal everywhere else -- same fraction, just a
-     different axis. */
-  el('magFill').style.transform=(magVertQ.matches?'scaleY(':'scaleX(')+clamp(G.ammo[G.curW]/Math.max(1,wMag()),0,1)+')';
+  /* the magazine. A fraction rather than a fixed pip count on the strip,
+     because the mag upgrades change wMag() mid-run. _30: on the phone's
+     thumb arc (magVertQ) it is the segmented ring round FIRE instead. */
+  if(magVertQ.matches) updRing();
+  else el('magFill').style.transform='scaleX('+clamp(G.ammo[G.curW]/Math.max(1,wMag()),0,1)+')';
   updLeft(); updSlots(); updMoney();
   syncSwapBtn();
+}
+/* _30: the ammo ring round FIRE on the phone. One segment per round up to
+   24 (a continuous arc past that), lit from 12 o'clock clockwise. Only the
+   two dash patterns change, and only when the mag or the count does. */
+const RING_C=2*Math.PI*53, RING_END=Math.ceil(RING_C)+1;
+let ringKey='';
+function updRing(){
+  const n=Math.max(1,wMag()), k=clamp(G.ammo[G.curW]|0,0,n), key=n+'/'+k;
+  if(key===ringKey) return;
+  const b=el('fireBtn'), trk=b&&b.querySelector('.trk'), lit=b&&b.querySelector('.lit');
+  if(!trk||!lit) return;
+  ringKey=key;
+  const seg=RING_C/n, gap=(n>1&&n<=24)?Math.min(seg*0.2,RING_C/60):0;
+  const d=(seg-gap).toFixed(2), g=gap.toFixed(2), off=(-gap/2).toFixed(2);
+  trk.setAttribute('stroke-dasharray', gap?d+' '+g:'none');
+  trk.setAttribute('stroke-dashoffset', off);
+  let s;
+  if(!k) s='0 '+RING_END;
+  else if(gap) s=(d+' '+g+' ').repeat(k)+'0 '+RING_END;
+  else s=(k*seg).toFixed(2)+' '+RING_END;
+  lit.setAttribute('stroke-dasharray', s);
+  lit.setAttribute('stroke-dashoffset', off);
 }
 /* _15: enemies left. G already knew this (alive + the spawn queue); the HUD
    just never said it, so you were guessing whether to push or hold. */
@@ -7920,7 +8006,12 @@ function updChain(){
     el('chainV').innerHTML='&times;'+G.combo;
     w.classList.toggle('on',G.combo>1);
   }
-  if(G.combo>1) el('chainBar').firstElementChild.style.width=clamp(G.comboT/3,0,1)*100+'%';
+  if(G.combo>1){
+    const f=clamp(G.comboT/3,0,1), i=el('chainBar').firstElementChild;
+    /* _30: LITE scales the bar (own layer, no layout or repaint); FULL keeps
+       the width, pixel-identical to _29 */
+    if(fxLite) i.style.transform='scaleX('+f+')'; else i.style.width=f*100+'%';
+  }
 }
 /* The coverage meter changes on almost every trigger pull, so it runs off the
    frame loop rather than updHud — but only writes to the DOM when a displayed
@@ -9313,7 +9404,7 @@ const CONF=makeList(el('abList'),{ tick:function(){ A.init(); A.resume(); A.mtic
 
 /* ---------- options ---------- */
 function toggleFx(){
-  fxLite=!fxLite; applyFx(); syncFxLabels();
+  fxLite=!fxLite; applyFx(); syncFxLabels(); fxResize();
   try{ localStorage.setItem('np_fx', fxLite?'1':'0'); }catch(err){}
   if(G&&G.parts.length>FX.cap) G.parts.length=FX.cap;
 }
