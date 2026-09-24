@@ -95,6 +95,31 @@
   #perfHud b.low{color:#ff4f86;}
   /* a phone has 390 px of height: keep the meter to about a quarter of it */
   @media (pointer:coarse){ #perfHud{font-size:11px;padding:4px 7px;} }
+  /* _31: on EFFECTS LITE during a run, the scanlines, the vignette and the
+     hit flash are drawn into the 1x canvas (drawOverlays) instead of being
+     three full-screen layers the phone composites at device pixels. */
+  html.ovc #crt,html.ovc #vig,html.ovc #dmgv{display:none;}
+  /* _31: FPS REPORT sheet (PAUSE, only while FPS METER is on) */
+  #ovPerfRep{z-index:21;align-items:center;justify-content:center;background:rgba(4,0,14,.82);}
+  #ovPerfRep .prBox{display:flex;flex-direction:column;width:min(92vw,1100px);height:min(88svh,820px);
+    border:1px solid rgba(182,255,0,.45);background:rgba(4,0,14,.9);box-shadow:0 0 18px rgba(182,255,0,.18);}
+  #ovPerfRep .prHead{font:800 18px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.08em;
+    color:#b6ff00;padding:12px 14px 8px;}
+  #prText{flex:1;margin:0;padding:6px 14px 10px;overflow:auto;white-space:pre-wrap;word-break:break-word;
+    font:500 13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#d8ff7a;
+    -webkit-user-select:text;user-select:text;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+  #ovPerfRep .prBtns{display:flex;gap:10px;padding:10px 14px 12px;border-top:1px solid rgba(182,255,0,.22);}
+  #ovPerfRep .prB{flex:1;min-height:44px;font:800 16px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;
+    color:#04000e;background:#b6ff00;border:0;cursor:pointer;}
+  #ovPerfRep .prB.ghost{background:transparent;color:#d8ff7a;border:1px solid rgba(182,255,0,.5);}
+  #ovPerfRep .prB.warn{background:#ff4f86;color:#fff;}
+  @media (pointer:coarse){
+    #ovPerfRep .prBox{width:calc(100vw - 24px);height:calc(100svh - 16px);}
+    #ovPerfRep .prHead{font-size:14px;padding:8px 12px 4px;}
+    #prText{font-size:11px;padding:4px 12px 6px;}
+    #ovPerfRep .prBtns{padding:6px 12px 8px;}
+    #ovPerfRep .prB{min-height:38px;font-size:14px;}
+  }
   #vig{position:absolute;inset:0;pointer-events:none;z-index:6;
     background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(10,0,25,.78) 100%);}
   #dmgv{position:absolute;inset:0;pointer-events:none;z-index:7;opacity:0;
@@ -725,6 +750,8 @@
   #pStats{left:calc(65 * var(--u));top:calc(268 * var(--u));width:calc(940 * var(--u));height:calc(128 * var(--u));}
   #pStats .nstats{position:absolute;inset:0 calc(40 * var(--u));}
   #pausePanel{left:calc(75 * var(--u));top:calc(440 * var(--u));width:calc(940 * var(--u));height:calc(45 * var(--u) + 4 * var(--pitch) + 35 * var(--u));}
+  /* _31: the FPS REPORT row adds a fifth row while the FPS METER is on */
+  #pausePanel.five{height:calc(45 * var(--u) + 5 * var(--pitch) + 35 * var(--u));}
   #pFoot{left:calc(65 * var(--u));top:calc(1010 * var(--u));height:calc(85 * var(--u));padding:0 calc(60 * var(--u)) 0 calc(65 * var(--u));}
   #pFoot .dot{margin:0 calc(22 * var(--u));opacity:.5;}
   #pFoot .v{font-size:calc(60 * var(--u));margin-right:0;}
@@ -1166,10 +1193,24 @@
         <div class="nrow" id="resumeBtn" data-act="resume"><i class="chev"></i><span class="nlab" data-t="RESUME">RESUME</span><span class="naux" data-t="K_ESC">ESC</span></div>
         <div class="nrow" id="pOptBtn" data-act="options"><i class="chev"></i><span class="nlab" data-t="M_OPTIONS">OPTIONS</span><span class="naux" data-t="M_OPTSUB">AUDIO · FX · LANGUAGE</span></div>
         <div class="nrow" id="pCtrlBtn" data-act="controls"><i class="chev"></i><span class="nlab" data-t="M_CONTROLS">CONTROLS</span><span class="naux" data-t="M_CTRLSUB">KEYS · TOUCH</span></div>
+        <div class="nrow hide" id="pPerfBtn" data-act="perfrep"><i class="chev"></i><span class="nlab" data-t="O_PREP">FPS REPORT</span><span class="naux" data-t="PR_SUB">WORST HITCHES</span></div>
         <div class="nrow danger" id="quitBtn" data-act="abandon"><i class="chev"></i><span class="nlab" data-t="ABANDON">ABANDON RUN</span></div>
       </div>
     </div>
     <div class="nband" id="pFoot"><div class="bandbg"></div><span class="k" id="pvArena">THE BLOCK</span><span class="k dot">·</span><span class="k" data-t="P_BEST">BEST</span><span class="v" id="pvBest">0</span></div>
+  </div>
+
+  <!-- _31: FPS REPORT -- the FPS METER's black box, readable and copyable -->
+  <div class="ov" id="ovPerfRep">
+    <div class="prBox">
+      <div class="prHead" data-t="O_PREP">FPS REPORT</div>
+      <pre id="prText"></pre>
+      <div class="prBtns">
+        <button class="prB" id="prCopy" data-t="PR_COPY">COPY</button>
+        <button class="prB ghost" id="prClear" data-t="PR_CLEAR">CLEAR</button>
+        <button class="prB ghost" id="prBack" data-t="M_BACK">BACK</button>
+      </div>
+    </div>
   </div>
 
   <div class="ov" id="ovDead">
@@ -1302,6 +1343,8 @@ en:{
   O_AU0:'ALL ON', O_AU1:'SFX ONLY', O_AU2:'MUSIC ONLY', O_AU3:'MUTED',
   O_FXF:'FULL', O_FXL:'LITE', O_LANGV:'ENGLISH', O_ON:'ON', O_OFF:'OFF',
   O_FPS:'FRAME RATE', O_FPS60:'60 FPS', O_FPSMAX:'MAX', O_PERF:'FPS METER',
+  O_PREP:'FPS REPORT', PR_SUB:'WORST HITCHES', PR_COPY:'COPY', PR_COPIED:'COPIED', PR_CLEAR:'CLEAR', PR_SURE:'SURE?',
+  PR_NOCOPY:'SELECT + COPY', PR_EMPTY:'Nothing recorded yet. Keep FPS METER on and play a run.',
   C_KEYS:'KEYBOARD', C_TOUCH:'TOUCH',
   CT_FIRE:'HOLD TO SHOOT', CT_RELOAD:'RELOAD', CT_SWAPK:'SWAP', CT_SWAP:'NEXT WEAPON',
   CT_BREACH:'BREACH A WALL', CT_COVER:'TAKE COVER', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSE',
@@ -1439,6 +1482,8 @@ es:{
   O_AU0:'TODO', O_AU1:'SOLO EFECTOS', O_AU2:'SOLO MÚSICA', O_AU3:'SILENCIO',
   O_FXF:'COMPLETOS', O_FXL:'LIGEROS', O_LANGV:'ESPAÑOL', O_ON:'SÍ', O_OFF:'NO',
   O_FPS:'FOTOGRAMAS', O_FPS60:'60 FPS', O_FPSMAX:'MÁX', O_PERF:'MEDIDOR FPS',
+  O_PREP:'INFORME FPS', PR_SUB:'PEORES TIRONES', PR_COPY:'COPIAR', PR_COPIED:'COPIADO', PR_CLEAR:'BORRAR', PR_SURE:'¿SEGURO?',
+  PR_NOCOPY:'SELECCIONA Y COPIA', PR_EMPTY:'Aún no hay nada grabado. Deja el MEDIDOR FPS encendido y juega una partida.',
   C_KEYS:'TECLADO', C_TOUCH:'TÁCTIL',
   CT_FIRE:'DISPARAR', CT_RELOAD:'RECARGAR', CT_SWAPK:'CAMBIO', CT_SWAP:'SIGUIENTE ARMA',
   CT_BREACH:'ABRIR UN MURO', CT_COVER:'A CUBIERTO', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSA',
@@ -3786,7 +3831,8 @@ function togglePerf(){
 function pfRaw(d){ PF.raws[PF.ri]=d; PF.ri=(PF.ri+1)&63; if(PF.rn<64) PF.rn++; }
 function pfFrame(ts,js){
   const iv=PF.lastTs?ts-PF.lastTs:0; PF.lastTs=ts;
-  if(!PF.t0){ PF.t0=ts; PF.acc.fill(0); PF.frames=0; PF.jsSum=0; PF.jsMax=0; PF.ivMax=0; PF.slow=0; return; }
+  bbFrame(ts,js);
+  if(!PF.t0){ PF.t0=ts; PF.acc.fill(0); BB.accPrev.fill(0); PF.frames=0; PF.jsSum=0; PF.jsMax=0; PF.ivMax=0; PF.slow=0; return; }
   PF.frames++; PF.jsSum+=js; if(js>PF.jsMax) PF.jsMax=js;
   if(iv>PF.ivMax) PF.ivMax=iv;
   if(iv>PF.want*1.5) PF.slow++;               /* "late": 50% past the expected gap */
@@ -3817,12 +3863,237 @@ function pfShow(ts){
         'update '+f(a[0])+'  floor '+f(a[1])+'\n'+
         'walls '+f(a[2])+'  enemies '+f(a[4])+'\n'+
         'fx '+f(a[5])+'  other '+f(a[3]+a[6])+'\n'+
-        'blit '+f(a[7])+'  gun '+f(a[8])+'\n'+
-        RW+'x'+RH+' > '+view.width+'x'+view.height;
+        'blit '+f(a[7])+(fxLite?'  gun+ovl ':'  gun ')+f(a[8])+'\n'+
+        RW+'x'+RH+' > '+view.width+'x'+view.height+
+        (BB.cur?'\nREC '+BB.cur.hits.length+' hitch'+(BB.cur.hits.length===1?'':'es')+
+          (BB.cur.hits.length?'  worst '+Math.round(BB.cur.hits[0].gap)+' ms':''):'');
+    }
+    bbSecond(ts,show);
+  }
+  PF.t0=ts; PF.acc.fill(0); BB.accPrev.fill(0); PF.frames=0; PF.jsSum=0; PF.jsMax=0; PF.ivMax=0; PF.slow=0;
+}
+
+/* ==========================================================================
+   _31: FPS METER BLACK BOX
+   Carlos: "it relies on me taking a screenshot in the exact second a hard
+   drop happens". While the FPS METER is on, every run is recorded: the 10
+   worst hitches (a burst of late frames within half a second counts once,
+   by its worst frame), the 5 worst seconds, and a histogram of every gap.
+   For a hitch, the frame BEFORE it is what ran long, so its JS split is
+   kept; "outside JS" is the part of the gap our code never saw (browser,
+   GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
+   localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
+   shows it with a COPY button. Nothing here runs while the meter is off. */
+const BUILD='_31';
+const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
+  accPrev:new Float64Array(9), sl:new Float32Array(9), prevSl:new Float32Array(9), prevJs:0,
+  kT:new Float64Array(128), kN:new Int32Array(128), ki:0, heap:0, lt:[], secClean:true,
+  secEn:0, secK0:-1, ep:null};
+try{ const j=JSON.parse(localStorage.getItem('np_bb')||'null'); if(j&&j.v===1&&Array.isArray(j.runs)) BB.runs=j.runs; }catch(e){}
+try{
+  if(typeof PerformanceObserver!=='undefined'&&PerformanceObserver.supportedEntryTypes&&
+     PerformanceObserver.supportedEntryTypes.indexOf('longtask')>=0){
+    new PerformanceObserver(l=>{ if(!PF.on) return;
+      for(const en of l.getEntries()){ BB.lt.push(en.startTime,en.duration); }
+      if(BB.lt.length>400) BB.lt.splice(0,BB.lt.length-400);
+    }).observe({entryTypes:['longtask']});
+    BB.ltOk=true;
+  }
+}catch(e){}
+function bbDevice(){
+  const ua=navigator.userAgent||'';
+  let d=(ua.match(/Android [^;)]+(;[^;)]+)?/)||ua.match(/(iPhone|iPad)[^;)]*;[^;)]*OS [\d_]+/)||ua.match(/Mac OS X [\d_.]+/)||ua.match(/Windows NT [\d.]+/)||ua.match(/CrOS [^;)]+|Linux [^;)]+/)||[''])[0];
+  d=d.replace(/; wv$/,''); if(/OS/.test(d)) d=d.replace(/_/g,'.'); d=d.trim()||'unknown';
+  const br=(ua.match(/(SamsungBrowser|Firefox|CriOS|Chrome|Version)\/[\d]+/)||[''])[0].replace('Version/','Safari/');
+  return d+(br?' · '+br:'')+(navigator.hardwareConcurrency?' · '+navigator.hardwareConcurrency+' cores':'')+
+    (navigator.deviceMemory?' · '+navigator.deviceMemory+' GB':'');
+}
+function bbWhere(){
+  if(!G) return '';
+  const a=REALM[0]&&REALM[0].geo?T(REALM[0].geo.arena.k):'';
+  return G.inGal?'GALLERY':(G.inGrove?'GROVE (from '+a+')':a);
+}
+function bbNewRun(){
+  if(BB.cur) bbSave(true);
+  const now=new Date(), p=n=>(n<10?'0':'')+n;
+  BB.cur={b:BUILD, when:now.getFullYear()+'-'+p(now.getMonth()+1)+'-'+p(now.getDate())+' '+p(now.getHours())+':'+p(now.getMinutes()),
+    dev:bbDevice(), scr:innerWidth+'x'+innerHeight+' @'+(Math.round((devicePixelRatio||1)*100)/100)+'x',
+    hz:0, set:'', where:bbWhere(), wave:0, play:0, frames:0, late:0, hist:[0,0,0,0,0], hits:[], secs:[], fxs:{}};
+  BB.curG=G; BB.ep=null; BB.lastTs=0; BB.heap=0;
+  BB.runs.unshift(BB.cur); if(BB.runs.length>5) BB.runs.length=5;
+  BB.dirty=true;
+}
+function bbSettings(){
+  return (fxLite?'LITE':'FULL')+' · '+(fpsCap?'CAP 60':'NO CAP')+' · game '+RW+'x'+RH+' > canvas '+view.width+'x'+view.height;
+}
+const bbR=v=>Math.round(v*10)/10;
+function bbFrame(ts,js){
+  /* this frame's split, from the running per-second totals */
+  const a=PF.acc, ap=BB.accPrev, sl=BB.sl;
+  for(let i=0;i<9;i++){ sl[i]=a[i]-ap[i]; ap[i]=a[i]; }
+  if(!G||G.mode!=='play'){ BB.lastTs=0; BB.secClean=false; BB.prevJs=js; BB.prevSl.set(sl); return; }
+  if(BB.curG!==G) bbNewRun();
+  const r=BB.cur, gap=BB.lastTs?ts-BB.lastTs:0; BB.lastTs=ts;
+  /* kills in the last second: a ring of (time, kill count) per frame */
+  BB.kT[BB.ki]=ts; BB.kN[BB.ki]=G.kills; BB.ki=(BB.ki+1)&127;
+  let k1=0; for(let i=0;i<128;i++){ const t=BB.kT[i]; if(t&&ts-t<=1000){ const d=G.kills-BB.kN[i]; if(d>k1) k1=d; } }
+  let gc=0;
+  if(performance.memory){ const h=performance.memory.usedJSHeapSize; if(BB.heap&&BB.heap-h>1048576) gc=(BB.heap-h)/1048576; BB.heap=h; }
+  const n=G.alive.length; if(n>BB.secEn) BB.secEn=n;
+  if(gap>0){
+    r.frames++; r.play+=gap; r.wave=Math.max(r.wave,G.wave||0);
+    const hb=gap<20?0:gap<34?1:gap<50?2:gap<100?3:4; r.hist[hb]++;
+    if(!r.hz&&PF.rn>=32){ const q=PF.raws.slice(0,PF.rn).sort(); r.hz=Math.round(1000/q[q.length>>1]); }
+    const st=bbSettings(); r.fxs[st]=(r.fxs[st]||0)+1;
+    if(gap>PF.want*1.5){
+      r.late++;
+      let close=0; for(let i=0;i<n;i++){ const e=G.alive[i], dx=e.x-G.px, dy=e.y-G.py; if(dx*dx+dy*dy<9) close++; }
+      const snap={gap:bbR(gap), at:Math.round(r.play/1000), pj:bbR(BB.prevJs), ps:Array.from(BB.prevSl,bbR), js:bbR(js),
+        wave:G.wave, where:bbWhere(), en:n, close:close, parts:G.parts.length, rk:G.rockets.length, k1:k1, chain:G.combo,
+        w:(WEAPONS[G.curW]||{}).name||'', fire:!!(mouse.down||tFire), hit:G.flash>0, gc:bbR(gc), snd:A.voices|0,
+        fx:fxLite?'LITE':'FULL', t0:ts-gap, t1:ts};
+      const ep=BB.ep;
+      if(ep&&ts-ep.tEnd<500){
+        ep.n++; ep.tEnd=ts; ep.span=Math.round(ts-ep.tStart);
+        if(snap.gap>ep.gap){ const keep={n:ep.n,tStart:ep.tStart,tEnd:ep.tEnd,span:ep.span}; for(const k in ep) delete ep[k]; Object.assign(ep,snap,keep); }
+        if(ep.gc<gc) ep.gc=bbR(gc);
+      } else {
+        const e2=Object.assign(snap,{n:1,tStart:ts,tEnd:ts,span:0});
+        BB.ep=e2; r.hits.push(e2);
+      }
+      r.hits.sort((x,y)=>y.gap-x.gap); if(r.hits.length>10) r.hits.length=10;
+      BB.dirty=true;
     }
   }
-  PF.t0=ts; PF.acc.fill(0); PF.frames=0; PF.jsSum=0; PF.jsMax=0; PF.ivMax=0; PF.slow=0;
+  BB.prevJs=js; BB.prevSl.set(sl);
+  if(BB.dirty&&ts-BB.saveT>3000) bbSave();
 }
+/* one second of meter totals; kept when it is among the 5 worst */
+function bbSecond(ts,show){
+  const r=BB.cur;
+  if(r&&show&&BB.secClean&&BB.curG===G&&PF.frames>10){
+    const n=Math.max(1,PF.frames), a=PF.acc, fps=Math.round(PF.frames*1000/(ts-PF.t0));
+    const sec={fps:fps, late:PF.slow, ja:bbR(PF.jsSum/n), jm:bbR(PF.jsMax), worst:Math.round(PF.ivMax),
+      s:Array.from(a,v=>bbR(v/n)), fx:fxLite?'LITE':'FULL', en:BB.secEn, k:BB.secK0>=0?G.kills-BB.secK0:0, at:Math.round(r.play/1000), wave:G.wave};
+    if(sec.late>0||sec.fps<Math.round(1000/PF.want)*0.95) r.secs.push(sec);
+    r.secs.sort((x,y)=>(x.fps-y.fps)||(y.late-x.late)); if(r.secs.length>5) r.secs.length=5;
+    BB.dirty=true;
+  }
+  BB.secClean=true; BB.secEn=G&&G.alive?G.alive.length:0; BB.secK0=G?G.kills:-1;
+}
+function bbLongTasks(){
+  const L=BB.lt;
+  for(const r of BB.runs) for(const h of r.hits){
+    if(h.lt!==undefined||!h.t1) continue;
+    if(!BB.ltOk){ h.lt=-1; continue; }
+    if(performance.now()-h.t1<800&&r===BB.cur) continue;   /* entries arrive a little late */
+    let m=0; for(let i=0;i<L.length;i+=2){ const s0=L[i], s1=L[i]+L[i+1]; if(s1>h.t0&&s0<h.t1) m+=L[i+1]; }
+    h.lt=Math.round(m);
+  }
+}
+function bbSave(force){
+  if(!BB.dirty&&!force) return;
+  BB.saveT=performance.now(); BB.dirty=false;
+  try{ bbLongTasks(); }catch(e){}
+  try{ localStorage.setItem('np_bb',JSON.stringify({v:1,runs:BB.runs})); }catch(e){}
+}
+addEventListener('pagehide',()=>{ if(PF.on) bbSave(true); });
+addEventListener('visibilitychange',()=>{ if(document.hidden&&PF.on) bbSave(true); });
+const bbT=s=>{ s=s|0; return Math.floor(s/60)+':'+((s%60)<10?'0':'')+(s%60); };
+function bbSl(v,lite){
+  const nm=['update','floor','walls','list','enemies','fx','other','blit','gun'], out=[];
+  const o=v.slice(); o[6]=bbR((o[3]||0)+(o[6]||0));
+  for(const i of [1,2,4,0,5,6,7,8]) if(o[i]>=0.1) out.push((i===8&&lite?'gun+ovl':nm[i])+' '+o[i].toFixed(1));
+  return out.join(' ');
+}
+function bbText(){
+  bbLongTasks();
+  if(!BB.runs.length) return T('PR_EMPTY');
+  const L=[];
+  L.push('NEON PAIN-T '+BUILD+' · FPS REPORT · '+BB.runs.length+' run'+(BB.runs.length>1?'s':'')+' (newest first)');
+  L.push('gap = time between two frames; 16.7 ms is a perfect 60 FPS frame.');
+  BB.runs.forEach((r,ri)=>{
+    L.push('');
+    L.push('RUN '+(ri+1)+' · '+r.b+' · '+r.when+' · '+bbT(r.play/1000)+' played · '+r.where+' · wave '+r.wave);
+    L.push('device: '+r.dev+' · screen '+r.scr+(r.hz?' · '+r.hz+' Hz':''));
+    const sets=Object.keys(r.fxs||{}).sort((x,y)=>r.fxs[y]-r.fxs[x]);
+    L.push('settings: '+(sets.length?sets.map(k=>k+(sets.length>1?' ('+Math.round(100*r.fxs[k]/Math.max(1,r.frames))+'%)':'')).join(' | '):'-'));
+    const h=r.hist;
+    L.push('frames '+r.frames+' · late '+r.late+' ('+(r.frames?(100*r.late/r.frames).toFixed(1):'0')+'%) · gaps <20ms '+h[0]+' | 20-34 '+h[1]+' | 34-50 '+h[2]+' | 50-100 '+h[3]+' | 100+ '+h[4]);
+    if(!r.hits.length) L.push('WORST HITCHES: none');
+    else {
+      L.push('WORST HITCHES');
+      r.hits.forEach((x,i)=>{
+        L.push(' '+(i+1)+') '+Math.round(x.gap)+' ms at '+bbT(x.at)+(x.n>1?' · burst of '+x.n+' late frames over '+(x.span<1000?x.span+' ms':(x.span/1000).toFixed(1)+' s'):'')+
+          (x.at<3?' · run start':'')+' · '+x.fx);
+        L.push('    frame before: JS '+x.pj.toFixed(1)+' ms ('+bbSl(x.ps,x.fx==='LITE')+') · outside JS '+Math.max(0,Math.round(x.gap-x.pj))+' ms');
+        L.push('    this frame: JS '+x.js.toFixed(1)+' ms'+(x.gc>0?' · GC freed '+x.gc.toFixed(1)+' MB':'')+
+          (x.lt>0?' · long task '+x.lt+' ms':(x.lt===0?' · no long task':''))+' · sounds '+x.snd);
+        L.push('    wave '+x.wave+' '+x.where+' · '+x.en+' enemies ('+x.close+' within 3) · '+x.k1+' kills last 1 s · chain x'+x.chain+
+          ' · '+x.parts+' particles'+(x.rk?' · '+x.rk+' rockets':'')+' · '+x.w+(x.fire?' firing':'')+(x.hit?' · hit flash':''));
+      });
+    }
+    if(r.secs.length){
+      L.push('WORST SECONDS');
+      r.secs.forEach((x,i)=>{
+        L.push(' '+(i+1)+') '+x.fps+' FPS at '+bbT(x.at)+' · wave '+x.wave+' · late '+x.late+' · worst '+x.worst+' ms · JS avg '+x.ja.toFixed(1)+' max '+x.jm.toFixed(1)+
+          ' · '+bbSl(x.s,x.fx==='LITE')+' · up to '+x.en+' enemies · '+x.k+' kills');
+      });
+    }
+  });
+  return L.join('\n');
+}
+/* ---- the FPS REPORT sheet ---- */
+function prOpen(){ return el('ovPerfRep').classList.contains('on'); }
+function syncPauseRows(){
+  const b=el('pPerfBtn'); if(!b) return;
+  b.classList.toggle('hide',!PF.on);
+  el('pausePanel').classList.toggle('five',PF.on);
+}
+function openPerfRep(){
+  if(!G||G.mode!=='paused') return;
+  A.init(); A.resume(); A.swap();
+  bbSave(true);
+  el('prText').textContent=bbText(); el('prText').scrollTop=0;
+  prClearArm=0; paintPrBtns();
+  el('ovPause').classList.remove('on');
+  el('ovPerfRep').classList.add('on');
+}
+function closePerfRep(){
+  el('ovPerfRep').classList.remove('on');
+  el('ovPause').classList.add('on'); syncPauseRows(); NEON.paint(ovPause); if(PAUSE) PAUSE.reset();
+  A.init(); A.resume(); A.swap();
+}
+let prClearArm=0, prCopied=0;
+function paintPrBtns(){
+  el('prClear').textContent=T(prClearArm?'PR_SURE':'PR_CLEAR'); el('prClear').classList.toggle('warn',!!prClearArm);
+  el('prCopy').textContent=T(prCopied===1?'PR_COPIED':prCopied===2?'PR_NOCOPY':'PR_COPY');
+}
+function prCopy(){
+  const txt=el('prText').textContent;
+  const done=ok=>{ prCopied=ok?1:2; paintPrBtns(); setTimeout(()=>{ prCopied=0; paintPrBtns(); },1800); };
+  const fallback=()=>{
+    try{
+      const ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly','');
+      ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0,txt.length);
+      const ok=document.execCommand('copy'); ta.remove(); done(ok);
+    }catch(e){ done(false); }
+    if(prCopied===2){ const rg=document.createRange(); rg.selectNodeContents(el('prText')); const se=getSelection(); se.removeAllRanges(); se.addRange(rg); }
+  };
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>done(true),fallback); return; } }catch(e){}
+  fallback();
+}
+document.getElementById('prCopy').addEventListener('click',e=>{ e.stopPropagation(); prCopy(); });
+document.getElementById('prBack').addEventListener('click',e=>{ e.stopPropagation(); closePerfRep(); });
+document.getElementById('prClear').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(!prClearArm){ prClearArm=setTimeout(()=>{ prClearArm=0; paintPrBtns(); },2500); paintPrBtns(); return; }
+  clearTimeout(prClearArm); prClearArm=0;
+  BB.runs=[]; BB.cur=null; BB.curG=null; BB.ep=null;
+  try{ localStorage.removeItem('np_bb'); }catch(err){}
+  el('prText').textContent=bbText(); paintPrBtns();
+});
 addEventListener('resize',()=>{ PF.placed=false; },{passive:true});
 
 /* pooled entries for the per-frame sprite list — see the note where it is
@@ -4031,6 +4302,56 @@ function ageCeiling(){
    the splat actually touches, four records each, and no global cap at all. */
 let floorSplats=null;
 const BSUB=2, BW=MW*BSUB, BH=MH*BSUB, BCAP=4;
+/* _31: BAKED FLOOR PAINT (EFFECTS LITE). A painted pixel used to test every
+   record in its bucket (up to 4 x 3 lobes). Blending a stack of lerps is
+   r = r0*T + P (T = product of (1-al), P the paint carried through), so each
+   bucket can hold T and P per texel and a pixel becomes one lookup whatever
+   the base tile colour is. 32 x 32 texels per half-cell bucket = 1/64 of a
+   cell. Packed: T*255 in the top byte, P in rgb; 0 = no paint here.
+   New splats are composited onto a clean bake in place (they are always the
+   top of the stack); a full re-bake happens when paint dries or the bucket
+   was never baked, at most BAKE_MAX per frame (the rest draw the old way
+   that frame). A splat BCAP pushes out of the bucket stays in the bake until
+   the next full re-bake. */
+const BK=32, BKS=5, BKM=31, TS=BSUB*BK, BAKE_MAX=6;
+function bakeRec(bk,bx,by,rec){
+  const L=rec.l, kk=rec.k, pr=rec.cr*kk, pg=rec.cg*kk, pb=rec.cb*kk;
+  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  for(let q=0;q<9;q+=3){ const rr=Math.sqrt(L[q+2]);
+    if(L[q]-rr<minx) minx=L[q]-rr; if(L[q]+rr>maxx) maxx=L[q]+rr;
+    if(L[q+1]-rr<miny) miny=L[q+1]-rr; if(L[q+1]+rr>maxy) maxy=L[q+1]+rr; }
+  const ox=bx*BK, oy=by*BK;
+  const tx0=Math.max(0,Math.floor(minx*TS)-ox), tx1=Math.min(BKM,Math.ceil(maxx*TS)-ox);
+  const ty0=Math.max(0,Math.floor(miny*TS)-oy), ty1=Math.min(BKM,Math.ceil(maxy*TS)-oy);
+  for(let ty=ty0;ty<=ty1;ty++){
+    const wy=(oy+ty+0.5)/TS;
+    for(let tx=tx0;tx<=tx1;tx++){
+      const wx=(ox+tx+0.5)/TS;
+      let hit=false, Tt=1, r=0, g=0, b=0;
+      for(let q=0;q<9;q+=3){
+        const ddx=wx-L[q], ddy=wy-L[q+1], d2=ddx*ddx+ddy*ddy;
+        if(d2<L[q+2]){
+          if(!hit){ hit=true; const v=bk[(ty<<BKS)|tx];
+            if(v){ Tt=(v>>>24)/255; r=v&255; g=(v>>>8)&255; b=(v>>>16)&255; } }
+          const al=clamp((1-d2/L[q+2])*FLOOR_EDGE,0,1);
+          Tt*=1-al; r+=(pr-r)*al; g+=(pg-g)*al; b+=(pb-b)*al;
+        }
+      }
+      if(hit) bk[(ty<<BKS)|tx]=bkPack(Tt,r,g,b);
+    }
+  }
+}
+function bkPack(Tt,r,g,b){
+  let t=Math.round(Tt*255); if(t>255) t=255;
+  const R=Math.round(r), Gg=Math.round(g), B=Math.round(b);
+  if(t===255&&!R&&!Gg&&!B) return 0;
+  return (((t<<24)|((B&255)<<16)|((Gg&255)<<8)|(R&255))>>>0)||1;
+}
+function bakeBucket(b,bx,by){
+  let bk=b.bk; if(!bk) bk=b.bk=new Uint32Array(BK*BK); else bk.fill(0);
+  for(let i=0;i<b.length;i++) bakeRec(bk,bx,by,b[i]);
+  b.bd=0;
+}
 function addFloorSplat(x,y,col,r,seed,noCov){
   if(x<0||y<0||x>=MW||y>=MH) return;
   const rnd=mulberry32(seed|0), wl=[];
@@ -4048,6 +4369,8 @@ function addFloorSplat(x,y,col,r,seed,noCov){
     const c=by*BW+bx, b=floorSplats[c]||(floorSplats[c]=[]);
     b.push(rec);
     if(b.length>BCAP) b.shift();
+    /* _31: keep a clean bake current (the new record is the top layer) */
+    if(b.bk&&!b.bd) bakeRec(b.bk,bx,by,rec); else b.bd=1;
   }
   if(!noCov) markCovLobes(wl,FLOOR_EDGE,0);
 }
@@ -4123,7 +4446,7 @@ function ageFloor(){
       b[j].k = st?WET_K:DRY_K;
       b[n++]=b[j];
     }
-    b.length=n;
+    b.length=n; b.bd=1;           /* _31: drying changes the colours: re-bake */
     if(!n) floorSplats[i]=null;
   }
 }
@@ -4744,6 +5067,8 @@ function render(){
   const W=RW,H=RH;
   /* _29: FPS METER section timers -- skipped entirely when the meter is off */
   const pfOn=PF.on; let pt=pfOn?performance.now():0, pc=-1;
+  setOvc(fxLite);
+  const lite=fxLite; let bakeLeft=BAKE_MAX;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
   const pitchPx=clamp(G.pitch,-0.42,0.42)*H;
@@ -4798,6 +5123,49 @@ function render(){
     const pk=c=>(0xFF000000|((((c[2]*fi+fB)>>8)&255)<<16)|((((c[1]*fi+fG)>>8)&255)<<8)|(((c[0]*fi+fR)>>8)&255))>>>0;
     const PLA=pk(RL.lineA), PLB=pk(RL.lineB), PTA=pk(RL.tileA), PTB=pk(RL.tileB), POOB=pk(RL.oob);
     const lw1=1-lineW;
+    if(lite){
+      /* _31: baked floor paint -- see BK. Same tile maths as below. */
+      for(let x=0;x<W;x++){
+        const cx=fx|0, cy=fy|0;
+        if(fx<0||fy<0||cx>=MW||cy>=MH){ buf[row+x]=POOB; fx+=stepX; fy+=stepY; continue; }
+        const ux=fx-cx, uy=fy-cy;
+        const alt=(cx+cy)&1;
+        const onLine=(ux<lineW||ux>lw1||uy<lineW||uy>lw1);
+        const gx=(fx*TS)|0, gy=(fy*TS)|0;
+        const bucket=floorSplats[(gy>>BKS)*BW+(gx>>BKS)];
+        if(!bucket){ buf[row+x]=onLine?(alt?PLA:PLB):(alt?PTA:PTB); fx+=stepX; fy+=stepY; continue; }
+        let bk=bucket.bk;
+        if(bucket.bd||!bk){
+          if(bakeLeft>0){ bakeBucket(bucket,gx>>BKS,gy>>BKS); bakeLeft--; bk=bucket.bk; } else bk=null;
+        }
+        const c4 = onLine ? (alt?RL.lineA:RL.lineB) : (alt?RL.tileA:RL.tileB);
+        let r=c4[0], g=c4[1], b=c4[2];
+        if(bk){
+          const v=bk[((gy&BKM)<<BKS)|(gx&BKM)];
+          if(!v){ buf[row+x]=onLine?(alt?PLA:PLB):(alt?PTA:PTB); fx+=stepX; fy+=stepY; continue; }
+          const t=v>>>24;
+          r=((r*t+127)/255|0)+(v&255); g=((g*t+127)/255|0)+((v>>>8)&255); b=((b*t+127)/255|0)+((v>>>16)&255);
+        } else {
+          for(let s=0;s<bucket.length;s++){
+            const rec=bucket[s], L=rec.l;
+            for(let q=0;q<9;q+=3){
+              const ddx=fx-L[q], ddy=fy-L[q+1], d2=ddx*ddx+ddy*ddy;
+              if(d2<L[q+2]){
+                const al=clamp((1-d2/L[q+2])*FLOOR_EDGE,0,1);
+                const kk=rec.k;
+                r+=(rec.cr*kk-r)*al; g+=(rec.cg*kk-g)*al; b+=(rec.cb*kk-b)*al;
+              }
+            }
+          }
+        }
+        buf[row+x]=(0xFF000000|
+          ((((b*fi+FOGB*ifi)>>8)&255)<<16)|
+          ((((g*fi+FOGG*ifi)>>8)&255)<<8)|
+          (((r*fi+FOGR*ifi)>>8)&255))>>>0;
+        fx+=stepX; fy+=stepY;
+      }
+      continue;
+    }
     for(let x=0;x<W;x++){
       const cx=fx|0, cy=fy|0;
       let r,g,b;
@@ -5268,6 +5636,19 @@ function render(){
   const shy=(Math.random()-0.5)*G.shake*dh*0.022;
   vctx.setTransform(1,0,0,1,0,0);
   vctx.globalCompositeOperation='source-over'; vctx.globalAlpha=1;
+  if(lite){
+    /* _31: LITE adds the bloom into the small game image (RW x RH) before
+       the one upscale, instead of a second full-canvas additive pass. */
+    bloomCtx.imageSmoothingEnabled=true;
+    bloomCtx.clearRect(0,0,bloomCv.width,bloomCv.height);
+    bloomCtx.drawImage(rcv,0,0,bloomCv.width,bloomCv.height);
+    rctx.globalCompositeOperation='lighter'; rctx.globalAlpha=0.32;
+    rctx.imageSmoothingEnabled=true;
+    rctx.drawImage(bloomCv,0,0,RW,RH);
+    rctx.globalAlpha=1; rctx.globalCompositeOperation='source-over';
+    vctx.imageSmoothingEnabled=false;
+    vctx.drawImage(rcv,shx,shy,dw,dh);
+  } else {
   vctx.imageSmoothingEnabled=false;
   vctx.drawImage(rcv,shx,shy,dw,dh);
   bloomCtx.imageSmoothingEnabled=true;
@@ -5277,9 +5658,41 @@ function render(){
   vctx.imageSmoothingEnabled=true;
   vctx.drawImage(bloomCv,shx,shy,dw,dh);
   vctx.globalAlpha=1; vctx.globalCompositeOperation='source-over';
+  }
   if(pfOn){ const n=performance.now(); PF.acc[7]+=n-pt; pt=n; }
   drawGun(dw,dh);
+  if(lite) drawOverlays(dw,dh);
   if(pfOn) PF.acc[8]+=performance.now()-pt;
+}
+
+/* _31: the three screen overlays, drawn into the 1x LITE canvas. Built once
+   per canvas size: the #crt scanlines (4 px period, rows 2 and 3 darkened,
+   layer opacity .5) with the #vig vignette over them, and the #dmgv flash
+   drawn at the same opacity the DOM layer would get (G.flash * 0.8). CSS
+   'ellipse at center' = farthest-corner, so both radii are sqrt2 x half the
+   box. The gradients start at their end colour with alpha 0, which is what
+   CSS's premultiplied interpolation does with a transparent stop. */
+let ovcOn=false, ovCv=null, dmgCv=null;
+function setOvc(v){ if(v!==ovcOn){ ovcOn=v; document.documentElement.classList.toggle('ovc',v); } }
+function ovGrad(c,w,h,stop0,col0,col1){
+  c.save(); c.translate(w/2,h/2); c.scale(1,h/w);
+  const R=w/2*Math.SQRT2, g=c.createRadialGradient(0,0,0,0,0,R);
+  g.addColorStop(0,col0); g.addColorStop(stop0,col0); g.addColorStop(1,col1);
+  c.fillStyle=g; c.fillRect(-w/2,-w/2,w,w); c.restore();
+}
+function drawOverlays(dw,dh){
+  if(!ovCv||ovCv.width!==dw||ovCv.height!==dh){
+    ovCv=mkCv(dw,dh); const c=ovCv.getContext('2d');
+    c.fillStyle='rgba(0,0,0,0.0425)'; for(let y=2;y<dh;y+=4) c.fillRect(0,y,dw,1);
+    c.fillStyle='rgba(0,0,0,0.085)';  for(let y=3;y<dh;y+=4) c.fillRect(0,y,dw,1);
+    ovGrad(c,dw,dh,0.45,'rgba(10,0,25,0)','rgba(10,0,25,0.78)');
+    dmgCv=mkCv(dw,dh);
+    ovGrad(dmgCv.getContext('2d'),dw,dh,0.32,'rgba(255,0,90,0)','rgba(255,0,90,0.9)');
+  }
+  vctx.setTransform(1,0,0,1,0,0);
+  vctx.globalCompositeOperation='source-over'; vctx.globalAlpha=1;
+  vctx.drawImage(ovCv,0,0);
+  if(G.flash>0){ vctx.globalAlpha=clamp(G.flash,0,1)*0.8; vctx.drawImage(dmgCv,0,0); vctx.globalAlpha=1; }
 }
 
 /* ---------- SPLATTER GUN view model ----------
@@ -7735,6 +8148,8 @@ function setPaused(on){
     if(document.pointerLockElement) document.exitPointerLock();
     paintPauseStats();
     disarmEnd();
+    syncPauseRows();
+    if(PF.on) bbSave(true);
     ovPause.classList.add('on');
     NEON.paint(ovPause); if(PAUSE) PAUSE.reset();
     applyVolume();
@@ -8616,6 +9031,7 @@ function frame(ts){
        steps the arena model, which is both useful and cheaper. */
     G.t+=dt;
     A.tick(0.08);
+    setOvc(false);
     paintTitleGround();
     if(MODEL&&ovTitle.classList.contains('arenaLit')&&!ovTitle.classList.contains('bgOnly')) MODEL.step(dt);
     return;
@@ -9371,6 +9787,7 @@ const PAUSE=(function(){
       if(a==='resume') setPaused(false);
       else if(a==='options') openSheet('ovOpt');
       else if(a==='controls') openSheet('ovCtrl');
+      else if(a==='perfrep') openPerfRep();
       else if(a==='abandon') openConfirm();
     } });
 })();
@@ -9575,7 +9992,7 @@ function closeSheet(){
   el('ovCtrl').classList.remove('on');
   el('ovOpt').classList.remove('on');
   if(sheetBack==='ovTitle'){ ovTitle.classList.remove('bgOnly'); if(RAIL) RAIL.repaint(); }
-  else if(sheetBack==='ovPause'){ el('ovPause').classList.add('on'); NEON.paint(ovPause); if(PAUSE) PAUSE.reset(); }
+  else if(sheetBack==='ovPause'){ el('ovPause').classList.add('on'); syncPauseRows(); NEON.paint(ovPause); if(PAUSE) PAUSE.reset(); }
   sheetBack=null;
   A.init(); A.resume(); A.swap();
 }
@@ -9607,6 +10024,10 @@ function menuKey(e){
   const lf=c==='ArrowLeft'||c==='KeyA', rt=c==='ArrowRight'||c==='KeyD';
   const ok=c==='Enter'||c==='NumpadEnter'||c==='Space';
   const back=c==='Escape'||c==='Backspace';
+  if(prOpen()){
+    if(back||c==='KeyP'){ e.preventDefault(); closePerfRep(); }
+    return true;
+  }
   if(confirmOpen()){
     if(up){ e.preventDefault(); CONF.move(-1); return true; }
     if(dn){ e.preventDefault(); CONF.move(1); return true; }
