@@ -899,6 +899,12 @@
     .hint{margin-top:12px;line-height:1.75;}
     #goStats{line-height:1.7;}
   }
+  /* _32: FLATLINE with FPS REPORT = three buttons; on narrow landscape phones
+     (640-780 px wide) they would wrap below the screen, so shrink them to fit one row */
+  @media (max-height:520px) and (max-width:780px){
+    #ovDead.rep3 .btnrow{flex-wrap:nowrap;gap:8px;}
+    #ovDead.rep3 .btn{padding:11px 14px;font-size:19px;letter-spacing:.1em;white-space:nowrap;}
+  }
   @media (max-height:520px){
     .title{font-size:clamp(28px,6vw,40px);}
     .rule{margin:8px 0;}
@@ -1221,6 +1227,7 @@
       <div class="btnrow">
         <button class="btn" id="againBtn"><span data-t="AGAIN">RUN IT BACK</span></button>
         <button class="btn ghost" id="menuBtn"><span data-t="MAINMENU">MAIN MENU</span></button>
+        <button class="btn ghost" id="deadRepBtn" style="display:none"><span data-t="O_PREP">FPS REPORT</span></button>
       </div>
     </div>
   </div>
@@ -3884,7 +3891,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_31';
+const BUILD='_32';
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
   accPrev:new Float64Array(9), sl:new Float32Array(9), prevSl:new Float32Array(9), prevJs:0,
   kT:new Float64Array(128), kN:new Int32Array(128), ki:0, heap:0, lt:[], secClean:true,
@@ -4050,20 +4057,24 @@ function syncPauseRows(){
   b.classList.toggle('hide',!PF.on);
   el('pausePanel').classList.toggle('five',PF.on);
 }
+let prFrom='paused';   /* _32: 'paused' or 'dead' -- where BACK returns to */
 function openPerfRep(){
-  if(!G||G.mode!=='paused') return;
+  if(!G||(G.mode!=='paused'&&G.mode!=='dead')) return;
+  prFrom=G.mode;
   A.init(); A.resume(); A.swap();
   bbSave(true);
   el('prText').textContent=bbText(); el('prText').scrollTop=0;
   prClearArm=0; paintPrBtns();
-  el('ovPause').classList.remove('on');
+  el(prFrom==='dead'?'ovDead':'ovPause').classList.remove('on');
   el('ovPerfRep').classList.add('on');
 }
 function closePerfRep(){
   el('ovPerfRep').classList.remove('on');
-  el('ovPause').classList.add('on'); syncPauseRows(); NEON.paint(ovPause); if(PAUSE) PAUSE.reset();
+  if(prFrom==='dead'){ ovDead.classList.add('on'); }
+  else { el('ovPause').classList.add('on'); syncPauseRows(); NEON.paint(ovPause); if(PAUSE) PAUSE.reset(); }
   A.init(); A.resume(); A.swap();
 }
+document.getElementById('deadRepBtn').addEventListener('click',e=>{ e.stopPropagation(); openPerfRep(); });
 let prClearArm=0, prCopied=0;
 function paintPrBtns(){
   el('prClear').textContent=T(prClearArm?'PR_SURE':'PR_CLEAR'); el('prClear').classList.toggle('warn',!!prClearArm);
@@ -8992,6 +9003,9 @@ function die(){
   if(document.pointerLockElement) document.exitPointerLock();
   if(G.wave>G.best){ G.best=G.wave; try{localStorage.setItem('np_best',String(G.best));}catch(e){} }
   el('goStats').innerHTML=T('GO',{w:G.wave, k:G.kills, c:G.bestCombo, b:G.best});
+  /* _32: FPS REPORT straight from FLATLINE (meter on only) */
+  el('deadRepBtn').style.display=PF.on?'':'none'; ovDead.classList.toggle('rep3',PF.on);
+  if(PF.on) bbSave(true);
   ovDead.classList.add('on');
   A.breach();
 }
