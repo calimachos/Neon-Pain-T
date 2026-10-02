@@ -149,6 +149,13 @@
   #topR{position:absolute;right:calc(14px + env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));text-align:right;}
   #botL{position:absolute;left:calc(14px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom));}
   #botR{position:absolute;right:calc(14px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));text-align:right;}
+  /* _33: weapon-switch pop-up, centred under the gun (--gunX from setupRender) */
+  #gunPop{position:absolute;left:var(--gunX,62%);bottom:calc(12px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);pointer-events:none;white-space:nowrap;opacity:0;
+    font-size:max(15px,calc(var(--hs)*3.3));font-weight:800;letter-spacing:.2em;color:#b6ff00;
+    text-shadow:0 0 10px rgba(182,255,0,.75),0 0 2px rgba(0,0,0,.9);
+    padding:4px 12px;background:rgba(6,0,20,.45);transition:opacity .3s;}
+  #gunPop.on{opacity:1;transition:opacity .15s;}
   #waveN{font-size:max(17px,calc(var(--hs)*4.5));font-weight:800;letter-spacing:.04em;line-height:.95;
     color:#00f0ff;text-shadow:0 0 16px rgba(0,240,255,.85),0 0 40px rgba(0,240,255,.4);}
   #credits{font-size:max(15px,calc(var(--hs)*3.9));font-weight:800;color:#ffe800;letter-spacing:.03em;line-height:1;
@@ -527,6 +534,7 @@
      eye height for the whole map, so a real crouch would mean touching the
      projection every other system is built on. A parapet sliding up reads the
      same at a tenth of the risk. */
+  #galCov:not(.on){display:none;}   /* _33: no composited layer outside the Gallery */
   #galCov{position:absolute;left:0;right:0;bottom:0;height:52%;z-index:8;
     transform:translateY(100%);pointer-events:none;will-change:transform;
     background:linear-gradient(180deg,#160a38 0%,#0a0320 40%,#05000f 100%);
@@ -968,6 +976,9 @@
     #botR #ammo{order:2;font-size:calc(var(--hs)*4.4);color:#fff;text-shadow:0 0 10px rgba(255,255,255,.4);}
     #botR #magBar{display:none;}
     #slotRow{display:none;}          /* the weapon name already says which gun */
+    /* _33: Carlos -- no gun name / round count on the phone at all (the ammo ring on
+       FIRE stays); the name pops up under the gun on a switch instead (#gunPop) */
+    #botR{display:none;}
 
     /* PAUSE stays top-right, tucked under the credits cluster — see
        placeSysBtns().  It only ever felt unreachable because #touch covered it. */
@@ -1071,6 +1082,7 @@
       <div><span class="kcap" id="galCovKey">HOLD C</span></div>
     </div>
     <div id="xhair"><i></i><i></i><i></i><i></i></div>
+    <div id="gunPop"></div>
   </div>
 
   <div id="touch">
@@ -3750,6 +3762,7 @@ function unstick(){
 const view=document.getElementById('view'), vctx=view.getContext('2d',{alpha:false});
 let RW=0,RH=0,rcv=null,rctx=null,img=null,buf=null,zbuf=null,bloomCv=null,bloomCtx=null;
 let GUN_ARC=1;   // _30: see setupRender()
+const GUN_POP_DX=52;   // _33: #gunPop centre, right of the gun pivot (720-px units)
 const QUALITY = matchMedia('(pointer:coarse)').matches ? 0.46 : 0.60;
 /* ---------- effects budget ----------
    Measured at a phone-shaped viewport with a full room: particles are ~40% of
@@ -3891,7 +3904,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_32';
+const BUILD='_33';
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
   accPrev:new Float64Array(9), sl:new Float32Array(9), prevSl:new Float32Array(9), prevJs:0,
   kT:new Float64Array(128), kN:new Int32Array(128), ki:0, heap:0, lt:[], secClean:true,
@@ -4132,6 +4145,10 @@ function setupRender(){
     const tk=Math.min(1,Math.max(0.8,1-(392-ch)*0.00406));
     GUN_ARC=1-(203*tk+8)/cw;
   } else GUN_ARC=1;
+  { /* _33: where #gunPop sits -- drawGun's offX in CSS px, plus the body's
+       offset right of the pivot */
+    const sC=ch/720, offC=Math.min(212*sC, cw*0.30, cw*(GUN_ARC-0.5)-140*sC);
+    document.documentElement.style.setProperty('--gunX', Math.round(cw*0.5+offC+GUN_POP_DX*sC)+'px'); }
   view.width=Math.max(2,Math.floor(cw*dpr)); view.height=Math.max(2,Math.floor(ch*dpr));
   view.style.width=cw+'px'; view.style.height=ch+'px';
   RW=clamp(Math.floor(cw*QUALITY),200,760);
@@ -4985,9 +5002,53 @@ fireBtnEl.addEventListener('touchend',e=>{e.stopPropagation();e.preventDefault()
 fireBtnEl.addEventListener('touchcancel',e=>{e.stopPropagation();fireRelease(e);},{passive:false});
 fireBtnEl.addEventListener('mousedown',e=>{e.preventDefault();fireBtnEl.classList.add('dn');tFire=true;});
 fireBtnEl.addEventListener('mouseup',e=>{e.preventDefault();fireBtnEl.classList.remove('dn');tFire=false;});
-bindBtn(document.getElementById('reBtn'),()=>tryReload());
-bindBtn(document.getElementById('swapBtn'),()=>cycleWeapon());
-bindBtn(document.getElementById('brBtn'),()=>tryBreach());
+/* _33: Carlos -- RELOAD / SWAP / BREACH cover most of the area the right thumb
+   looks around with. A touch on them that stays within BTN_SLOP and lifts is a
+   tap: the action fires on release. A touch that moves further becomes a
+   look-drag (same gain as the look area and FIRE, counted from where it went
+   down so no motion is lost) and the action is cancelled. Mouse unchanged. */
+const BTN_SLOP=14;
+let btnId=-1, btnEl=null, btnAct=null, btnSX=0, btnSY=0, btnLX=0, btnLY=0, btnLook=false;
+function bindLookBtn(b,act){
+  b.addEventListener('touchstart',e=>{
+    e.stopPropagation(); e.preventDefault();
+    const t=e.changedTouches[0];
+    if(btnId>=0){ act(); return; }          /* a second button at once: old behaviour */
+    btnId=t.identifier; btnEl=b; btnAct=act; btnLook=false;
+    btnSX=btnLX=t.clientX; btnSY=btnLY=t.clientY;
+    b.classList.add('dn');
+  },{passive:false});
+  b.addEventListener('touchmove',e=>{
+    e.stopPropagation(); e.preventDefault();
+    for(let i=0;i<e.changedTouches.length;i++){
+      const t=e.changedTouches[i]; if(t.identifier!==btnId) continue;
+      if(!btnLook && Math.hypot(t.clientX-btnSX,t.clientY-btnSY)>BTN_SLOP){
+        btnLook=true; if(btnEl) btnEl.classList.remove('dn');
+      }
+      if(btnLook){
+        mouse.dx+=(t.clientX-btnLX)*1.6; mouse.dy+=(t.clientY-btnLY)*1.2;
+        btnLX=t.clientX; btnLY=t.clientY;
+      }
+    }
+  },{passive:false});
+  const end=(e,cancel)=>{
+    e.stopPropagation(); if(!cancel) e.preventDefault();
+    for(let i=0;i<e.changedTouches.length;i++){
+      if(e.changedTouches[i].identifier!==btnId) continue;
+      const a=btnAct, tap=!btnLook&&!cancel;
+      if(btnEl) btnEl.classList.remove('dn');
+      btnId=-1; btnEl=null; btnAct=null; btnLook=false;
+      if(tap&&a) a();
+    }
+  };
+  b.addEventListener('touchend',e=>end(e,false),{passive:false});
+  b.addEventListener('touchcancel',e=>end(e,true),{passive:false});
+  b.addEventListener('mousedown',e=>{e.preventDefault();b.classList.add('dn');act();});
+  b.addEventListener('mouseup',e=>{e.preventDefault();b.classList.remove('dn');});
+}
+bindLookBtn(document.getElementById('reBtn'),()=>tryReload());
+bindLookBtn(document.getElementById('swapBtn'),()=>cycleWeapon());
+bindLookBtn(document.getElementById('brBtn'),()=>tryBreach());
 bindBtn(document.getElementById('covBtn'),()=>{tCover=true;},()=>{tCover=false;});
 /* the swap button only appears once you actually own a second weapon */
 function syncSwapBtn(){
@@ -5079,7 +5140,7 @@ function render(){
   /* _29: FPS METER section timers -- skipped entirely when the meter is off */
   const pfOn=PF.on; let pt=pfOn?performance.now():0, pc=-1;
   setOvc(fxLite);
-  const lite=fxLite; let bakeLeft=BAKE_MAX;
+  const lite=fxLite; let bakeLeft=preWarming?1e9:BAKE_MAX;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
   const pitchPx=clamp(G.pitch,-0.42,0.42)*H;
@@ -8357,22 +8418,47 @@ function updBossBar(){
   if(p!==bossPct){ bossPct=p; el('bossFill').style.width=p+'%'; }
   const s=w.stag>0; if(s!==bossStag){ bossStag=s; bar.classList.toggle('stag',s); }
 }
+/* _33: updHud() runs on every shot. It used to rewrite every field (five of them
+   glowing text) and then read layout in placeSysBtns(), every shot. Now each field
+   is written only when its value changed, and placeSysBtns() runs only when the
+   top-right cluster can have changed size. */
+const hudK={};
+function hudSet(id,v,html){
+  if(hudK[id]===v) return false;
+  hudK[id]=v; const e=el(id);
+  if(html) e.innerHTML=v; else e.textContent=v;
+  return true;
+}
+function hudTf(id,v){ if(hudK[id]===v) return; hudK[id]=v; el(id).style.transform=v; }
+let popW=-1, popT=0;
 function updHud(){
-  el('waveN').textContent=String(Math.max(1,G.wave)).padStart(2,'0');
-  el('credits').textContent=G.credits;
-  el('ammo').innerHTML=G.ammo[G.curW]+'<small>/'+wMag()+'</small>';
-  placeSysBtns();
-  el('wname').textContent=T(wpn().k);
-  el('hpFill').style.transform='scaleX('+clamp(G.hp/G.maxhp,0,1)+')';
-  el('hpNum').textContent=Math.max(0,Math.round(G.hp));
+  hudSet('waveN',String(Math.max(1,G.wave)).padStart(2,'0'));
+  hudSet('credits',String(G.credits));
+  hudSet('ammo',G.ammo[G.curW]+'<small>/'+wMag()+'</small>',true);
+  const sysK=hudK.credits+'|'+lang+'|'+(G.combo>1);
+  if(hudK.sys!==sysK){ hudK.sys=sysK; placeSysBtns(); }
+  hudSet('wname',T(wpn().k));
+  hudTf('hpFill','scaleX('+clamp(G.hp/G.maxhp,0,1)+')');
+  hudSet('hpNum',String(Math.max(0,Math.round(G.hp))));
+  /* _33: the phone shows the gun name only on a switch, under the gun */
+  if(G.mode==='play'&&G.curW!==popW){
+    if(popW>=0&&magVertQ.matches) showGunPop();
+    popW=G.curW;
+  }
   /* the magazine. A fraction rather than a fixed pip count on the strip,
      because the mag upgrades change wMag() mid-run. _30: on the phone's
      thumb arc (magVertQ) it is the segmented ring round FIRE instead. */
   if(magVertQ.matches) updRing();
-  else el('magFill').style.transform='scaleX('+clamp(G.ammo[G.curW]/Math.max(1,wMag()),0,1)+')';
+  else hudTf('magFill','scaleX('+clamp(G.ammo[G.curW]/Math.max(1,wMag()),0,1)+')');
   updLeft(); updSlots(); updMoney();
   syncSwapBtn();
 }
+function showGunPop(){
+  const p=el('gunPop'); p.textContent=T(wpn().k);
+  p.classList.add('on'); clearTimeout(popT);
+  popT=setTimeout(()=>p.classList.remove('on'),1200);   /* + .3 s fade = ~1.5 s */
+}
+function hideGunPop(){ clearTimeout(popT); const p=document.getElementById('gunPop'); if(p) p.classList.remove('on'); }
 /* _30: the ammo ring round FIRE on the phone. One segment per round up to
    24 (a continuous arc past that), lit from 12 o'clock clockwise. Only the
    two dash patterns change, and only when the mag or the count does. */
@@ -8431,6 +8517,9 @@ function updChain(){
     chainShown=G.combo;
     el('chainV').innerHTML='&times;'+G.combo;
     w.classList.toggle('on',G.combo>1);
+    /* _33: placeSysBtns() no longer runs on every shot (updHud) */
+    const sysK=hudK.credits+'|'+lang+'|'+(G.combo>1);
+    if(hudK.sys!==sysK){ hudK.sys=sysK; placeSysBtns(); }
   }
   if(G.combo>1){
     const f=clamp(G.comboT/3,0,1), i=el('chainBar').firstElementChild;
@@ -8536,6 +8625,7 @@ function updGalHud(){
   if(G.inGal!==galShownOn){
     galShownOn=G.inGal;
     galBarEl.classList.toggle('on',G.inGal);
+    galCovEl.classList.toggle('on',G.inGal);   /* _33 */
     if(!G.inGal) galBarEl.classList.remove('closing');
     if(touchMode) covBtnEl.classList.toggle('on',G.inGal);
     galShownT=-1; galShownN=-1; galShownCl=!G.inGal;
@@ -9075,15 +9165,27 @@ function paintTitleGround(){
 }
 
 /* ---------- boot ---------- */
+/* _33: the first frames of every run cost 40-100 ms on a phone (cold JIT, first
+   floor bakes, wall columns). Pay it here, inside the tap that starts the run,
+   instead of as a visible hitch: render twice with the meter's timers off and the
+   floor bake uncapped, then restart the frame clock so the first real frame is a
+   normal step. render() only draws and fills caches -- it never changes G. */
+let preWarming=false;
+function preWarm(){
+  const pf=PF.on; PF.on=false; preWarming=true;
+  try{ render(); render(); }catch(e){}
+  preWarming=false; PF.on=pf; last=0;
+}
 function startRun(){
   A.init(); A.resume();
   ovTitle.classList.remove('on');
-  newGame();
+  newGame(); popW=-1; hideGunPop();
   if(touchMode) touchEl.classList.add('on');
   sysbtns.classList.add('on');
   el('hud').classList.add('on');
   placeSysBtns();
   startWave();
+  preWarm();
 }
 /* START and GALLERY are rows on the rail now (see titleStart / RAIL.act).
    The thumb-reachable Gallery entry survives as that row, because a hidden
@@ -9091,12 +9193,13 @@ function startRun(){
 document.getElementById('againBtn').addEventListener('click',()=>{
   A.resume();
   ovDead.classList.remove('on');
-  newGame();
+  newGame(); popW=-1; hideGunPop();
   if(touchMode) touchEl.classList.add('on');
   sysbtns.classList.add('on');
   el('hud').classList.add('on');
   placeSysBtns();
   startWave();
+  preWarm();
 });
 addEventListener('visibilitychange',()=>{
   last=0;
