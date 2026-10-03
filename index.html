@@ -711,6 +711,21 @@
   .nnav{font-weight:700;font-size:calc(36 * var(--u));word-spacing:calc(18 * var(--u));color:var(--n-lav);
     margin-left:auto;margin-right:calc(46 * var(--u));line-height:1;}
   .nrow.sel .nnav{color:var(--n-cy);text-shadow:0 0 calc(10 * var(--u)) rgba(47,233,255,.8);margin-right:calc(40 * var(--u));}
+  /* _36: the ARENA selector -- two neon keycaps; the 3D card names the arena */
+  .apick{margin-left:auto;margin-right:calc(44 * var(--u));display:flex;gap:calc(22 * var(--u));}
+  .aarr{display:flex;align-items:center;justify-content:center;width:max(46px,calc(104 * var(--u)));
+    height:max(36px,calc(66 * var(--u)));border:2px solid rgba(150,140,255,.55);background:rgba(20,16,60,.45);
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    transition:background .25s,border-color .25s,box-shadow .25s;cursor:pointer;}
+  .aarr svg{width:62%;height:62%;overflow:visible;}
+  .aarr polyline{fill:none;stroke:var(--n-lav);stroke-width:3.2;stroke-linecap:square;stroke-linejoin:miter;}
+  .nrow.sel .aarr{border-color:var(--n-cy);background:rgba(10,60,90,.45);}
+  .nrow.sel .aarr polyline{stroke:var(--n-cy);filter:drop-shadow(0 0 3px rgba(47,233,255,.9));}
+  .aarr.hit{animation:aarrHit .34s ease-out;}
+  @keyframes aarrHit{0%{background:#2fe9ff;border-color:#fff;box-shadow:0 0 18px rgba(47,233,255,.95);}
+    100%{background:rgba(10,60,90,.45);box-shadow:0 0 0 rgba(47,233,255,0);}}
+  .aarr.hit polyline{animation:aarrHitP .34s ease-out;}
+  @keyframes aarrHitP{0%{stroke:#0a0820;}100%{stroke:var(--n-cy);}}
   .ntag{font-weight:800;font-size:max(var(--fmin),calc(29 * var(--u)));letter-spacing:.08em;color:var(--n-lav);
     margin-left:calc(26 * var(--u));line-height:1;}
   .naux{margin-left:auto;padding-left:calc(24 * var(--u));margin-right:calc(52 * var(--u));font-weight:700;
@@ -1145,7 +1160,7 @@
       <div class="npPanel" id="mainPanel">
         <div class="nlist" id="rail">
           <div class="nrow" data-act="start"><i class="chev"></i><span class="nlab" data-t="START">ENTER THE ARENA</span></div>
-          <div class="nrow hasSub" data-act="arena" data-adj="1"><i class="chev"></i><span class="nlab" data-t="ARENA">ARENA</span><span class="nsub" id="arenaName">RANDOM</span><span class="nnav">&#8249; &#8250;</span></div>
+          <div class="nrow hasSub" data-act="arena" data-adj="1"><i class="chev"></i><span class="nlab" data-t="ARENA">ARENA</span><span class="apick"><b class="aarr" id="arenaL" data-dir="-1"><svg viewBox="0 0 24 24"><polyline points="15,4 7,12 15,20"/></svg></b><b class="aarr" id="arenaR" data-dir="1"><svg viewBox="0 0 24 24"><polyline points="9,4 17,12 9,20"/></svg></b></span></div>
           <div class="nrow" data-act="controls"><i class="chev"></i><span class="nlab" data-t="M_CONTROLS">CONTROLS</span></div>
           <div class="nrow" data-act="options"><i class="chev"></i><span class="nlab" data-t="M_OPTIONS">OPTIONS</span></div>
           <div class="nrow" data-act="gallery"><i class="chev"></i><span class="nlab" data-t="M_GALLERY">THE GALLERY</span><span class="ntag" data-t="M_GALSUB">TEST</span></div>
@@ -3919,7 +3934,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_35';
+const BUILD='_36';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5069,13 +5084,18 @@ fireBtnEl.addEventListener('mouseup',e=>{e.preventDefault();fireBtnEl.classList.
    look-drag (same gain as the look area and FIRE, counted from where it went
    down so no motion is lost) and the action is cancelled. Mouse unchanged. */
 const BTN_SLOP=14;
-let btnId=-1, btnEl=null, btnAct=null, btnSX=0, btnSY=0, btnLX=0, btnLY=0, btnLook=false;
+let btnId=-1, btnEl=null, btnAct=null, btnSX=0, btnSY=0, btnLX=0, btnLY=0, btnLook=false, btnMov=false;
+/* _36: look starts once the finger has moved BTN_JIT px and is fed move by move from
+   there, the way FIRE does it. _33 held the anchor at the touch-down point until
+   BTN_SLOP and then applied all 14 px at once -- the little camera snap Carlos felt.
+   Tap vs drag is still decided at BTN_SLOP. */
+const BTN_JIT=3;
 function bindLookBtn(b,act){
   b.addEventListener('touchstart',e=>{
     e.stopPropagation(); e.preventDefault();
     const t=e.changedTouches[0];
     if(btnId>=0){ act(); return; }          /* a second button at once: old behaviour */
-    btnId=t.identifier; btnEl=b; btnAct=act; btnLook=false;
+    btnId=t.identifier; btnEl=b; btnAct=act; btnLook=false; btnMov=false;
     btnSX=btnLX=t.clientX; btnSY=btnLY=t.clientY;
     b.classList.add('dn');
   },{passive:false});
@@ -5083,12 +5103,14 @@ function bindLookBtn(b,act){
     e.stopPropagation(); e.preventDefault();
     for(let i=0;i<e.changedTouches.length;i++){
       const t=e.changedTouches[i]; if(t.identifier!==btnId) continue;
-      if(!btnLook && Math.hypot(t.clientX-btnSX,t.clientY-btnSY)>BTN_SLOP){
-        btnLook=true; if(btnEl) btnEl.classList.remove('dn');
-      }
-      if(btnLook){
+      const far=Math.hypot(t.clientX-btnSX,t.clientY-btnSY);
+      if(!btnMov && far>BTN_JIT){ btnMov=true; btnLX=t.clientX; btnLY=t.clientY; }
+      else if(btnMov){
         mouse.dx+=(t.clientX-btnLX)*1.6; mouse.dy+=(t.clientY-btnLY)*1.2;
         btnLX=t.clientX; btnLY=t.clientY;
+      }
+      if(!btnLook && far>BTN_SLOP){
+        btnLook=true; if(btnEl) btnEl.classList.remove('dn');
       }
     }
   },{passive:false});
@@ -5098,7 +5120,7 @@ function bindLookBtn(b,act){
       if(e.changedTouches[i].identifier!==btnId) continue;
       const a=btnAct, tap=!btnLook&&!cancel;
       if(btnEl) btnEl.classList.remove('dn');
-      btnId=-1; btnEl=null; btnAct=null; btnLook=false;
+      btnId=-1; btnEl=null; btnAct=null; btnLook=false; btnMov=false;
       if(tap&&a) a();
     }
   };
@@ -6251,9 +6273,13 @@ function updateRockets(dt){
     const steps=Math.max(1,Math.ceil(Math.hypot(r.vx,r.vy,r.vz)*dt/0.12));
     let boom=false;
     for(let s=0;s<steps&&!boom;s++){
-      const h=dt/steps;
+      const h=dt/steps, ry0=r.y;
       r.x+=r.vx*h; r.y+=r.vy*h; r.z+=r.vz*h;
       if(isSolid(r.x,r.y)||r.z<=0.03||r.z>=WALL_H-0.03){ boom=true; break; }
+      if(G.inGal&&G.galProps){   /* _36: a Gallery prop stops it like it stops a pellet */
+        const hp=galRocketProp(r,ry0);
+        if(hp){ galPropHit(hp,r.dmg,0); r.x=hp.x; r.y=hp.y+0.05; r.z=hp.z; boom=true; break; }
+      }
       for(let e=0;e<G.alive.length;e++){
         const en=G.alive[e]; if(en.spawnT>0) continue;
         const T=ETYPE[en.t], ddx=en.x-r.x, ddy=en.y-r.y;
@@ -6263,6 +6289,18 @@ function updateRockets(dt){
     }
     if(boom){ explodeBucket(r); G.rockets.splice(i,1); }
   }
+}
+function galRocketProp(r,ry0){
+  for(let i=0;i<G.galProps.length;i++){
+    const p=G.galProps[i];
+    if(p.pass||(ry0-p.y)*(r.y-p.y)>0||ry0===r.y) continue;
+    const x=r.x-(r.y-p.y)*r.vx/(r.vy||1e-6), u=0.5+(x-p.x)/p.w, v=1-r.z/p.h;
+    if(u<0||u>=1||v<0||v>=1) continue;
+    const tx=galPropTex(p);
+    if((tx.px[((v*tx.h)|0)*tx.w+((u*tx.w)|0)]>>>24)<70) continue;
+    return {p:p,t:0,u:u,v:v,z:r.z,x:x,y:p.y};
+  }
+  return null;
 }
 function explodeBucket(r){
   const cx=clamp(r.x,0.05,MW-0.05), cy=clamp(r.y,0.05,MH-0.05), cz=clamp(r.z,0.05,WALL_H-0.05);
@@ -7759,9 +7797,10 @@ function galFire(e){
   A.noise(0.14,3000,700,0.24,0.9,pan); A.tone('sawtooth',520,180,0.12,0.13,pan);
   const sz=e.lz+ET.sc*0.55;
   const dx=G.px-e.x, dy=G.py-e.y, d=Math.hypot(dx,dy)||1;
+  const own=(G.galDefs&&G.galDefs[e.gsp]&&G.galDefs[e.gsp].prop)||null;   /* _36: its own cover */
   G.bolts.push({x:e.x, y:e.y, z:sz, z0:sz, d0:d, t:0,
                 vx:dx/d*GAL_BOLT_SPD, vy:dy/d*GAL_BOLT_SPD,
-                col:ET.col, dmg:ET.dmg, pt:0});
+                col:ET.col, dmg:ET.dmg, pt:0, own:own});
   for(let k=0;k<7;k++)
     burst(e.x,e.y,sz,ET.col,1,(Math.random()-0.5)*1.2,(Math.random()-0.5)*1.2);
 }
@@ -7784,11 +7823,13 @@ function boltLands(b){
 function updBolts(dt){
   for(let i=G.bolts.length-1;i>=0;i--){
     const b=G.bolts[i];
+    const py0=b.y;
     b.x+=b.vx*dt; b.y+=b.vy*dt; b.t+=dt;
     const d=Math.hypot(G.px-b.x,G.py-b.y);
     /* the height eases from where it left the muzzle to eye level, so it grows
        into your face rather than sliding past your shins */
     b.z=lerp(b.z0,EYE_Z-0.04,clamp(1-d/b.d0,0,1));
+    if(G.galProps&&galBoltProp(b,py0)){ G.bolts.splice(i,1); continue; }   /* _36 */
     b.pt-=dt;
     if(b.pt<=0){ b.pt=0.017; burst(b.x,b.y,b.z,b.col,1,0,0); }
     if(d<GAL_BOLT_HIT||b.t>GAL_BOLT_LIFE||isSolid(b.x,b.y)){
@@ -7798,6 +7839,46 @@ function updBolts(dt){
   }
   return false;
 }
+/* _36: a bolt crossing a prop's plane this frame bursts on it if it meets a painted
+   texel there -- the same test your own pellets use (galPropRay). The prop the
+   shooter stands behind is skipped: it fires over / through its own cover. */
+let galBoltsBlocked=0;
+function galBoltProp(b,py0){
+  for(let i=0;i<G.galProps.length;i++){
+    const p=G.galProps[i];
+    if(p===b.own||p.pass) continue;
+    if(!(py0<p.y&&b.y>=p.y)) continue;
+    const x=b.x-(b.y-p.y)*b.vx/(b.vy||1e-6);   /* where it crossed the prop's plane */
+    const u=0.5+(x-p.x)/p.w, v=1-b.z/p.h;
+    if(u<0||u>=1||v<0||v>=1) continue;
+    const tx=galPropTex(p);
+    if((tx.px[((v*tx.h)|0)*tx.w+((u*tx.w)|0)]>>>24)<70) continue;
+    const pan=clamp((x-G.px)*0.25,-1,1);
+    A.hitWall(pan);
+    for(let k=0;k<10;k++) burst(x,p.y+0.04,b.z,k%2?b.col:GAL_PCOL[p.kind],1,(Math.random()-0.5)*2.0,0.6+Math.random()*1.2);
+    galBoltsBlocked++;
+    return true;
+  }
+  return false;
+}
+/* _36: chargers and props. Crates / drums a charger starts behind are vaulted (see the
+   launch); every other pillar / crate stack / drum it would clip is stepped round.
+   The kiosk and shutter windows and the blast doors are openings -- they come
+   through those by design. */
+function galPropPush(e,ET){
+  const own=G.galDefs[e.gsp]&&G.galDefs[e.gsp].prop, half=Math.min(0.42,ET.sc*0.32);
+  for(let i=0;i<G.galProps.length;i++){
+    const p=G.galProps[i];
+    if((p===own&&e.vault>0)||!(p.kind==='pillar'||p.kind==='crates'||p.kind==='drums')) continue;
+    if(p.down||p.burst) continue;
+    const dy=Math.abs(e.y-p.y); if(dy>0.9) continue;
+    const need=p.w*0.5+half+0.04, dx=e.x-p.x;
+    if(Math.abs(dx)>=need) continue;
+    const k=Math.sin(Math.PI*0.5*clamp(1-dy/0.9,0,1));
+    e.x=lerp(e.x,p.x+(dx<0?-need:need),k);
+  }
+}
+function galVaultTop(p){ return p&&!p.burst&&(p.kind==='crates'||p.kind==='drums')?(p.down?p.h*0.5:p.h)+0.06:0; }
 /* ---- a charger landing on you ----
    It crashes either way: into the parapet, or into you. Either way it is spent
    and goes back into the queue — it is not a kill, you just survived it. */
@@ -7871,9 +7952,25 @@ function galEnemy(e,dt){
       const off=amp*Math.sin(e.wph);
       e.x=e.bx-e.cy*off; e.y=e.by+e.cx*off;
       e.lz=0.10+Math.abs(Math.sin(e.wph*1.6))*0.10;
+      galPropPush(e,ET);   /* _36 */
     } else {
-      e.x+=e.cx*GAL_CHG_SPD*dt; e.y+=e.cy*GAL_CHG_SPD*dt;
+      if(e.gx===undefined){ e.gx=e.x; e.gy=e.y; e.lzL=e.lz; }
+      e.gx+=e.cx*GAL_CHG_SPD*dt; e.gy+=e.cy*GAL_CHG_SPD*dt;
+      e.x=e.gx; e.y=e.gy;
       e.lz=lerp(e.lz,0.10,Math.min(1,dt*3));
+      /* _36: off the top of its own crate stack / drums, landing in front of it */
+      const P=sp.prop;
+      if(e.vault===undefined){
+        /* vault only if the straight line really crosses its own crates / drums */
+        const t0=galVaultTop(P), xa=t0>0&&e.cy>0.05?e.gx+e.cx*(P.y-e.gy)/e.cy:1e9;
+        e.vault=(t0>0&&Math.abs(xa-P.x)<P.w*0.5+Math.min(0.42,ET.sc*0.32))?t0:0;
+      }
+      const top=e.vault;
+      if(top>0){
+        const q=(e.y-sp.y)/Math.max(0.2,P.y+0.45-sp.y);
+        if(q<1) e.lz=Math.max(e.lz, lerp(Math.min(e.lzL,top),top,Math.sin(Math.PI*0.5*clamp(q*2.2,0,1))));
+      }
+      galPropPush(e,ET);
     }
     /* _24: anything on the ground crossing the barrier hops it */
     if(!e.leap&&G.galRoll&&G.galRoll.mid==='barrier'){
@@ -7916,6 +8013,7 @@ function galEnemy(e,dt){
            anywhere, so it does not need to lead you */
         const dx=G.px-e.x, dy=G.py-e.y, d=Math.hypot(dx,dy)||1;
         e.cx=dx/d; e.cy=dy/d; e.chg=2; e.chgT=d/GAL_CHG_SPD+0.6;
+        e.gx=e.x; e.gy=e.y; e.lzL=e.lz; e.vault=undefined;   /* _36: base line + vault start */
         A.warp(); G.shake=Math.max(G.shake,0.45);
         for(let k=0;k<18;k++) burst(e.x,e.y,0.4+Math.random()*1.1,[255,235,140],1,0,0);
       } else {
@@ -8952,6 +9050,10 @@ function update(dt){
      the whole point of cover, and it is what keeps it from being a free button */
   if(G.mode==='play'&&(mouse.down||tFire||keys['Space'])&&!(G.inGal&&G.galCov>GAL_COVFIRE)) fire();
 
+  if(G.mode==='play'&&G.shopT>0){   /* _36 */
+    G.shopT-=dt;
+    if(G.shopT<=0){ G.shopT=0; if(!G.inGrove) openShop(); }
+  }
   if(G.mode==='play'&&G.waveActive){
     if(G.spawnQ.length){
       G.spawnT-=dt;
@@ -8980,7 +9082,9 @@ function update(dt){
         : T('TO_BONUS',{n:bonus}));
       if(G.wave>G.best){ G.best=G.wave; try{localStorage.setItem('np_best',String(G.best));}catch(e){} }
       updHud();
-      setTimeout(()=>{ if(G&&G.mode==='play'&&!G.inGrove) openShop(); },1300);
+      /* _36: on the game clock (ticked below). The old setTimeout was simply dropped
+         when it fired during a pause, and the run sat at 0 enemies forever. */
+      G.shopT=1.3;
     }
   }
 
@@ -9883,7 +9987,12 @@ function makeList(root,cfg){
       if(cfg.swallow&&cfg.swallow()) return;
       const n=vis().indexOf(r); if(n<0) return;
       if(n!==idx) sel(n,true);
-      if(r.dataset.adj&&cfg.adj&&r.dataset.act!=='sens'){
+      /* _36: a row with real arrow keys (data-dir) only steps from them; the rest of
+         that row just selects it. Other data-adj rows keep the 1/3 split. */
+      const dk=ev.target&&ev.target.closest?ev.target.closest('[data-dir]'):null;
+      if(dk&&r.contains(dk)&&cfg.adj) cfg.adj(r,+dk.dataset.dir);
+      else if(r.querySelector('[data-dir]')){ /* the label: select only */ }
+      else if(r.dataset.adj&&cfg.adj&&r.dataset.act!=='sens'){
         const b=r.getBoundingClientRect();
         cfg.adj(r,ev.clientX<b.left+b.width*0.33?-1:1);
       } else if(cfg.act) cfg.act(r);
@@ -9920,7 +10029,7 @@ const RAIL=(function(){
   function paintArena(){
     let i=0; for(let n=0;n<opts.length;n++) if(opts[n].id===pickedArena) i=n;
     const o=opts[i];
-    if(nameEl){ nameEl.dataset.t=o.k; nameEl.textContent=T(o.k); }
+    if(nameEl){ nameEl.dataset.t=o.k; nameEl.textContent=T(o.k); }   /* _36: gone from the row; kept harmless */
     if(MODEL) MODEL.set(o.id,T(o.k),i,opts.length);
     if(ovTitle.classList.contains('arenaLit')) showCard();
   }
@@ -9928,6 +10037,7 @@ const RAIL=(function(){
     let i=0; for(let n=0;n<opts.length;n++) if(opts[n].id===pickedArena) i=n;
     i=(i+d+opts.length)%opts.length;
     pickedArena=opts[i].id;
+    { const k=el(d<0?'arenaL':'arenaR'); if(k){ k.classList.remove('hit'); void k.offsetWidth; k.classList.add('hit'); } }   /* _36 */
     try{ localStorage.setItem('np_arena',pickedArena); }catch(err){}
     paintArena(); A.init(); A.resume(); A.mtick();
   }
