@@ -332,7 +332,7 @@
     text-shadow:0 0 20px rgba(255,45,149,.95),0 0 50px rgba(255,45,149,.5);}
   /* _30 LITE: the chain text is re-rastered on every kill; a 50 px blur is
      the expensive part, so LITE keeps one tighter glow. */
-  html.lite #combo{text-shadow:0 0 12px rgba(255,45,149,.9);}
+  html.lite #combo,html.tbar #combo{text-shadow:0 0 12px rgba(255,45,149,.9);}   /* _35: + FULL touch */
   #toast{position:absolute;left:50%;top:37%;transform:translate(-50%,-50%);text-align:center;opacity:0;}
   #toast .big{font-size:clamp(32px,9vw,72px);font-weight:800;letter-spacing:.1em;color:#fff;
     text-shadow:0 0 22px rgba(0,240,255,.9),0 0 60px rgba(255,45,149,.6);}
@@ -1447,7 +1447,7 @@ en:{
   U_HEAL:'PATCH KIT',         D_HEAL:'restore full integrity',
   U_FIX:'ARENA RESURFACE',    D_FIX:'repair every wall, wipe the paint',
   U_MAP:'CHANGE MAP',         D_MAP:'a new precinct and a new grove — fresh walls, no paint',
-  MAINMENU:'MAIN MENU', FX_FULL:'EFFECTS: FULL', FX_LITE:'EFFECTS: LITE',
+  MAINMENU:'MAIN MENU', FX_FULL:'EFFECTS: FULL', FX_LITE:'EFFECTS: LITE', FT_LITE:'EFFECTS SWITCHED TO LITE',
   TO_NEWMAP:'NEW GROUND · PORTAL LEADS TO %s',
   D_WSHOT:'double-barrel · 9-pellet cone · key 2',
   D_WBUCK:'lobbed bucket · area splatter · key 3',
@@ -1576,7 +1576,7 @@ es:{
   U_HEAL:'BOTIQUÍN',         D_HEAL:'restaura toda la integridad',
   U_FIX:'OBRA NUEVA',        D_FIX:'repara los muros, borra la pintura',
   U_MAP:'CAMBIAR MAPA',      D_MAP:'un distrito y una arboleda nuevos — muros nuevos, sin pintura',
-  MAINMENU:'MENÚ PRINCIPAL', FX_FULL:'EFECTOS: TODO', FX_LITE:'EFECTOS: LIGERO',
+  MAINMENU:'MENÚ PRINCIPAL', FX_FULL:'EFECTOS: TODO', FX_LITE:'EFECTOS: LIGERO', FT_LITE:'EFECTOS CAMBIADOS A LIGERO',
   TO_NEWMAP:'TERRENO NUEVO · EL PORTAL LLEVA A %s',
   D_WSHOT:'doble cañón · cono de 9 · tecla 2',
   D_WBUCK:'balde lanzado · salpicón en área · tecla 3',
@@ -3762,15 +3762,20 @@ function unstick(){
    behind it, every frame, for nothing. */
 const view=document.getElementById('view'), vctx=view.getContext('2d',{alpha:false});
 let RW=0,RH=0,rcv=null,rctx=null,img=null,buf=null,zbuf=null,bloomCv=null,bloomCtx=null;
+let vScale=1;   /* _35: canvas pixels per CSS pixel (drawOverlays' scanline pitch) */
 let GUN_ARC=1;   // _30: see setupRender()
 const GUN_POP_DX=52;   // _33: #gunPop centre, right of the gun pivot (720-px units)
 const QUALITY = matchMedia('(pointer:coarse)').matches ? 0.46 : 0.60;
 /* _34: EFFECTS FULL on a touch screen (the rebalance plan). L0 = canvas 1.5x +
    a sharper world (QUALITY 0.55); the safety net (ftWatch) can step down to L1
-   (1x canvas) and L2 (1x, LITE's world size) and back up. Mouse / LITE never
-   read this table. */
+   (1x canvas). Mouse / LITE never read this table.
+   _35: the old L2 (1x, LITE's world size) is gone -- the step after L1 is
+   EFFECTS: LITE itself, saved on the device, and the net never steps back up. */
 const FT_TOUCH=matchMedia('(pointer:coarse)').matches;
-const FT=[{dpr:1.5,q:0.55,n:'1.5x/0.55'},{dpr:1,q:0.55,n:'1x/0.55'},{dpr:1,q:0.46,n:'1x/0.46'}];
+const FT=[{dpr:1.5,q:0.55,n:'1.5x/0.55'},{dpr:1,q:0.55,n:'1x/0.55'}];
+const FT_LITE=FT.length;   /* _35: ftPend value meaning "switch to LITE" */
+/* report names; index 2 is _34's old L2, so stored _34 runs still read right */
+const ftName=v=>v===FT_LITE||v==='LITE'?'LITE (saved)':(['1.5x/0.55','1x/0.55','1x/0.46'][v]||String(v));
 let ftLv=0, ftLock=-1, ftPend=-1;
 /* ---------- effects budget ----------
    Measured at a phone-shaped viewport with a full room: particles are ~40% of
@@ -3893,7 +3898,7 @@ function pfShow(ts){
         'update '+f(a[0])+'  floor '+f(a[1])+'\n'+
         'walls '+f(a[2])+'  enemies '+f(a[4])+'\n'+
         'fx '+f(a[5])+'  other '+f(a[3]+a[6])+'\n'+
-        'blit '+f(a[7])+(fxLite?'  gun+ovl ':'  gun ')+f(a[8])+'\n'+
+        'blit '+f(a[7])+(fxLite||FT_TOUCH?'  gun+ovl ':'  gun ')+f(a[8])+'\n'+
         RW+'x'+RH+' > '+view.width+'x'+view.height+
         (BB.cur?'\nREC '+BB.cur.hits.length+' hitch'+(BB.cur.hits.length===1?'':'es')+
           (BB.cur.hits.length?'  worst '+Math.round(BB.cur.hits[0].gap)+' ms':''):'');
@@ -3914,7 +3919,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_34';
+const BUILD='_35';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -4071,14 +4076,14 @@ function bbText(){
       for(let i=0;i<pm.length;i+=4) L.push((i?'           ':'per minute ')+pm.slice(i,i+4).join(' · '));
     }
     if(r.steps&&r.steps.length) L.push('QUALITY STEPS (FULL touch safety net): '+r.steps.map(x=>bbT(x.at)+' '+
-      ((FT[x.from]||{}).n||x.from)+' > '+((FT[x.to]||{}).n||x.to)+' (late '+x.late+'%)').join(' · '));
+      ftName(x.from)+' > '+ftName(x.to)+' (late '+x.late+'%)').join(' · '));
     if(!r.hits.length) L.push('WORST HITCHES: none');
     else {
       L.push('WORST HITCHES');
       r.hits.forEach((x,i)=>{
         L.push(' '+(i+1)+') '+Math.round(x.gap)+' ms at '+bbT(x.at)+(x.n>1?' · burst of '+x.n+' late frames over '+(x.span<1000?x.span+' ms':(x.span/1000).toFixed(1)+' s'):'')+
           (x.at<3?' · run start':'')+' · '+x.fx);
-        L.push('    frame before: JS '+x.pj.toFixed(1)+' ms ('+bbSl(x.ps,x.fx==='LITE')+') · outside JS '+Math.max(0,Math.round(x.gap-x.pj))+' ms');
+        L.push('    frame before: JS '+x.pj.toFixed(1)+' ms ('+bbSl(x.ps,x.fx==='LITE'||(FT_TOUCH&&r.b>='_35'))+') · outside JS '+Math.max(0,Math.round(x.gap-x.pj))+' ms');
         L.push('    this frame: JS '+x.js.toFixed(1)+' ms'+(x.gc>0?' · GC freed '+x.gc.toFixed(1)+' MB':'')+
           (x.lt>0?' · long task '+x.lt+' ms':(x.lt===0?' · no long task':''))+' · sounds '+x.snd);
         L.push('    wave '+x.wave+' '+x.where+' · '+x.en+' enemies ('+x.close+' within 3) · '+x.k1+' kills last 1 s · chain x'+x.chain+
@@ -4089,7 +4094,7 @@ function bbText(){
       L.push('WORST SECONDS');
       r.secs.forEach((x,i)=>{
         L.push(' '+(i+1)+') '+x.fps+' FPS at '+bbT(x.at)+' · wave '+x.wave+' · late '+x.late+' · worst '+x.worst+' ms · JS avg '+x.ja.toFixed(1)+' max '+x.jm.toFixed(1)+
-          ' · '+bbSl(x.s,x.fx==='LITE')+' · up to '+x.en+' enemies · '+x.k+' kills');
+          ' · '+bbSl(x.s,x.fx==='LITE'||(FT_TOUCH&&r.b>='_35'))+' · up to '+x.en+' enemies · '+x.k+' kills');
       });
     }
   });
@@ -4182,6 +4187,7 @@ function setupRender(){
        offset right of the pivot */
     const sC=ch/720, offC=Math.min(212*sC, cw*0.30, cw*(GUN_ARC-0.5)-140*sC);
     document.documentElement.style.setProperty('--gunX', Math.round(cw*0.5+offC+GUN_POP_DX*sC)+'px'); }
+  vScale=dpr;   /* _35 */
   view.width=Math.max(2,Math.floor(cw*dpr)); view.height=Math.max(2,Math.floor(ch*dpr));
   view.style.width=cw+'px'; view.style.height=ch+'px';
   const q=ft?FL.q:QUALITY;
@@ -5406,7 +5412,11 @@ function render(){
   const W=RW,H=RH;
   /* _29: FPS METER section timers -- skipped entirely when the meter is off */
   const pfOn=PF.on; let pt=pfOn?performance.now():0, pc=-1;
-  setOvc(fxLite);
+  /* _35: FULL on touch takes LITE's screen tricks too (the _34 phone report:
+     at LITE's own resolution FULL still ran ~5x the late frames, so the cost
+     was these full-screen layers, not resolution). Mouse FULL is untouched. */
+  const ovIn=fxLite||FT_TOUCH;
+  setOvc(ovIn);
   const lite=fxLite;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
@@ -5750,8 +5760,8 @@ function render(){
   const shy=(Math.random()-0.5)*G.shake*dh*0.022;
   vctx.setTransform(1,0,0,1,0,0);
   vctx.globalCompositeOperation='source-over'; vctx.globalAlpha=1;
-  if(lite){
-    /* _31: LITE adds the bloom into the small game image (RW x RH) before
+  if(ovIn){
+    /* _31: LITE (and since _35 FULL touch) adds the bloom into the small game image (RW x RH) before
        the one upscale, instead of a second full-canvas additive pass. */
     bloomCtx.imageSmoothingEnabled=true;
     bloomCtx.clearRect(0,0,bloomCv.width,bloomCv.height);
@@ -5775,7 +5785,7 @@ function render(){
   }
   if(pfOn){ const n=performance.now(); PF.acc[7]+=n-pt; pt=n; }
   drawGun(dw,dh);
-  if(lite) drawOverlays(dw,dh);
+  if(ovIn) drawOverlays(dw,dh);
   if(pfOn) PF.acc[8]+=performance.now()-pt;
 }
 
@@ -5786,7 +5796,7 @@ function render(){
    'ellipse at center' = farthest-corner, so both radii are sqrt2 x half the
    box. The gradients start at their end colour with alpha 0, which is what
    CSS's premultiplied interpolation does with a transparent stop. */
-let ovcOn=false, ovCv=null, dmgCv=null;
+let ovcOn=false, ovCv=null, dmgCv=null, ovS=0;
 function setOvc(v){ if(v!==ovcOn){ ovcOn=v; document.documentElement.classList.toggle('ovc',v); } }
 function ovGrad(c,w,h,stop0,col0,col1){
   c.save(); c.translate(w/2,h/2); c.scale(1,h/w);
@@ -5795,10 +5805,12 @@ function ovGrad(c,w,h,stop0,col0,col1){
   c.fillStyle=g; c.fillRect(-w/2,-w/2,w,w); c.restore();
 }
 function drawOverlays(dw,dh){
-  if(!ovCv||ovCv.width!==dw||ovCv.height!==dh){
-    ovCv=mkCv(dw,dh); const c=ovCv.getContext('2d');
-    c.fillStyle='rgba(0,0,0,0.0425)'; for(let y=2;y<dh;y+=4) c.fillRect(0,y,dw,1);
-    c.fillStyle='rgba(0,0,0,0.085)';  for(let y=3;y<dh;y+=4) c.fillRect(0,y,dw,1);
+  if(!ovCv||ovCv.width!==dw||ovCv.height!==dh||ovS!==vScale){
+    /* _35: rows in CSS pixels x vScale (1 on LITE -> exactly the _31 stripes;
+       1.5 on FULL touch -> the DOM layer's 4 CSS px period) */
+    ovCv=mkCv(dw,dh); const c=ovCv.getContext('2d'), k=vScale; ovS=k;
+    c.fillStyle='rgba(0,0,0,0.0425)'; for(let y=2;y*k<dh;y+=4) c.fillRect(0,y*k,dw,k);
+    c.fillStyle='rgba(0,0,0,0.085)';  for(let y=3;y*k<dh;y+=4) c.fillRect(0,y*k,dw,k);
     ovGrad(c,dw,dh,0.45,'rgba(10,0,25,0)','rgba(10,0,25,0.78)');
     dmgCv=mkCv(dw,dh);
     ovGrad(dmgCv.getContext('2d'),dw,dh,0.32,'rgba(255,0,90,0)','rgba(255,0,90,0.9)');
@@ -9146,32 +9158,40 @@ function die(){
 let last=0;
 let menuUp=false;
 /* _34: safety net for EFFECTS FULL on touch. Frame gaps over FTN.late ms count as
-   late. Every ~2.5 s window (>= 90 frames): more than 6% late -> one level down
-   (FT); FTN.upT of clean windows (< 1.5% late) -> one level up. A step down within
-   FTN.lockT of a step up pins that level for the session, so it never flip-flops.
+   late. Every ~2.5 s window (>= 90 frames): more than 6% late -> one step down.
    A step is applied at the START of the next frame (setupRender clears the canvas,
-   and render() refills it in the same task, so nothing blank is ever shown). */
-const FTN={win:2500, minF:90, down:0.06, up:0.015, upT:12000, lockT:20000, late:25, cool:1500};
-const FTW={f:0,l:0,t:0,good:0,lastUp:-1e9,cool:0};
-function ftReset(){ FTW.f=0; FTW.l=0; FTW.t=0; FTW.good=0; }
+   and render() refills it in the same task, so nothing blank is ever shown).
+   _35 (Carlos, 2026-10-03): one way only. The first FTN.grace ms of a run (after
+   the warm frames) and FTN.cool ms after a pause are ignored -- the _34 phone
+   report dropped two levels on the run-start burst alone. Step 1: 1.5x -> 1x
+   canvas, for the rest of the session. Step 2: EFFECTS -> LITE, saved on the
+   device exactly as if chosen in OPTIONS, with a one-line notice. It never
+   steps back up; choosing FULL again in OPTIONS starts it over (fxResize). */
+const FTN={win:2500, minF:90, down:0.06, late:25, cool:1500, grace:5000};
+const FTW={f:0,l:0,t:0,cool:0,late:0};
+function ftReset(){ FTW.f=0; FTW.l=0; FTW.t=0; }
 function ftWatch(gap,now){
   if(!FT_TOUCH||fxLite||ftPend>=0) return;
   if(now<FTW.cool) return;
   FTW.f++; FTW.t+=gap; if(gap>FTN.late) FTW.l++;
   if(FTW.t<FTN.win||FTW.f<FTN.minF) return;
-  const lf=FTW.l/FTW.f, t=FTW.t; FTW.f=0; FTW.l=0; FTW.t=0;
-  if(lf>FTN.down&&ftLv<FT.length-1){
-    if(now-FTW.lastUp<FTN.lockT) ftLock=ftLv+1;
-    ftPend=ftLv+1; FTW.good=0; FTW.late=Math.round(lf*100); return;
-  }
-  if(lf<FTN.up){ FTW.good+=t;
-    if(FTW.good>=FTN.upT&&ftLv>0&&(ftLock<0||ftLv-1>=ftLock)){ ftPend=ftLv-1; FTW.lastUp=now; FTW.good=0; FTW.late=Math.round(lf*100); }
-  } else FTW.good=0;
+  const lf=FTW.l/FTW.f; FTW.f=0; FTW.l=0; FTW.t=0;
+  if(lf>FTN.down){ ftPend=Math.min(ftLv+1,FT_LITE); FTW.late=Math.round(lf*100); }
+}
+function ftStep(from,to){
+  if(PF.on&&BB.cur&&BB.curG===G){ (BB.cur.steps||(BB.cur.steps=[])).push({at:Math.round(BB.cur.play/1000),from,to,late:FTW.late|0}); BB.dirty=true; }
 }
 function ftApply(now){
   const from=ftLv, to=ftPend; ftPend=-1; if(to<0||to===from) return;
-  ftLv=to; setupRender(); FTW.cool=now+FTN.cool; FTW.f=0; FTW.l=0; FTW.t=0;
-  if(PF.on&&BB.cur&&BB.curG===G){ (BB.cur.steps||(BB.cur.steps=[])).push({at:Math.round(BB.cur.play/1000),from,to,late:FTW.late|0}); BB.dirty=true; }
+  ftStep(from, to>=FT_LITE?'LITE':to);
+  if(to>=FT_LITE){   /* _35: the end of the ladder -- LITE, saved */
+    fxLite=true; applyFx(); syncFxLabels(); fxResize();
+    try{ localStorage.setItem('np_fx','1'); }catch(err){}
+    if(G&&G.parts.length>FX.cap) G.parts.length=FX.cap;
+    showAlert(T('FT_LITE'));
+    return;
+  }
+  ftLv=to; setupRender(); FTW.cool=now+FTN.cool; ftReset();
 }
 function frame(ts){
   requestAnimationFrame(frame);
@@ -9202,9 +9222,9 @@ function frame(ts){
   if(warmF>0&&G.mode==='play'){   /* _34: warm frames -- draw only */
     warmF--; const pf=PF.on; PF.on=false;
     try{ render(); }catch(e){}
-    PF.on=pf; ftReset(); return;
+    PF.on=pf; ftReset(); FTW.cool=ts+FTN.grace; return;   /* _35: run-start grace */
   }
-  if(G.mode!=='play') ftReset();
+  if(G.mode!=='play'){ ftReset(); if(FTW.cool<ts+FTN.cool) FTW.cool=ts+FTN.cool; }   /* _35: resume cool */
   if((G.mode==='paused')!==menuUp){ menuUp=(G.mode==='paused'); document.body.classList.toggle('menuUp',menuUp); }
   if(G.mode==='title'){
     /* _16: the title no longer raycasts. It used to spin the player's own
