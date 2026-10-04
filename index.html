@@ -469,6 +469,217 @@
   #goStats{font-size:var(--fz-item);letter-spacing:.1em;line-height:1.9;opacity:.9;margin:10px 0 4px;}
   #goStats b{color:#00f0ff;font-size:1.35em;}
 
+  /* ======================================================================
+     _40 — neon RESUPPLY and FLATLINE (from the 2026-10-04 mockups).
+     Everything is sized in --k "design pixels": 1px = the 872x392 phone mockup
+     on phones (height-scaled), 1px = the 1440x900 desktop mockup elsewhere.
+     No backdrop blur and no drop-shadow filters on phones (perf rule).
+     ====================================================================== */
+  #ovShop,#ovDead{--c:#3ef0ff;--m:#ff3cbe;--l:#a6ff3a;--y:#ffe628;--v:#8a5cff;--lav:#b9a8e8;
+    --k:min(1.4px,calc(100vh / 900),calc(100vw / 1440));
+    font-family:'NPS','Avenir Next Condensed','Helvetica Neue',Arial,sans-serif;color:#e9f6ff;text-align:left;}
+  #ovShop{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.80),rgba(4,1,12,.94));}
+  #ovDead{background:radial-gradient(ellipse at 34% 40%,rgba(80,6,40,.62),rgba(4,1,12,.94));}
+  #ovShop *,#ovDead *{box-sizing:border-box;}
+  .zcz{--ch:calc(12 * var(--k));
+    clip-path:polygon(var(--ch) 0,100% 0,100% calc(100% - var(--ch)),calc(100% - var(--ch)) 100%,0 100%,0 var(--ch));}
+  .zf{position:relative;padding:2px;background:linear-gradient(135deg,var(--c),var(--v) 55%,var(--m));}
+  .zf>.zi{height:100%;background:linear-gradient(180deg,rgba(18,8,44,.96),rgba(8,3,22,.96));}
+  .zsub{font-weight:700;letter-spacing:.24em;font-size:max(10px,calc(11 * var(--k)));color:var(--lav);}
+  button.zbtn{appearance:none;-webkit-appearance:none;border:0;margin:0;font:inherit;color:inherit;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;display:block;}
+
+  /* ---- RESUPPLY ---- */
+  .shp{width:100%;min-height:100%;display:flex;flex-direction:column;}
+  .shHead{display:flex;justify-content:space-between;align-items:flex-start;gap:calc(12 * var(--k));
+    padding:calc(10 * var(--k)) calc(22 * var(--k)) 0 calc(26 * var(--k));}
+  .shH1{font-weight:800;letter-spacing:.06em;font-size:calc(28 * var(--k));line-height:1.05;
+    text-shadow:0 0 12px rgba(62,240,255,.7);}
+  .shStats{--ch:calc(10 * var(--k));flex:0 0 auto;}
+  .shStats>.zi{display:flex;}
+  .zchip{display:flex;flex-direction:column;align-items:center;padding:calc(4 * var(--k)) calc(12 * var(--k));
+    min-width:calc(84 * var(--k));}
+  .zchip b{font-size:max(10px,calc(10 * var(--k)));letter-spacing:.2em;color:var(--lav);font-weight:700;white-space:nowrap;}
+  .zchip span{font-size:calc(20 * var(--k));font-weight:800;white-space:nowrap;}
+  .zchip .zdk{display:none;}
+  .shTabs{display:flex;gap:calc(8 * var(--k));padding:calc(10 * var(--k)) calc(26 * var(--k)) 0;}
+  .shTabs:empty{display:none;}
+  .ztab{--ch:calc(8 * var(--k));padding:calc(8 * var(--k)) calc(16 * var(--k));font-weight:800;letter-spacing:.14em;
+    font-size:max(11px,calc(13 * var(--k)));color:#9a8cc0;background:rgba(40,20,80,.6);cursor:pointer;
+    -webkit-tap-highlight-color:transparent;}
+  .ztab.on{color:#07040d;background:linear-gradient(90deg,var(--c),#9ff8ff);}
+  .shBody{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;}
+  .shSec{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;}
+  .zrail{flex:1 1 auto;min-height:0;}
+  .shSec[hidden]{display:none!important;}
+  .zsect{display:none;}
+  .zrail{display:flex;gap:calc(12 * var(--k));overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;
+    overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    padding:calc(6 * var(--k)) calc(26 * var(--k)) calc(8 * var(--k));scroll-padding-left:calc(26 * var(--k));}
+  .zrail::-webkit-scrollbar{display:none;}
+  .shBody.ph .shSec{display:none;}
+  .shBody.ph[data-tab="arm"] #shArmSec,.shBody.ph[data-tab="upg"] #shUpgSec,.shBody.ph[data-tab="rep"] #shRepSec{display:flex;}
+  .zc{flex:0 0 calc(158 * var(--k));height:auto;max-height:calc(212 * var(--k));scroll-snap-align:start;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;position:relative;}
+  .zc>.zf{height:100%;}
+  .zc .zi{display:flex;flex-direction:column;padding:calc(10 * var(--k)) calc(12 * var(--k));gap:calc(4 * var(--k));}
+  .zc .ic{height:calc(40 * var(--k));display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .zc .ic svg{height:100%;width:auto;filter:none;}
+  .zc .tx{display:flex;flex-direction:column;gap:calc(4 * var(--k));}
+  .zc .nm{font-weight:800;font-size:max(12px,calc(14 * var(--k)));letter-spacing:.06em;line-height:1.05;min-height:2.1em;}
+  .zc .ds{font-weight:700;font-size:max(10px,calc(12 * var(--k)));color:var(--lav);letter-spacing:.02em;line-height:1.2;}
+  .zpips{display:flex;gap:3px;margin-top:auto;min-height:5px;}
+  .zpips i{width:calc(12 * var(--k));height:5px;background:rgba(160,140,220,.25);}
+  .zpips i.on{background:var(--l);box-shadow:0 0 6px var(--l);}
+  .zbuy{--ch:calc(7 * var(--k));margin-top:calc(6 * var(--k));text-align:center;font-weight:800;
+    font-size:max(13px,calc(16 * var(--k)));letter-spacing:.08em;padding:calc(6 * var(--k)) 0;color:#07040d;
+    background:var(--l);flex:0 0 auto;}
+  .zbuy.no{background:rgba(120,100,170,.25);color:#7a6aa0;}
+  .zc:active{transform:scale(.97);}
+  .zc.fresh{animation:shFresh .9s ease-out 1;}
+  @keyframes shFresh{0%{transform:translateY(calc(-10 * var(--k)));filter:brightness(2.2);}100%{transform:none;filter:none;}}
+  .shFade{position:absolute;top:0;bottom:0;right:0;width:calc(90 * var(--k));pointer-events:none;display:none;
+    background:linear-gradient(90deg,rgba(6,2,16,0),rgba(6,2,16,.92));}
+  .zchev{position:absolute;top:50%;margin-top:calc(-20 * var(--k));width:calc(40 * var(--k));height:calc(40 * var(--k));
+    display:none;align-items:center;justify-content:center;color:var(--c);font-size:calc(30 * var(--k));font-weight:800;
+    text-shadow:0 0 10px var(--c);cursor:pointer;-webkit-tap-highlight-color:transparent;background:rgba(6,2,16,.78);border-radius:50%;}
+  .zchev.r{right:calc(6 * var(--k));}.zchev.l{left:calc(4 * var(--k));}
+  .shBody.more .shFade,.shBody.more .zchev.r{display:flex;}
+  .shBody.less .zchev.l{display:flex;}
+  .shFoot{display:flex;align-items:center;justify-content:space-between;gap:calc(14 * var(--k));
+    padding:calc(4 * var(--k)) calc(22 * var(--k)) calc(14 * var(--k)) calc(28 * var(--k));}
+  .shNav{display:flex;align-items:center;gap:calc(16 * var(--k));min-width:0;flex:1 1 auto;}
+  .zdots{display:flex;gap:7px;align-items:center;}
+  .zdots i{width:8px;height:8px;border-radius:50%;background:rgba(160,140,220,.35);}
+  .zdots i.on{background:var(--c);box-shadow:0 0 8px var(--c);width:22px;border-radius:4px;}
+  .shHint{font-weight:700;font-size:max(10px,calc(12 * var(--k)));letter-spacing:.18em;color:var(--lav);}
+  .shRoll{--ch:calc(8 * var(--k));flex:0 0 auto;padding:calc(6 * var(--k)) calc(14 * var(--k));text-align:center;
+    background:rgba(255,230,40,.07);box-shadow:inset 0 0 0 2px rgba(255,230,40,.55);color:var(--y);}
+  .shRoll b{display:block;font-size:max(10px,calc(11 * var(--k)));letter-spacing:.2em;font-weight:800;}
+  .shRoll span{display:block;font-size:max(13px,calc(16 * var(--k)));letter-spacing:.06em;font-weight:800;}
+  .shRoll.no{opacity:.38;}
+  .zdep{--ch:calc(12 * var(--k));flex:0 0 auto;width:calc(220 * var(--k));height:calc(50 * var(--k));padding:2px;
+    background:linear-gradient(90deg,var(--m),var(--v));}
+  .zdep .zi2{height:100%;background:linear-gradient(90deg,#ff3cbe,#c22ca0);color:#fff;font-weight:800;letter-spacing:.16em;
+    font-size:max(15px,calc(20 * var(--k)));display:flex;align-items:center;justify-content:center;gap:calc(10 * var(--k));}
+  .zdep svg{width:.9em;height:.9em;}
+  .zdep:active{filter:brightness(1.15);}
+
+  /* ---- FLATLINE ---- */
+  .ddw{width:100%;min-height:100%;display:flex;flex-direction:column;justify-content:space-between;
+    padding:calc(22 * var(--k)) calc(26 * var(--k)) calc(22 * var(--k)) calc(30 * var(--k));gap:calc(6 * var(--k));}
+  .ddTop{display:flex;justify-content:space-between;align-items:flex-start;gap:calc(14 * var(--k));}
+  .zflat{font-weight:800;letter-spacing:.04em;line-height:.9;color:#fff;font-size:calc(66 * var(--k));
+    text-shadow:3px 0 0 rgba(255,60,190,.85),-3px 0 0 rgba(62,240,255,.85),0 0 22px rgba(255,60,190,.6);}
+  #ddSub{margin-top:calc(8 * var(--k));}
+  #ddBest{margin-top:calc(12 * var(--k));}
+  .zrib{--ch:calc(8 * var(--k));display:inline-block;padding:calc(4 * var(--k)) calc(12 * var(--k));background:var(--y);
+    color:#120a00;font-weight:800;font-size:max(11px,calc(12 * var(--k)));letter-spacing:.2em;}
+  .zpb{font-weight:800;font-size:max(11px,calc(12 * var(--k)));letter-spacing:.2em;color:var(--lav);}
+  .zstats{display:flex;gap:calc(10 * var(--k));flex:0 0 auto;}
+  .zstat{--ch:calc(12 * var(--k));width:calc(118 * var(--k));height:calc(92 * var(--k));animation:ddIn .45s ease-out both;}
+  .zstat:nth-child(2){animation-delay:.08s;}.zstat:nth-child(3){animation-delay:.16s;}
+  .zstat>.zi{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+    padding:calc(8 * var(--k)) calc(14 * var(--k));}
+  .zstat b{font-size:max(10px,calc(11 * var(--k)));letter-spacing:.22em;color:var(--lav);font-weight:700;line-height:1.1;}
+  .zstat span{font-size:calc(40 * var(--k));font-weight:800;line-height:1.05;}
+  @keyframes ddIn{from{opacity:0;transform:translateY(calc(10 * var(--k)));}to{opacity:1;transform:none;}}
+  .ddEkg{position:relative;height:calc(80 * var(--k));margin:0 calc(-30 * var(--k)) 0 calc(-30 * var(--k));flex:0 0 auto;}
+  .ddEkg svg{position:absolute;inset:0;width:100%;height:100%;}
+  #ovDead.on .ddEkg svg{animation:ddDraw 1.1s ease-out both;}
+  @keyframes ddDraw{from{clip-path:inset(0 100% 0 0);}to{clip-path:inset(0 0 0 0);}}
+  .zline{font-weight:700;font-size:max(10px,calc(12 * var(--k)));letter-spacing:.14em;color:var(--lav);text-align:right;}
+  .zline em{font-style:normal;color:#fff;}
+  .ddBtns{display:flex;gap:calc(12 * var(--k));align-items:stretch;height:calc(58 * var(--k));}
+  .zb1,.zb2{--ch:calc(12 * var(--k));padding:2px;}
+  .zb1{flex:1.4;background:linear-gradient(90deg,var(--m),var(--v));}
+  .zb2{flex:1;background:linear-gradient(135deg,var(--c),var(--v));}
+  .zb1 .zi2,.zb2 .zi2{height:100%;font-weight:800;letter-spacing:.16em;display:flex;align-items:center;justify-content:center;
+    gap:calc(10 * var(--k));font-size:max(14px,calc(20 * var(--k)));white-space:nowrap;}
+  .zb1 .zi2{background:linear-gradient(90deg,#ff3cbe,#c22ca0);color:#fff;}
+  .zb2 .zi2{background:rgba(14,6,36,.95);color:#e9f6ff;}
+  .zb1 svg{width:.95em;height:.95em;}
+  .zb1:active,.zb2:active{filter:brightness(1.15);}
+  .zghost{flex:0 0 calc(120 * var(--k));color:#9a8cc0;font-weight:800;letter-spacing:.16em;font-size:max(10px,calc(12 * var(--k)));
+    border:1px dashed rgba(160,140,220,.45);background:none;display:flex;align-items:center;justify-content:center;
+    padding:0 6px;text-align:center;}
+
+  @media (hover:hover){
+    .zc:hover .zf{filter:brightness(1.25);}
+    .ztab:not(.on):hover{color:#fff;}
+    .shRoll:not(.no):hover{background:rgba(255,230,40,.16);}
+    .zdep:hover,.zb1:hover,.zb2:hover{filter:brightness(1.12);}
+  }
+  @media (max-width:700px){
+    .shSub{display:none;}
+    .zflat{font-size:calc(54 * var(--k));}
+    .zstat{width:calc(92 * var(--k));}.zstat span{font-size:calc(32 * var(--k));}
+    .zstat b{white-space:normal;}
+  }
+  /* desktop / tablet (anything taller than a phone in landscape) */
+  @media (min-height:561px){
+    #ovShop,#ovDead{--k:min(1.4px,calc(100vh / 900),calc(100vw / 1440));}
+    .shp{width:calc(1120 * var(--k));min-height:0;margin:auto;max-width:96vw;}
+    .shHead{padding:0;align-items:flex-end;}
+    .shH1{font-size:calc(52 * var(--k));}
+    .shSub{font-size:max(11px,calc(14 * var(--k)));}
+    .zchip{padding:calc(8 * var(--k)) calc(16 * var(--k));min-width:calc(140 * var(--k));}
+    .zchip b{font-size:max(10px,calc(12 * var(--k)));}
+    .zchip span{font-size:calc(28 * var(--k));}
+    .zchip .zdk{display:inline;}
+    .shTabs{display:none!important;}
+    .shBody{display:block;flex:0 0 auto;}
+    .shSec{flex:0 0 auto;}.zrail{flex:0 0 auto;}
+    .zsect{display:flex;align-items:center;gap:calc(12 * var(--k));font-weight:800;letter-spacing:.3em;
+      font-size:max(11px,calc(12 * var(--k)));color:var(--l);margin:calc(26 * var(--k)) 0 calc(12 * var(--k));}
+    .zsect:after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(166,255,58,.6),rgba(166,255,58,0));}
+    .zrail{flex-wrap:wrap;overflow:visible;padding:0;gap:calc(14 * var(--k));touch-action:auto;}
+    .zc{flex:1 1 calc(212 * var(--k));max-width:calc(272 * var(--k));height:calc(178 * var(--k));max-height:none;}
+    .zc .ic{height:calc(46 * var(--k));}
+    .zc .nm{font-size:max(13px,calc(17 * var(--k)));min-height:0;}
+    .zc .ds{font-size:max(11px,calc(13 * var(--k)));}
+    .zbuy{font-size:max(14px,calc(17 * var(--k)));}
+    .zpips i{width:calc(16 * var(--k));}
+    #wcards .zc{flex:1 1 calc(440 * var(--k));max-width:calc(552 * var(--k));height:calc(110 * var(--k));}
+    #wcards .zc .zi{flex-direction:row;align-items:center;gap:calc(16 * var(--k));}
+    #wcards .zc .ic{height:calc(78 * var(--k));flex:0 0 calc(86 * var(--k));}
+    #wcards .zc .tx{flex:1;}
+    #wcards .zc .nm{font-size:max(15px,calc(22 * var(--k)));}
+    #wcards .zc .ds{font-size:max(11px,calc(14 * var(--k)));}
+    #wcards .zc .zpips{display:none;}
+    #wcards .zc .zbuy{width:calc(140 * var(--k));margin:0;font-size:max(14px,calc(18 * var(--k)));}
+    .shFade,.zchev,.zdots{display:none!important;}
+    .shFoot{padding:calc(26 * var(--k)) 0 0;}
+    .shHint{font-size:max(10px,calc(13 * var(--k)));}
+    .zdep{width:calc(300 * var(--k));height:calc(62 * var(--k));}
+    .zdep .zi2{font-size:max(16px,calc(26 * var(--k)));}
+    .shRoll{padding:calc(10 * var(--k)) calc(18 * var(--k));}
+
+    .ddw{width:calc(1000 * var(--k));max-width:96vw;min-height:0;margin:auto;padding:0;gap:calc(14 * var(--k));}
+    .zflat{font-size:calc(110 * var(--k));}
+    #ddSub{font-size:max(11px,calc(15 * var(--k)));margin-top:calc(12 * var(--k));}
+    #ddBest{margin-top:calc(16 * var(--k));}
+    .zrib,.zpb{font-size:max(11px,calc(15 * var(--k)));}
+    .zstats{flex-direction:column;gap:calc(12 * var(--k));}
+    .zstat{width:calc(260 * var(--k));height:calc(96 * var(--k));}
+    .zstat b{font-size:max(10px,calc(13 * var(--k)));}
+    .zstat span{font-size:calc(48 * var(--k));}
+    .ddEkg{height:calc(110 * var(--k));margin:calc(10 * var(--k)) 0 0;}
+    .zline{text-align:left;font-size:max(11px,calc(15 * var(--k)));margin-top:calc(8 * var(--k));}
+    .zline .zdk{display:inline;}
+    .ddBtns{height:calc(70 * var(--k));margin-top:calc(12 * var(--k));}
+    .zb1 .zi2{font-size:max(16px,calc(28 * var(--k)));}
+    .zb2 .zi2{font-size:max(14px,calc(22 * var(--k)));}
+    .zghost{font-size:max(11px,calc(14 * var(--k)));flex-basis:calc(150 * var(--k));}
+  }
+  @media (max-height:560px){
+    #ovShop,#ovDead{--k:min(1px,calc(100svh / 392));-webkit-backdrop-filter:none;backdrop-filter:none;}
+    #ovShop{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.97),rgba(4,1,12,.99));}
+    #ovDead{background:radial-gradient(ellipse at 34% 40%,rgba(80,6,40,.97),rgba(4,1,12,.99));}
+    .zline .zdk{display:none;}
+  }
+  @media (max-height:560px) and (max-width:700px){ .zflat{font-size:calc(54 * var(--k));} }
+
   #touch{position:absolute;inset:0;z-index:12;display:none;}
   #touch.on{display:block;}
   #stick{position:absolute;width:120px;height:120px;border-radius:50%;
@@ -1207,21 +1418,28 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="sp1"><path d="M73.3 40.0C70.4 41.2 69.8 41.5 68.5 42.2C67.2 42.9 66.9 43.2 66.3 43.9C65.6 44.5 65.4 44.9 65.1 45.5C64.7 46.1 64.5 46.5 64.3 47.3C64.1 48.0 64.4 49.0 64.0 49.6C63.6 50.2 62.3 49.6 62.0 50.6C61.6 51.5 62.4 53.1 62.3 54.7C62.1 56.2 62.0 57.8 61.4 58.8C60.7 59.9 59.8 60.8 58.5 60.5C57.3 60.1 55.9 58.1 54.7 57.1C53.5 56.1 52.9 55.7 52.0 55.1C51.1 54.4 50.6 54.1 49.8 53.8C49.0 53.6 48.5 53.6 47.6 53.7C46.8 53.7 46.1 53.9 45.1 53.9C44.1 54.0 43.4 54.0 42.2 54.1C40.9 54.2 39.9 54.5 38.3 54.5C36.8 54.6 35.4 54.7 33.9 54.4C32.3 54.2 30.7 54.0 29.9 53.0C29.1 52.1 29.9 50.6 29.6 49.4C29.2 48.2 29.2 47.5 28.0 46.5C26.9 45.4 24.3 45.0 23.4 43.8C22.5 42.6 22.5 41.3 23.2 40.0C23.9 38.7 25.5 37.7 27.2 36.7C29.0 35.8 31.0 35.4 32.7 34.8C34.5 34.2 36.4 34.5 36.7 33.6C37.0 32.6 35.9 31.9 34.2 29.5C32.6 27.1 28.3 22.8 27.8 20.7C27.3 18.6 29.3 17.9 31.6 18.3C33.9 18.8 37.5 21.4 40.1 23.0C42.7 24.7 44.2 26.6 45.6 27.2C47.0 27.8 46.9 26.7 47.7 26.4C48.4 26.2 49.0 26.2 49.8 25.8C50.6 25.3 51.0 24.8 52.0 23.9C53.0 23.1 53.8 21.9 54.9 21.2C56.1 20.5 57.3 19.7 58.4 20.0C59.4 20.4 60.0 21.7 60.5 23.0C61.0 24.3 60.7 25.9 61.1 27.0C61.4 28.2 61.7 28.5 62.2 29.2C62.6 29.9 62.9 30.3 63.5 30.8C64.1 31.4 63.4 32.1 65.4 32.1C67.4 32.1 70.5 30.9 74.1 30.7C77.7 30.5 82.9 30.2 84.8 31.2C86.7 32.1 86.5 34.1 84.4 35.7C82.3 37.4 76.3 38.8 73.3 40.0Z"/><ellipse cx="43.3" cy="79.9" rx="4.0" ry="2.5" transform="rotate(-38 43.3 79.9)"/><ellipse cx="8.0" cy="40.5" rx="4.0" ry="2.5" transform="rotate(-37 8.0 40.5)"/><ellipse cx="5.5" cy="38.5" rx="4.8" ry="3.2" transform="rotate(54 5.5 38.5)"/><ellipse cx="88.4" cy="11.9" rx="4.0" ry="2.8" transform="rotate(3 88.4 11.9)"/><ellipse cx="25.6" cy="16.3" rx="2.6" ry="2.1" transform="rotate(-51 25.6 16.3)"/><ellipse cx="42.7" cy="-9.0" rx="4.8" ry="4.0" transform="rotate(-8 42.7 -9.0)"/><ellipse cx="15.6" cy="56.3" rx="1.5" ry="1.3" transform="rotate(-66 15.6 56.3)"/><ellipse cx="89.5" cy="10.6" rx="1.5" ry="1.4" transform="rotate(58 89.5 10.6)"/></g><g id="sp2"><path d="M84.0 40.0C85.6 41.4 86.1 43.0 85.1 44.4C84.2 45.7 81.5 46.6 78.9 47.3C76.2 47.9 73.3 47.8 70.9 47.9C68.5 48.1 66.9 47.8 65.8 48.2C64.6 48.6 64.7 49.0 64.7 50.1C64.7 51.3 65.3 52.5 65.5 54.4C65.8 56.2 66.1 57.7 66.1 60.2C66.2 62.7 66.7 66.2 65.9 68.0C65.0 69.7 63.3 70.2 61.5 69.8C59.7 69.4 57.8 67.8 56.1 65.9C54.3 64.0 53.2 61.2 52.0 59.5C50.8 57.8 50.4 57.2 49.4 56.9C48.3 56.5 47.9 56.8 46.4 57.7C44.9 58.5 43.4 60.3 41.3 61.6C39.2 62.8 37.2 63.9 34.9 64.4C32.7 65.0 30.9 64.9 29.0 64.4C27.1 63.9 25.5 63.3 24.7 61.8C23.8 60.3 24.2 58.3 24.3 56.4C24.3 54.5 24.7 53.1 25.0 51.3C25.3 49.6 25.2 48.6 26.1 47.0C27.1 45.4 28.8 44.2 30.1 42.9C31.4 41.6 32.2 40.9 33.3 40.0C34.3 39.1 35.3 38.6 35.9 37.9C36.5 37.1 36.3 36.6 36.6 35.8C36.9 35.1 37.1 34.5 37.6 34.0C38.2 33.4 39.3 33.4 39.7 32.7C40.1 32.0 39.7 31.2 39.8 30.3C39.9 29.3 40.0 28.7 40.1 27.4C40.3 26.1 40.1 24.9 40.4 23.5C40.7 22.0 41.0 20.7 41.8 19.5C42.6 18.3 43.4 17.4 44.7 17.0C45.9 16.5 47.1 17.4 48.4 17.1C49.8 16.8 50.6 15.8 52.0 15.4C53.4 15.0 54.5 14.9 55.9 14.9C57.4 15.0 58.7 14.5 59.8 15.5C60.9 16.5 61.4 18.4 61.8 20.2C62.2 22.1 62.0 23.9 62.1 25.5C62.2 27.1 62.1 28.0 62.4 29.0C62.6 30.0 62.9 30.3 63.5 30.8C64.0 31.4 64.9 31.5 65.3 32.1C65.8 32.7 65.1 33.6 65.9 34.2C66.6 34.8 67.4 34.8 69.3 35.3C71.3 35.8 73.6 35.9 76.4 36.8C79.1 37.6 82.4 38.6 84.0 40.0Z"/><ellipse cx="36.0" cy="-5.4" rx="4.8" ry="3.1" transform="rotate(45 36.0 -5.4)"/><ellipse cx="38.5" cy="85.1" rx="4.8" ry="3.0" transform="rotate(-34 38.5 85.1)"/><ellipse cx="23.1" cy="70.2" rx="3.2" ry="1.9" transform="rotate(-58 23.1 70.2)"/><ellipse cx="73.5" cy="69.0" rx="4.8" ry="4.3" transform="rotate(63 73.5 69.0)"/><ellipse cx="76.5" cy="76.8" rx="4.0" ry="3.1" transform="rotate(63 76.5 76.8)"/><ellipse cx="93.7" cy="23.3" rx="2.0" ry="1.3" transform="rotate(-59 93.7 23.3)"/><ellipse cx="62.1" cy="3.4" rx="3.2" ry="2.3" transform="rotate(30 62.1 3.4)"/><ellipse cx="2.2" cy="34.7" rx="2.0" ry="1.8" transform="rotate(55 2.2 34.7)"/></g><g id="sp3"><path d="M72.4 40.0C71.2 41.0 69.8 41.5 68.8 42.2C67.8 43.0 67.3 43.3 67.0 44.1C66.8 44.8 66.8 45.3 67.3 46.4C67.7 47.6 68.5 48.5 69.5 50.3C70.5 52.2 72.8 55.0 72.7 56.5C72.6 58.0 71.1 58.5 69.2 58.2C67.3 57.9 64.4 55.9 62.4 54.9C60.4 53.8 59.4 52.9 58.2 52.5C57.0 52.1 56.8 52.4 56.1 52.7C55.3 53.0 55.0 54.0 54.2 54.3C53.5 54.5 52.8 54.2 52.0 54.2C51.2 54.2 50.8 53.7 49.8 54.4C48.7 55.1 47.9 56.4 46.3 58.0C44.6 59.5 42.6 61.8 40.7 62.7C38.8 63.7 36.8 64.1 35.9 63.1C35.0 62.1 35.4 59.4 35.7 57.3C36.1 55.1 37.4 53.0 37.9 51.2C38.4 49.5 38.6 48.9 38.5 48.0C38.3 47.1 37.7 46.9 37.2 46.2C36.7 45.5 36.6 45.0 35.9 44.3C35.2 43.6 34.1 43.3 33.4 42.5C32.8 41.7 33.1 41.0 32.5 40.0C31.9 39.0 30.9 38.3 30.4 37.1C29.8 36.0 29.2 35.0 29.5 33.9C29.9 32.9 31.0 32.4 32.1 31.6C33.1 30.9 34.2 30.7 35.0 30.0C35.9 29.2 36.3 28.9 36.5 27.6C36.7 26.4 35.9 24.6 36.2 23.2C36.5 21.8 36.9 20.5 38.1 20.1C39.3 19.7 41.1 20.5 42.7 21.2C44.3 21.8 45.5 22.9 46.7 23.5C48.0 24.2 48.7 24.7 49.6 24.9C50.6 25.1 51.1 24.7 52.0 24.5C52.9 24.2 53.5 24.0 54.6 23.4C55.7 22.8 56.8 21.6 58.0 21.1C59.3 20.7 60.3 20.8 61.4 21.1C62.5 21.4 63.4 21.7 64.1 22.7C64.8 23.6 65.0 24.7 65.2 26.0C65.3 27.3 64.7 28.7 65.0 29.7C65.3 30.6 65.8 30.7 66.9 31.2C67.9 31.7 69.2 31.7 70.6 32.2C72.0 32.7 73.6 33.0 74.5 33.9C75.4 34.8 75.7 35.8 75.4 36.9C75.0 38.0 73.7 39.0 72.4 40.0Z"/><ellipse cx="21.2" cy="14.5" rx="1.5" ry="0.9" transform="rotate(41 21.2 14.5)"/><ellipse cx="76.5" cy="0.8" rx="3.2" ry="2.5" transform="rotate(40 76.5 0.8)"/><ellipse cx="25.4" cy="11.7" rx="3.2" ry="3.0" transform="rotate(-36 25.4 11.7)"/><ellipse cx="3.0" cy="62.2" rx="2.6" ry="2.2" transform="rotate(18 3.0 62.2)"/><ellipse cx="90.9" cy="20.2" rx="1.5" ry="1.2" transform="rotate(-46 90.9 20.2)"/><ellipse cx="68.9" cy="79.7" rx="4.8" ry="4.0" transform="rotate(-44 68.9 79.7)"/><ellipse cx="86.0" cy="76.0" rx="4.0" ry="3.4" transform="rotate(-34 86.0 76.0)"/><ellipse cx="0.5" cy="32.4" rx="2.6" ry="1.8" transform="rotate(-40 0.5 32.4)"/></g></defs></svg>
 
   <div class="ov" id="ovShop">
-    <div class="ovBody">
-      <div id="shopHead" data-t="SHOP_HEAD">RESUPPLY</div>
-      <div id="shopSub" data-t="SHOP_SUB">THE MACHINE ONLY TAKES CREDITS</div>
-      <div class="rule"></div>
-      <div id="shopCred">0 CR</div>
-      <div class="shopgrp" id="grpWeapons">
-        <div class="grouplbl" data-t="ARMORY">ARMORY</div>
-        <div class="cardrow" id="wcards"></div>
+    <div class="shp">
+      <div class="shHead">
+        <div><div class="shH1" id="shopHead" data-t="SHOP_HEAD">RESUPPLY</div>
+             <div class="zsub shSub" id="shopSub" data-t="SHOP_SUB">THE MACHINE ONLY TAKES CREDITS</div></div>
+        <div class="zf zcz shStats"><div class="zi zcz">
+          <div class="zchip"><b data-t="CREDITS">CREDITS</b><span id="shCred" style="color:var(--y)">0</span></div>
+          <div class="zchip"><b data-t="INTEGRITY">INTEGRITY</b><span style="color:var(--m)"><span id="shHp">100</span><span class="zdk" id="shHpMax"></span></span></div>
+          <div class="zchip"><b data-t="NEXT_WAVE">NEXT WAVE</b><span id="shNext" style="color:var(--c)">01</span></div>
+        </div></div>
       </div>
-      <div class="shopgrp">
-        <div class="grouplbl" data-t="UPGRADES">UPGRADES</div>
-        <div class="cardrow" id="ucards"></div>
+      <div class="shTabs" id="shTabs"></div>
+      <div class="shBody" id="shBody">
+        <div class="shSec" id="shArmSec"><div class="zsect" data-t="ARMORY">ARMORY</div><div class="zrail" id="wcards"></div></div>
+        <div class="shSec" id="shUpgSec"><div class="zsect" data-t="UPGRADES">UPGRADES</div><div class="zrail" id="ucards"></div></div>
+        <div class="shSec" id="shRepSec"><div class="zsect" data-t="SH_SVC">SERVICE</div><div class="zrail" id="rcards"></div></div>
+        <div class="shFade"></div><div class="zchev l" id="shChevL">&#8249;</div><div class="zchev r" id="shChevR">&#8250;</div>
       </div>
-      <button class="btn pink" id="nextBtn"><span data-t="NEXT_WAVE">NEXT WAVE</span></button>
-      <div id="shopTimer" data-t="DEPLOY_HINT">SPACE / TAP TO DEPLOY</div>
+      <div class="shFoot">
+        <div class="shNav"><div class="zdots" id="shDots"></div><div class="shHint" id="shHint"></div></div>
+        <button class="zbtn shRoll zcz" id="rerollBtn"><b data-t="SH_REROLL">RE-ROLL</b><span id="shRollCost">0 CR</span></button>
+        <button class="zbtn zdep zcz" id="nextBtn"><span class="zi2 zcz"><span data-t="SH_DEPLOY">DEPLOY</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z" fill="currentColor"/></svg></span></button>
+      </div>
     </div>
   </div>
 
@@ -1266,14 +1484,25 @@
   </div>
 
   <div class="ov" id="ovDead">
-    <div class="ovBody">
-      <div class="title" data-t="DEAD_TITLE">FLATLINE</div>
-      <div class="rule"></div>
-      <div id="goStats"></div>
-      <div class="btnrow">
-        <button class="btn" id="againBtn"><span data-t="AGAIN">RUN IT BACK</span></button>
-        <button class="btn ghost" id="menuBtn"><span data-t="MAINMENU">MAIN MENU</span></button>
-        <button class="btn ghost" id="deadRepBtn" style="display:none"><span data-t="O_PREP">FPS REPORT</span></button>
+    <div class="ddw">
+      <div class="ddTop">
+        <div><div class="zflat" data-t="DEAD_TITLE">FLATLINE</div><div class="zsub" id="ddSub"></div><div id="ddBest"></div></div>
+        <div class="zstats">
+          <div class="zstat zf zcz"><div class="zi zcz"><b data-t="WAVE">WAVE</b><span id="ddW" style="color:var(--c)">0</span></div></div>
+          <div class="zstat zf zcz"><div class="zi zcz"><b data-t="ST_PAINT">PAINTED</b><span id="ddK" style="color:var(--m)">0</span></div></div>
+          <div class="zstat zf zcz"><div class="zi zcz"><b data-t="ST_CHAIN">BEST CHAIN</b><span id="ddC" style="color:var(--y)">0</span></div></div>
+        </div>
+      </div>
+      <div class="ddEkg"><svg viewBox="0 0 1000 110" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 55 H220 l12 -46 l14 88 l10 -66 l8 24 H550" fill="none" stroke="#ff3cbe" stroke-opacity=".28" stroke-width="9" vector-effect="non-scaling-stroke"/>
+        <path d="M0 55 H220 l12 -46 l14 88 l10 -66 l8 24 H550" fill="none" stroke="#ff3cbe" stroke-width="3" vector-effect="non-scaling-stroke"/>
+        <path d="M550 55 H1000" fill="none" stroke="#3ef0ff" stroke-width="2.5" stroke-dasharray="2 6" vector-effect="non-scaling-stroke"/>
+      </svg></div>
+      <div class="zline" id="ddLine"></div>
+      <div class="ddBtns">
+        <button class="zbtn zb1 zcz" id="againBtn"><span class="zi2 zcz"><span data-t="AGAIN">RUN IT BACK</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8a8 8 0 1 0 1 7" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M20 3v6h-6" fill="none" stroke="currentColor" stroke-width="2.6"/></svg></span></button>
+        <button class="zbtn zb2 zcz" id="menuBtn"><span class="zi2 zcz"><span data-t="MAINMENU">MAIN MENU</span></span></button>
+        <button class="zbtn zghost" id="deadRepBtn" style="display:none"><span data-t="O_PREP">FPS REPORT</span></button>
       </div>
     </div>
   </div>
@@ -1435,6 +1664,10 @@ en:{
   DEPLOY_HINT:'SPACE / TAP TO DEPLOY', SH_STOCK:'STOCK DEPLETED',
   SH_REROLL:'RE-ROLL', SH_ROLL_Y:'pull one more option onto the shelf',
   SH_ROLL_N:'nothing left in stock', CR:'CR',
+  SH_SVC:'SERVICE', SH_DEPLOY:'DEPLOY', SH_H_SW:'SWIPE FOR MORE  ·  TAP TO BUY', SH_H_TAP:'TAP TO BUY',
+  SH_H_CLK:'CLICK TO BUY  ·  SPACE TO DEPLOY',
+  DEAD_SUB:'THE PAINT DRIED ON WAVE %w', DEAD_NB:'NEW BEST  ·  WAVE %w', DEAD_PB:'PERSONAL BEST  ·  WAVE %b',
+  ST_PAINT:'PAINTED', ST_CHAIN:'BEST CHAIN', DL_CR:'CREDITS EARNED', DL_WD:'WARDENS', DL_GAL:'GALLERY',
   /* --- pause / death --- */
   PAUSED:'PAUSED', SENS:'LOOK SENSITIVITY', RESUME:'RESUME', ABANDON:'ABANDON RUN',
   PAUSE_HINT:'ESC OR P TO TOGGLE', DEAD_TITLE:'FLATLINE', AGAIN:'RUN IT BACK',
@@ -1575,6 +1808,10 @@ es:{
   DEPLOY_HINT:'ESPACIO / TOCA PARA DESPLEGAR', SH_STOCK:'SIN EXISTENCIAS',
   SH_REROLL:'OTRA CARTA', SH_ROLL_Y:'saca otra opción al estante',
   SH_ROLL_N:'no queda nada en el estante', CR:'CR',
+  SH_SVC:'SERVICIO', SH_DEPLOY:'DESPLEGAR', SH_H_SW:'DESLIZA PARA VER MÁS  ·  TOCA PARA COMPRAR', SH_H_TAP:'TOCA PARA COMPRAR',
+  SH_H_CLK:'CLIC PARA COMPRAR  ·  ESPACIO PARA DESPLEGAR',
+  DEAD_SUB:'LA PINTURA SE SECÓ EN LA OLEADA %w', DEAD_NB:'NUEVO RÉCORD  ·  OLEADA %w', DEAD_PB:'RÉCORD  ·  OLEADA %b',
+  ST_PAINT:'PINTADOS', ST_CHAIN:'MEJOR CADENA', DL_CR:'CRÉDITOS GANADOS', DL_WD:'GUARDIANES', DL_GAL:'GALERÍA',
   PAUSED:'EN PAUSA', SENS:'SENSIBILIDAD', RESUME:'CONTINUAR', ABANDON:'ABANDONAR',
   PAUSE_HINT:'ESC O P PARA ALTERNAR', DEAD_TITLE:'SIN PULSO', AGAIN:'OTRA VEZ',
   PS:'OLEADA <b>%w</b> &nbsp;·&nbsp; %a EN PIE<br>CRÉDITOS <b>%c</b> &nbsp;·&nbsp; BAJAS <b>%k</b>',
@@ -4081,7 +4318,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_39';
+const BUILD='_40';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -4884,7 +5121,8 @@ const A={
   doorBang(p){ this.noise(0.20,420,90,0.36,1.2,p); this.tone('square',92,52,0.16,0.20,p); },
   gloop(p){ for(let i=0;i<3;i++) setTimeout(()=>this.tone('sine',180+i*70,520+i*90,0.09,0.10,p),i*120); },
   hatchPop(p){ this.noise(0.16,1600,300,0.22,2.2,p); this.tone('sine',260,90,0.20,0.16,p); },
-  chirp(low,p){ this.tone('square',low?820:1320,low?600:1020,0.07,0.085,p); },
+  chirp(low,p){ if(!this.on||!sfxOn()) return;   /* _40: exempt from ok() — an alarm is never dropped */
+    this._t(this.ctx,this._dest(p),this.ctx.currentTime,'square',low?820:1320,low?600:1020,0.08,0.10); },
   /* _22: the Gallery's last seconds — one soft tick a second, brighter for 3-2-1 */
   clockTick(last){ this.tone('triangle',last?1560:1180,last?1480:1120,0.05,last?0.12:0.09); },
   /* _38: the freight elevator */
@@ -5078,7 +5316,7 @@ function newGame(){
     galStep:0, galTh:null, galLift:null, galNext:false, galIn:null,   /* _38, _39 */
     galAng:0, galQ:[], galSpots:[], galPop:0, galLeft:0,
     galCov:0, galCovWant:0, galHit:false, galCredits:0, galWarn:0,
-    t:0, best:+(localStorage.getItem('np_best')||0)
+    t:0, best:+(localStorage.getItem('np_best')||0), best0:+(localStorage.getItem('np_best')||0), spent:0, shTab:null, shNew:null
   };
   RSTATE[0].br=G.breaches; RSTATE[1].br=[]; RSTATE[2].br=[];
   updHud();
@@ -7402,7 +7640,8 @@ let GAL_ROSTER=[0,0,1,0,1,2,0,1,0,1,0,2,1,0];
    1.4 / 1.8 against a slow-reacting bot — see the gallery doc). Waiting targets keep peeking — still four
    things to shoot, but the danger arrives one at a time. Live-tunable. */
 let GAL_MAX_SHOOT=1, GAL_MAX_CHARGE=1, GAL_ATK_GAP=1.40;
-let GAL_CHIRP_CD=1.2;            /* _22: minimum seconds between threat chirps */
+let GAL_CHIRP_CD=0.30;           /* _40: per KIND (shooter / charger) — it only stops one attack's own double trigger */
+let GAL_CHIRP_GAP=0.14;          /* _40: a second kind inside this of the first waits its turn instead of being dropped */
 /* _22: extra height for every peeking target. The stature doc said to add the
    full 0.40 eye delta; measured body centres at 0 already sat 0.51-0.55 down
    the screen (0.5 = crosshair) and 0.40 overshot to 0.41-0.49 with BULWARK's
@@ -8322,7 +8561,7 @@ function galStart(){
   galRollScene();
   G.galSpots=G.galDefs.map(()=>({busy:false,tell:0,pt:0,type:0}));
   G.galPop=0.7; G.galWarn=0;
-  G.galAtkT=0.9; G.galChirpT=0; G.galTick=-1;
+  G.galAtkT=0.9; G.galChirpK=[0,0]; G.galClk=0; G.galChirpLast=-9; G.galTick=-1;
   G.galHit=false; G.galCredits=0;
   G.galCov=0; G.galCovWant=0;
   G.px=S.cam[0]; G.py=S.cam[1]; G.ang=S.ang; G.galAng=S.ang; G.pitch=0;
@@ -8601,9 +8840,18 @@ function galMayAttack(charger){
 }
 /* one chirp when a warning starts — not while one is already lit, and never
    twice inside GAL_CHIRP_CD */
+/* _40: this used to return while the room-wide warning was lit (G.galWarn>0.5, i.e. any bolt in
+   flight or any charger airborne) and shared ONE cooldown between both kinds — so a shooter that
+   started its wind-up just after a charge (or while its bolt was still flying) got no alarm and
+   a bullet arrived unannounced. Each kind now has its own short cooldown and nothing else can
+   swallow it; if the other kind sounded a split second ago this one is delayed, never skipped. */
 function galChirp(low,pan){
-  if(G.galChirpT>0||G.galWarn>0.5) return;
-  G.galChirpT=GAL_CHIRP_CD; A.chirp(low,pan);
+  const k=low?1:0;
+  if(G.galChirpK[k]>0) return;
+  G.galChirpK[k]=GAL_CHIRP_CD;
+  const wait=Math.max(0,G.galChirpLast+GAL_CHIRP_GAP-G.galClk);
+  G.galChirpLast=G.galClk+wait;
+  if(wait>0.001) setTimeout(()=>A.chirp(low,pan),wait*1000); else A.chirp(low,pan);
 }
 function galEnemy(e,dt){
   const sp=G.galDefs[e.gsp];
@@ -8773,7 +9021,7 @@ function updGallery(dt){
   }
   G.galT-=dt;
   G.galAtkT=Math.max(0,G.galAtkT-dt);
-  G.galChirpT=Math.max(0,G.galChirpT-dt);
+  G.galChirpK[0]=Math.max(0,G.galChirpK[0]-dt); G.galChirpK[1]=Math.max(0,G.galChirpK[1]-dt); G.galClk+=dt;
   if(G.galT<=GAL_ALARM){
     /* _22: the klaxon is gone from here too — the banner once, then a soft
        tick on each whole second */
@@ -9239,7 +9487,7 @@ function shopPool(){
   return pool;
 }
 function openShop(){
-  G.mode='shop'; mouse.down=false; tFire=false; G.rerolls=0;
+  G.mode='shop'; mouse.down=false; tFire=false; G.rerolls=0; G.shTab=null; G.shNew=null;
   if(document.pointerLockElement) document.exitPointerLock();
   G.pool=shopPool();
   const pick=[];
@@ -9253,56 +9501,132 @@ function openShop(){
 function buyCard(u,i,fromWeapons){
   const pr=priceOf(u);
   if(G.credits<pr) return;
-  G.credits-=pr; u.f(); G.bought[u.id]=(G.bought[u.id]||0)+1;
+  G.credits-=pr; G.spent+=pr; u.f(); G.bought[u.id]=(G.bought[u.id]||0)+1;
   A.buy();
   (fromWeapons?G.wcards:G.cards).splice(i,1);
   renderShop(); updHud();
 }
 function doReroll(){
   const c=rerollCost();
-  if(G.credits<c) return;
-  if(!G.pool.length) return;
-  G.credits-=c; G.rerolls++;
-  G.cards.push(G.pool.splice((Math.random()*G.pool.length)|0,1)[0]);
+  if(G.credits<c||!G.pool.length){ A.dry(); return; }
+  G.credits-=c; G.spent+=c; G.rerolls++;
+  const nu=G.pool.splice((Math.random()*G.pool.length)|0,1)[0];
+  G.cards.push(nu);
+  /* _40: on a phone the new card may live on another tab — follow it, and flash it */
+  G.shNew=nu; if(shPhoneMQ.matches) G.shTab=shCat(nu);
   A.buy(); renderShop(); updHud();
 }
+/* ---- _40: the neon shop. Phones get ARMORY / UPGRADES / SERVICE tabs and a swipeable rail;
+   anything taller than a phone in landscape shows the armory row and one grid on a single screen. ---- */
+const SH_IC={
+ dmg:'<path d="M26 6 C34 18 38 24 38 31 a12 12 0 0 1-24 0 C14 24 18 18 26 6Z" fill="none" stroke="#3ef0ff" stroke-width="3"/><path d="M44 10l4-4M48 18h4M6 18H2" stroke="#ffe628" stroke-width="3"/>',
+ rate:'<path d="M8 10l14 16-14 16M24 10l14 16-14 16" fill="none" stroke="#3ef0ff" stroke-width="4"/><path d="M40 10l10 16-10 16" fill="none" stroke="#ff3cbe" stroke-width="3"/>',
+ mag:'<circle cx="26" cy="26" r="18" fill="none" stroke="#3ef0ff" stroke-width="3"/><g fill="#ffe628">'+[0,1,2,3,4,5].map(i=>'<circle cx="'+(26+11*Math.cos(i*1.047)).toFixed(1)+'" cy="'+(26+11*Math.sin(i*1.047)).toFixed(1)+'" r="3.4"/>').join('')+'</g>',
+ rel:'<path d="M40 18a16 16 0 1 0 2 14" fill="none" stroke="#3ef0ff" stroke-width="3.5"/><path d="M42 6v13H29" fill="none" stroke="#ff3cbe" stroke-width="3.5"/>',
+ hp:'<path d="M26 4l18 7v13c0 12-8 20-18 24C16 44 8 36 8 24V11z" fill="none" stroke="#ff3cbe" stroke-width="3"/><path d="M26 16v18M17 25h18" stroke="#fff" stroke-width="3.5"/>',
+ spd:'<path d="M6 34h22l10-14h8" fill="none" stroke="#3ef0ff" stroke-width="3.5"/><path d="M8 24h12M12 16h10" stroke="#ff3cbe" stroke-width="3"/><path d="M26 38h20" stroke="#ffe628" stroke-width="3"/>',
+ prc:'<path d="M4 26h40" stroke="#3ef0ff" stroke-width="3.5"/><path d="M38 18l10 8-10 8" fill="none" stroke="#3ef0ff" stroke-width="3.5"/><circle cx="18" cy="26" r="7" fill="none" stroke="#ff3cbe" stroke-width="3"/><circle cx="31" cy="26" r="5" fill="none" stroke="#ff3cbe" stroke-width="3"/>',
+ cr:'<circle cx="26" cy="26" r="17" fill="none" stroke="#ffe628" stroke-width="3.5"/><path d="M33 19a10 10 0 1 0 0 14" fill="none" stroke="#ffe628" stroke-width="3.5"/>',
+ heal:'<path d="M20 8h12v12h12v12H32v12H20V32H8V20h12z" fill="none" stroke="#a6ff3a" stroke-width="3"/>',
+ fix:'<g fill="none" stroke="#3ef0ff" stroke-width="3"><rect x="6" y="10" width="18" height="10"/><rect x="28" y="10" width="18" height="10"/><rect x="16" y="24" width="18" height="10"/></g><path d="M6 42h40" stroke="#ff3cbe" stroke-width="3"/>',
+ map:'<g fill="none" stroke="#3ef0ff" stroke-width="3"><path d="M6 14l13-6 14 6 13-6v30l-13 6-14-6-13 6z"/></g><path d="M19 8v30M33 14v30" stroke="#ff3cbe" stroke-width="3"/>',
+ gun:'<g fill="none" stroke="#3ef0ff" stroke-width="3"><path d="M2 22h40v10H21l-4 12H9l2-12H2z"/></g><path d="M42 24h8M42 30h8" stroke="#ff3cbe" stroke-width="3"/>',
+ bucket:'<g fill="none" stroke="#3ef0ff" stroke-width="3"><path d="M10 14h32l-4 30H14z"/><path d="M10 14c4-10 28-10 32 0" stroke="#ffe628"/></g><path d="M18 22h16" stroke="#ff3cbe" stroke-width="4"/>'
+};
+const shPhoneMQ=matchMedia('(max-height:560px)');
+const shCat=u=>(u.id==='heal'||u.id==='fix'||u.id==='map')?'rep':'upg';
+function shGlyph(u){
+  const id=u.weapon===1?'gun':u.weapon===2?'bucket':u.id;
+  return '<svg viewBox="0 0 52 52" aria-hidden="true">'+(SH_IC[id]||SH_IC.cr)+'</svg>';
+}
 function mkCard(u,cls,onClick){
-  const p=priceOf(u), el=document.createElement('div');
-  el.className='card'+cls+(G.credits<p?' no':'');
-  el.innerHTML='<div class="nm">'+T(u.k)+'</div><div class="ds">'+T(u.dk)+
-                '</div><div class="pc">'+p+' '+T('CR')+'</div>';
-  el.addEventListener('click',onClick);
-  return el;
+  const p=priceOf(u), poor=G.credits<p, d=document.createElement('div');
+  const lv=G.bought[u.id]||0; let pips='';
+  if(u.max) for(let i=0;i<u.max;i++) pips+='<i'+(i<lv?' class="on"':'')+'></i>';
+  d.className='zc'+cls+(poor?' poor':'')+(u===G.shNew?' fresh':'');
+  d.innerHTML='<div class="zf zcz"><div class="zi zcz"><div class="ic">'+shGlyph(u)+'</div><div class="tx"><div class="nm">'+
+    T(u.k)+'</div><div class="ds">'+T(u.dk)+'</div></div><div class="zpips">'+pips+'</div><div class="zbuy zcz'+
+    (poor?' no':'')+'">'+p+' '+T('CR')+'</div></div></div>';
+  d.addEventListener('click',()=>{ if(G.credits<priceOf(u)){ A.dry(); return; } onClick(); });
+  return d;
+}
+function shRails(){ return {arm:document.getElementById('wcards'),upg:document.getElementById('ucards'),rep:document.getElementById('rcards')}; }
+/* chevrons, fade, page dots and the hint line follow the active rail's scroll position */
+function shScrollUI(){
+  if(!G||G.mode!=='shop') return;
+  const $=id=>document.getElementById(id), body=$('shBody'), phone=shPhoneMQ.matches, r=shRails()[G.shTab];
+  const dots=$('shDots'), hint=$('shHint');
+  let more=false, less=false, pages=1, idx=0;
+  if(phone&&r){
+    const cw=r.clientWidth, sw=r.scrollWidth, sl=r.scrollLeft, over=sw-cw>6;
+    more=over&&sl<sw-cw-6; less=over&&sl>6;
+    pages=over?Math.max(2,Math.ceil((sw-8)/cw)):1;
+    idx=over?Math.round(sl/Math.max(1,sw-cw)*(pages-1)):0;
+  }
+  body.classList.toggle('more',more); body.classList.toggle('less',less);
+  const key=pages+':'+idx;
+  if(dots.dataset.k!==key){
+    dots.dataset.k=key; dots.innerHTML='';
+    if(pages>1) for(let i=0;i<pages;i++){ const d=document.createElement('i'); if(i===idx) d.className='on'; dots.appendChild(d); }
+  }
+  const h=T(phone?(pages>1?'SH_H_SW':'SH_H_TAP'):(touchMode?'SH_H_TAP':'SH_H_CLK'));
+  if(hint.textContent!==h) hint.textContent=h;
 }
 function renderShop(){
-  document.getElementById('shopCred').textContent=G.credits+' '+T('CR');
-  const wrow=document.getElementById('wcards');
-  const urow=document.getElementById('ucards');
-  /* the armory is its own section — weapons are a different kind of decision
-     from stat upgrades and shouldn't compete for attention in one long row */
-  wrow.innerHTML='';
-  if(G.wcards.length){
-    document.getElementById('grpWeapons').style.display='';
-    G.wcards.forEach((u,i)=>wrow.appendChild(mkCard(u,' weap',()=>buyCard(u,i,true))));
-  } else {
-    document.getElementById('grpWeapons').style.display='none';
+  const $=id=>document.getElementById(id), phone=shPhoneMQ.matches;
+  $('shCred').textContent=G.credits;
+  $('shHp').textContent=Math.max(0,Math.round(G.hp));
+  $('shHpMax').textContent=' / '+G.maxhp;
+  $('shNext').textContent=String(G.wave+1).padStart(2,'0');
+  const lists={arm:[],upg:[],rep:[]};
+  G.wcards.forEach((u,i)=>lists.arm.push([u,i,true]));
+  G.cards.forEach((u,i)=>lists[(phone&&shCat(u)==='rep')?'rep':'upg'].push([u,i,false]));
+  const order=['arm','upg','rep'].filter(t=>lists[t].length);
+  let tab=G.shTab;
+  if(!phone||!tab||!lists[tab]||!lists[tab].length) tab=order.includes('upg')?'upg':(order[0]||'upg');
+  G.shTab=tab;
+  const rails=shRails(), keep=phone?rails[tab].scrollLeft:0, body=$('shBody');
+  for(const t of ['arm','upg','rep']){
+    const r=rails[t]; r.innerHTML='';
+    lists[t].forEach(([u,i,w])=>r.appendChild(mkCard(u,w?' wc weap':'',()=>buyCard(u,i,w))));
   }
-  urow.innerHTML='';
-  G.cards.forEach((u,i)=>urow.appendChild(mkCard(u,'',()=>buyCard(u,i,false))));
-  if(!G.cards.length){
+  G.shNew=null;
+  /* nothing at all on the shelf */
+  if(!order.length){
     const e=document.createElement('div');
-    e.style.cssText='opacity:.4;letter-spacing:.2em;font-size:12px;padding:34px 10px';
-    e.textContent=T('SH_STOCK');
-    urow.appendChild(e);
+    e.style.cssText='opacity:.5;letter-spacing:.2em;font-size:14px;padding:34px 26px';
+    e.textContent=T('SH_STOCK'); rails.upg.appendChild(e);
   }
+  body.classList.toggle('ph',phone); body.dataset.tab=phone?tab:'';
+  $('shArmSec').hidden=phone?false:!lists.arm.length;
+  $('shUpgSec').hidden=phone?false:(!lists.upg.length&&order.length>0);
+  $('shRepSec').hidden=!phone;
+  /* tabs: phone only, and only when there is more than one thing to switch between */
+  const tabs=$('shTabs'); tabs.innerHTML='';
+  if(phone&&order.length>1) order.forEach(t=>{
+    const b=document.createElement('div');
+    b.className='ztab zcz'+(t===tab?' on':''); b.textContent=T(t==='arm'?'ARMORY':t==='upg'?'UPGRADES':'SH_SVC');
+    b.addEventListener('click',()=>{ if(G.shTab===t) return; G.shTab=t; renderShop(); shRails()[t].scrollLeft=0; shScrollUI(); });
+    tabs.appendChild(b);
+  });
+  if(phone) rails[tab].scrollLeft=keep;
   const rc=rerollCost(), avail=G.pool.length>0;
-  const rr=document.createElement('div');
-  rr.className='card reroll'+((G.credits<rc||!avail)?' no':'');
-  rr.innerHTML='<div class="nm">'+T('SH_REROLL')+'</div><div class="ds">'+
-    T(avail?'SH_ROLL_Y':'SH_ROLL_N')+'</div><div class="pc">'+rc+' '+T('CR')+'</div>';
-  rr.addEventListener('click',doReroll);
-  urow.appendChild(rr);
+  $('rerollBtn').classList.toggle('no',G.credits<rc||!avail);
+  $('shRollCost').textContent=avail?rc+' '+T('CR'):T('SH_ROLL_N');
+  const fresh=rails[tab].querySelector('.fresh');
+  if(fresh&&phone) rails[tab].scrollTo({left:Math.max(0,fresh.offsetLeft-rails[tab].clientWidth/2+fresh.offsetWidth/2),behavior:'smooth'});
+  shScrollUI();
 }
+(function shWire(){
+  const r=shRails();
+  for(const t in r) r[t].addEventListener('scroll',shScrollUI,{passive:true});
+  document.getElementById('shChevL').addEventListener('click',()=>{ const x=shRails()[G.shTab]; x.scrollBy({left:-x.clientWidth*0.8,behavior:'smooth'}); });
+  document.getElementById('shChevR').addEventListener('click',()=>{ const x=shRails()[G.shTab]; x.scrollBy({left:x.clientWidth*0.8,behavior:'smooth'}); });
+  document.getElementById('rerollBtn').addEventListener('click',()=>{ if(G.mode==='shop') doReroll(); });
+  const again=()=>{ if(G&&G.mode==='shop') renderShop(); };
+  if(shPhoneMQ.addEventListener) shPhoneMQ.addEventListener('change',again); else if(shPhoneMQ.addListener) shPhoneMQ.addListener(again);
+  addEventListener('resize',()=>{ if(G&&G.mode==='shop') shScrollUI(); });
+})();
 document.getElementById('nextBtn').addEventListener('click',()=>{ if(G.mode==='shop') startWave(); });
 
 /* ---------- hud ---------- */
@@ -9675,8 +9999,7 @@ function setLang(l){
     if(G.mode==='paused') paintPauseStats();
     if(G.mode==='title'){ paintBest(); if(RAIL) RAIL.repaint(); }
     if(el('ovCtrl').classList.contains('on')) buildCtrl();
-    if(G.mode==='dead') el('goStats').innerHTML=
-      T('GO',{w:G.wave, k:G.kills, c:G.bestCombo, b:G.best});
+    if(G.mode==='dead') paintDead();
   }
 }
 const toggleLang=()=>setLang(lang==='en'?'es':'en');
@@ -10007,11 +10330,23 @@ function update(dt){
   updCov();
 }
 
+/* _40: FLATLINE. The stat chips and the run line are written here, so a language switch can repaint them. */
+function paintDead(){
+  const $=id=>document.getElementById(id), nf=v=>(+v||0).toLocaleString(lang==='es'?'es':'en');
+  $('ddSub').textContent=T('DEAD_SUB',{w:G.wave});
+  $('ddBest').innerHTML=G.deadNB?'<span class="zrib zcz">'+T('DEAD_NB',{w:G.wave})+'</span>'
+    :(G.best>0?'<span class="zpb">'+T('DEAD_PB',{b:G.best})+'</span>':'');
+  $('ddW').textContent=String(G.wave).padStart(2,'0');
+  $('ddK').textContent=nf(G.kills);
+  $('ddC').textContent=G.bestCombo+'×';
+  $('ddLine').innerHTML=T('DL_CR')+' <em>'+nf(G.credits+G.spent)+'</em> &nbsp;&middot;&nbsp; '+T('DL_WD')+' <em>'+G.wardenKills+
+    '</em> &nbsp;&middot;&nbsp; '+T('DL_GAL')+' <em>'+G.galVisits+'</em>';
+}
 function die(){
   G.mode='dead'; mouse.down=false; tFire=false;
   if(document.pointerLockElement) document.exitPointerLock();
   if(G.wave>G.best){ G.best=G.wave; try{localStorage.setItem('np_best',String(G.best));}catch(e){} }
-  el('goStats').innerHTML=T('GO',{w:G.wave, k:G.kills, c:G.bestCombo, b:G.best});
+  G.deadNB=G.best0>0&&G.wave>G.best0; paintDead();
   /* _32: FPS REPORT straight from FLATLINE (meter on only) */
   el('deadRepBtn').style.display=PF.on?'':'none'; ovDead.classList.toggle('rep3',PF.on);
   if(PF.on) bbSave(true);
