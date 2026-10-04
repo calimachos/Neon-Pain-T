@@ -713,7 +713,7 @@
   .nrow.sel .nnav{color:var(--n-cy);text-shadow:0 0 calc(10 * var(--u)) rgba(47,233,255,.8);margin-right:calc(40 * var(--u));}
   /* _36: the ARENA selector -- two neon keycaps; the 3D card names the arena */
   .apick{margin-left:auto;margin-right:calc(44 * var(--u));display:flex;gap:calc(22 * var(--u));}
-  .aarr{display:flex;align-items:center;justify-content:center;width:max(46px,calc(104 * var(--u)));
+  .aarr{display:flex;align-items:center;justify-content:center;width:max(66px,calc(148 * var(--u)));   /* _37: wider for a thumb */
     height:max(36px,calc(66 * var(--u)));border:2px solid rgba(150,140,255,.55);background:rgba(20,16,60,.45);
     clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
     transition:background .25s,border-color .25s,box-shadow .25s;cursor:pointer;}
@@ -1038,6 +1038,8 @@
     #ammo{font-size:max(25px,calc(var(--hs)*5.55));}    /* was 20px floor */
   }
 
+  /* _37: the in-game HUD in the menus' Saira (embedded NPS), slanted -- Android had no Avenir and fell back */
+  #hud,#hud *,#sysbtns,#sysbtns *,#combo,#combo *,#chainV,#gunPop{font-family:'NPS','Avenir Next Condensed','Helvetica Neue',Arial,sans-serif;font-weight:800;font-style:italic;letter-spacing:.06em;}
 </style>
 </head>
 <body>
@@ -1475,6 +1477,8 @@ en:{
   TO_BHELD:'THE WARDEN HOLDS YOUR PAYOUT',
   TO_WARDEN:'BREACH WARDEN', TO_WARDSUB:'IT CAME THROUGH LAST  ·  KILL IT TO CASH OUT',
   TO_WDOWN:'WARDEN DOWN', TO_WDSUB:'+%n CR CASHED OUT',
+  AL_VCDROP:'IT DROPPED A VOID CACHE  ·  SHOOT IT OPEN', TO_VCOPEN:'GALLERY OPEN', TO_VCOPENSUB:'WALK IN  ·  %n s  ·  FULL INTEGRITY',
+  AL_VCFULL:'INTEGRITY RESTORED',
   AL_FRACT:'MONOLITH FRACTURED — %n SHARDS',
   AL_WAYIN:'THE WAY IN IS OPEN',
   AL_GCLOSE:'THE GROVE IS CLOSING — %n SECONDS',
@@ -1603,6 +1607,8 @@ es:{
   TO_BHELD:'EL GUARDIÁN RETIENE TU PAGO',
   TO_WARDEN:'GUARDIÁN DE LA BRECHA', TO_WARDSUB:'ENTRÓ AL ÚLTIMO  ·  MÁTALO PARA COBRAR',
   TO_WDOWN:'GUARDIÁN ABATIDO', TO_WDSUB:'+%n CR COBRADOS',
+  AL_VCDROP:'SOLTÓ UN COFRE DEL VACÍO  ·  DISPÁRALE PARA ABRIRLO', TO_VCOPEN:'GALERÍA ABIERTA', TO_VCOPENSUB:'ENTRA  ·  %n s  ·  INTEGRIDAD AL MÁXIMO',
+  AL_VCFULL:'INTEGRIDAD RESTAURADA',
   AL_FRACT:'MONOLITH FRACTURADO — %n ESQUIRLAS',
   AL_WAYIN:'LA ENTRADA ESTÁ ABIERTA',
   AL_GCLOSE:'LA ARBOLEDA CIERRA — %n SEGUNDOS',
@@ -3089,6 +3095,121 @@ function sprPortal(f,total){
   return u32of(cv);
 }
 
+
+/* --- _37: the VOID CACHE the Warden drops (mockup A, 2026-10-04). States 0/1/2 = hits taken, 3 = open
+   portal. Frames: 8 per closed state (beacon pulse), 24 open (the Grove galaxy turning). --- */
+const sprVCache=(function(){
+const S=128;
+const glow=(x,cx,cy,r,col,a)=>{ const g=x.createRadialGradient(cx,cy,0,cx,cy,r);
+  g.addColorStop(0,`rgba(${col[0]},${col[1]},${col[2]},${a})`); g.addColorStop(1,`rgba(${col[0]},${col[1]},${col[2]},0)`);
+  x.fillStyle=g; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.fill(); };
+const ell=(x,cx,cy,rx,ry,col,a)=>{ x.save(); x.translate(cx,cy); x.scale(1,ry/rx); glow(x,0,0,rx,col,a); x.restore(); };
+const rgb=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a==null?1:a})`;
+const VIO=[196,90,255], HOT=[255,200,255], EYE=[255,232,0], CY=[90,240,255], LIME=[150,255,90], MAG=[255,60,190];
+function rng(s){ return mulberry32(s); }
+/* jagged crack from (x0,y0) heading ang, length len */
+function crack(x,x0,y0,ang,len,seed,w){
+  const r=rng(seed); let px=x0, py=y0, a=ang;
+  const pts=[[px,py]];
+  for(let i=0;i<6;i++){ a+= (r()-0.5)*1.1; const l=len/6*(0.7+r()*0.6); px+=Math.cos(a)*l; py+=Math.sin(a)*l; pts.push([px,py]); }
+  for(const pass of [0,1]){
+    x.strokeStyle=pass?'rgba(255,245,255,0.95)':'rgba(220,120,255,0.55)'; x.lineWidth=pass?w:w*3.2; x.lineCap='round'; x.lineJoin='round';
+    x.beginPath(); x.moveTo(pts[0][0],pts[0][1]); for(const p of pts) x.lineTo(p[0],p[1]); x.stroke();
+  }
+  /* one branch */
+  const k=2+((r()*3)|0), b=pts[k]; let ba=a+(r()<0.5?0.9:-0.9), bx=b[0], by=b[1];
+  x.strokeStyle='rgba(255,245,255,0.85)'; x.lineWidth=w*0.7; x.beginPath(); x.moveTo(bx,by);
+  for(let i=0;i<3;i++){ ba+=(r()-0.5)*0.8; bx+=Math.cos(ba)*len*0.11; by+=Math.sin(ba)*len*0.11; x.lineTo(bx,by); } x.stroke();
+}
+function galaxyCv(f){ /* the game's own Grove/portal galaxy, as a canvas */
+  const u=(PORTAL&&PORTAL[f%24])||sprPortal(f,24), cv=mkCv(S,S);
+  cv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(u.buffer.slice(0)),S,S),0,0); return cv; }
+/* a standing galaxy rift: ellipse rx x ry centred cx,cy */
+function rift(x,cx,cy,rx,ry,f,rim){
+  x.save(); x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,TAU); x.clip();
+  x.fillStyle='rgba(14,4,30,0.96)'; x.fillRect(cx-rx,cy-ry,rx*2,ry*2);
+  x.globalCompositeOperation='lighter';
+  x.drawImage(galaxyCv(f),cx-ry,cy-ry,ry*2,ry*2);   /* square galaxy squeezed by the clip */
+  x.restore();
+  x.save(); x.globalCompositeOperation='lighter';
+  ell(x,cx,cy,rx*1.5,ry*1.15,rim,0.30);
+  x.restore();
+  x.lineWidth=3; x.strokeStyle=rgb(rim,0.95); x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,TAU); x.stroke();
+  x.lineWidth=1.2; x.strokeStyle='rgba(255,255,255,0.9)'; x.beginPath(); x.ellipse(cx,cy,rx-2.2,ry-2.2,0,0,TAU); x.stroke();
+}
+function sparks(x,seed,n,cx,cy,R,col){ const r=rng(seed); x.save(); x.globalCompositeOperation='lighter';
+  for(let i=0;i<n;i++){ const th=r()*TAU, d=R*(0.5+r()*0.5), px=cx+Math.cos(th)*d, py=cy+Math.sin(th)*d*0.8;
+    glow(x,px,py,3+r()*3,col,0.5); x.fillStyle='rgba(255,255,255,0.95)'; x.fillRect(px-0.8,py-0.8,1.6,1.6); } x.restore(); }
+
+/* ---------------- A. VOID CACHE: a Warden strongbox ---------------- */
+function boxA(x,ox,oy,w,h,hits,f,half){
+  /* half: 0 whole, -1 left half, 1 right half (open state) */
+  const L=ox, T=oy, R=ox+w, B=oy+h, dep=10;
+  x.save();
+  if(half){ x.beginPath(); if(half<0) x.rect(0,0,ox+w/2+1,S); else x.rect(ox+w/2-1,0,S,S); x.clip(); }
+  /* top face */
+  x.fillStyle='#3a2c5e'; x.beginPath(); x.moveTo(L,T); x.lineTo(R,T); x.lineTo(R-8,T-dep); x.lineTo(L+8,T-dep); x.closePath(); x.fill();
+  x.strokeStyle=rgb(VIO,0.9); x.lineWidth=1.6; x.stroke();
+  /* front face */
+  const g=x.createLinearGradient(0,T,0,B); g.addColorStop(0,'#2a1d47'); g.addColorStop(1,'#120a22');
+  x.fillStyle=g; x.fillRect(L,T,w,h);
+  /* plates */
+  x.strokeStyle='#4b3a78'; x.lineWidth=1.4; x.strokeRect(L+5,T+5,w-10,h-10);
+  /* hazard band */
+  x.save(); x.beginPath(); x.rect(L+2,B-11,w-4,8); x.clip();
+  for(let i=-2;i<w/6+2;i++){ x.fillStyle=i%2?'#0c0616':rgb(VIO,0.85); x.beginPath(); x.moveTo(L+i*6,B-3); x.lineTo(L+i*6+6,B-3); x.lineTo(L+i*6+14,B-11); x.lineTo(L+i*6+8,B-11); x.fill(); }
+  x.restore();
+  /* corner brackets */
+  x.strokeStyle=rgb(HOT,0.95); x.lineWidth=2.4; x.lineCap='square';
+  for(const [cx,cy,sx,sy] of [[L+2,T+2,1,1],[R-2,T+2,-1,1],[L+2,B-2,1,-1],[R-2,B-2,-1,-1]]){
+    x.beginPath(); x.moveTo(cx,cy+7*sy); x.lineTo(cx,cy); x.lineTo(cx+7*sx,cy); x.stroke(); }
+  /* seams glow (brighter per hit) */
+  x.save(); x.globalCompositeOperation='lighter';
+  const sa=0.55+hits*0.2;
+  x.strokeStyle=rgb(VIO,sa); x.lineWidth=2; x.beginPath(); x.moveTo(L+w/2,T+6); x.lineTo(L+w/2,B-12); x.stroke();
+  x.strokeStyle=rgb(VIO,sa*0.6); x.lineWidth=6; x.stroke();
+  x.restore();
+  /* sigil: diamond + Warden eye */
+  const sx=L+w/2, sy=T+h*0.42, d=12;
+  x.fillStyle='#0b0414'; x.beginPath(); x.moveTo(sx,sy-d); x.lineTo(sx+d,sy); x.lineTo(sx,sy+d); x.lineTo(sx-d,sy); x.closePath(); x.fill();
+  x.strokeStyle=rgb(VIO,1); x.lineWidth=2.2; x.stroke();
+  x.save(); x.globalCompositeOperation='lighter'; glow(x,sx,sy,14+hits*4,EYE,0.45+hits*0.15); x.restore();
+  x.fillStyle=rgb(EYE,1); x.beginPath(); x.ellipse(sx,sy,6,3.2,0,0,TAU); x.fill();
+  x.fillStyle='#200'; x.beginPath(); x.ellipse(sx,sy,1.4,3,0,0,TAU); x.fill();
+  /* cracks */
+  if(hits>=1){ crack(x,sx+4,sy+3,0.5,30,11,1.6); crack(x,sx-5,sy-2,3.5,24,12,1.4); }
+  if(hits>=2){ crack(x,sx+2,sy-6,-1.2,26,13,1.6); crack(x,sx-3,sy+6,2.3,30,14,1.6);
+    /* chipped corner, light leaking */
+    x.fillStyle='#05020a'; x.beginPath(); x.moveTo(R,T+10); x.lineTo(R-11,T); x.lineTo(R,T); x.fill();
+    x.save(); x.globalCompositeOperation='lighter'; glow(x,R-4,T+4,14,HOT,0.6); x.restore(); }
+  x.restore();
+}
+function propA(state,f){
+  const cv=mkCv(S,S), x=cv.getContext('2d',{willReadFrequently:true});
+  const ph=f/24*TAU;
+  if(state<3){
+    x.save(); x.globalCompositeOperation='lighter';
+    ell(x,64,118,36,6,VIO,0.55); glow(x,64,74,56,VIO,0.16+state*0.06);
+    x.restore();
+    const shake=state*1.2*Math.sin(ph*6);
+    boxA(x,28+shake,46,72,58,state,f,0);
+    /* antenna beacon */
+    x.strokeStyle='#4b3a78'; x.lineWidth=2; x.beginPath(); x.moveTo(84+shake,36); x.lineTo(84+shake,24); x.stroke();
+    x.save(); x.globalCompositeOperation='lighter'; glow(x,84+shake,22,8,MAG,0.5+0.5*Math.sin(ph*2)); x.restore();
+    if(state>0) sparks(x,20+state,4*state,64,74,46,HOT);
+  } else {
+    /* open: the box split, a rift standing between the halves */
+    rift(x,64,56,24,52,f,VIO);
+    x.save(); x.translate(19,101); x.rotate(-0.22); x.translate(-19,-101); boxA(x,8,86,44,32,2,f,-1); x.restore();
+    x.save(); x.translate(109,101); x.rotate(0.22); x.translate(-109,-101); boxA(x,76,86,44,32,2,f,1); x.restore();
+    sparks(x,31,10,64,60,52,HOT);
+  }
+  return cv;
+}
+
+return propA;
+})();
+let VCF=null;   /* {c:[[8],[8],[8]], open:[24]} built at boot */
 /* --- rainbow heart pickup: N frames with the spectrum rotated through them --- */
 function sprHeart(f,total){
   const cv=mkCv(SPR,SPR), x=cv.getContext('2d',{willReadFrequently:true});
@@ -3278,7 +3399,7 @@ const ARENAS=[
      worst walk to a breachable wall 20 cells, now 6, and the share of the
      floor you can breach from went 32% -> 58%. Still 205 open cells, so the
      `cv` below is the same measured number it always was. */
-  {id:'chevron', k:'A_CHEVRON', cv:0.16, noWarden:true,   /* 205 cells: the same paint is 2.2x the share it is in THE BLOCK, measured from the apex and from inside an arm */
+  {id:'chevron', k:'A_CHEVRON', cv:0.16,   /* _37: Wardens on every map */   /* 205 cells: the same paint is 2.2x the share it is in THE BLOCK, measured from the apex and from inside an arm */
     name:'THE CHEVRON', str:[
    "########################",
    "#......##########......#",
@@ -3338,7 +3459,7 @@ const ARENAS=[
      plan, not a ramp. You are always one wall-thickness from a stretch you
      already ran, and the fold walls are ordinary cover: blast one and you
      have made yourself a shortcut. No Warden: no room to kite it. */
-  {id:'switchback', k:'A_SWITCHBACK', cv:0.055, noWarden:true,   /* 4-tall lanes eat shots in their far wall: 0.70x */
+  {id:'switchback', k:'A_SWITCHBACK', cv:0.055,   /* _37: Wardens on every map */   /* 4-tall lanes eat shots in their far wall: 0.70x */
     name:'THE SWITCHBACK', str:[
    "########################",
    "#......................#",
@@ -3934,7 +4055,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_36';
+const BUILD='_37';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -4907,7 +5028,7 @@ function newGame(){
     curW:0, owned:[true,false,false], ammo:[12,2,1], swap:0,
     cool:0, pierce:0, speed:3.5, crMul:1, rerolls:0,
     wave:0, alive:[], spawnQ:[], spawnT:0, waveActive:false, waveTotal:0,
-    pickups:[], dryKills:0, rockets:[],
+    pickups:[], dryKills:0, rockets:[], wdMiss:0, wardenKills:0, galVisits:0,   /* _37 */
     realm:0, portalSeen:false, portalOpen:false,
     groveNext:GROVE_EVERY, inGrove:false, groveT:0, groveAlarm:false,
     groveSpawnT:0, frozen:null,
@@ -5465,6 +5586,7 @@ function render(){
   }
   for(let i=0;i<G.pickups.length;i++){
     const q=G.pickups[i], dx=q.x-px, dy=q.y-py;
+    if(q.vc&&G.realm!==0) continue;   /* _37 */
     const o=lent(); o.d=dx*dx+dy*dy; o.pk=q; list.push(o);
   }
   if(G.portalSeen){
@@ -5707,16 +5829,16 @@ function render(){
       const trY=invDet*(-planeY*sx+planeX*sy);
       if(trY<=0.14) continue;
       const scr=((W*0.5)*(1+trX/trY))|0;
-      const hgt=(H*0.42)/trY;
+      const hgt=(H*(q.sz||0.42))/trY;   /* _37: per-pickup size */
       if(hgt<2) continue;
       const wid=hgt;
-      const bob=Math.sin(G.t*3+q.seed)*hgt*0.13;
-      const y1=horizon+(H*EYE_Z)/trY-(H*0.40)/trY+bob, y0=y1-hgt;
+      const bob=Math.sin(G.t*3+q.seed)*hgt*(q.bobA!=null?q.bobA:0.13);
+      const y1=horizon+(H*EYE_Z)/trY-(H*(q.lift!=null?q.lift:0.40))/trY+bob, y0=y1-hgt;
       const x0=scr-wid*0.5, x1=scr+wid*0.5;
       const cx0=Math.max(0,x0|0), cx1=Math.min(W,(x1|0)+1);
       const cy0=Math.max(0,y0|0), cy1=Math.min(H,(y1|0)+1);
       if(cx0>=cx1||cy0>=cy1) continue;
-      const spr=HEART[((G.t*11)|0)%HEART.length];
+      const SA=q.spr||HEART, spr=SA[((G.t*11)|0)%SA.length];
       /* self-lit, so keep it readable deep in the fog */
       let fog=1-clamp((trY-FOG_START)/(FOGE-FOG_START),0,1);
       fog=Math.max(fog*fog*0.94+0.10, 0.6);
@@ -6251,6 +6373,7 @@ function fire(){
   for(let p=0;p<w.pellets;p++) firePellet(w,dmgEach,batch,hitTally,p);
   batch.forEach(d=>commit(d));
   hitTally.forEach((amt,e)=>{ if(G.alive.indexOf(e)>=0) damageEnemy(e,amt,Math.cos(G.ang),Math.sin(G.ang)); });
+  if(hitTally.has('vc')) vcHit();   /* _37 */
 }
 
 /* ---------- bucket launcher ---------- */
@@ -6280,6 +6403,8 @@ function updateRockets(dt){
         const hp=galRocketProp(r,ry0);
         if(hp){ galPropHit(hp,r.dmg,0); r.x=hp.x; r.y=hp.y+0.05; r.z=hp.z; boom=true; break; }
       }
+      if(G.realm===0){ const c=vcFind();   /* _37: a bucket bursts on the closed cache */
+        if(c&&!c.open){ const qx=c.x-r.x, qy=c.y-r.y; if(qx*qx+qy*qy<(VC_R+0.1)*(VC_R+0.1)&&r.z>VC_Z0-0.15&&r.z<VC_Z1+0.15){ boom=true; break; } } }
       for(let e=0;e<G.alive.length;e++){
         const en=G.alive[e]; if(en.spawnT>0) continue;
         const T=ETYPE[en.t], ddx=en.x-r.x, ddy=en.y-r.y;
@@ -6315,6 +6440,8 @@ function explodeBucket(r){
     const amt=(d<0.5?r.dmg:0)+r.splashDmg*f;
     if(amt>0) damageEnemy(e,amt,dx/(d||1),dy/(d||1));
   }
+  if(G.realm===0){ const c=vcFind();   /* _37: one hit for a bucket that bursts in range */
+    if(c&&!c.open&&Math.hypot(c.x-cx,c.y-cy)<=r.splash) vcHit(); }
   const col=PAL[(Math.random()*PAL.length)|0];
   for(let k=0;k<54;k++)
     burst(cx,cy,cz,Math.random()<0.5?col:PAL[(Math.random()*PAL.length)|0],1,
@@ -6378,6 +6505,13 @@ function firePellet(w,dmgEach,batch,hitTally,pIdx){
     cand.push({t:t,e:e});
   }
   cand.sort((a,b)=>a.t-b.t);
+  /* _37: the Void Cache stops what reaches it; one hit per trigger pull (fire() reads the 'vc' key) */
+  const vcT=vcRay(dx,dy,slope,maxE);
+  if(vcT>0&&(!cand.length||cand[0].t>vcT)){
+    hitTally.set('vc',1);
+    burst(G.px+dx*vcT,G.py+dy*vcT,EYE_Z+slope*vcT,[196,90,255],w.pellets===1?6:2,-dx*0.4,-dy*0.4);
+    return;
+  }
 
   let left=1+G.pierce, dealt=false;
   for(let i=0;i<cand.length && left>0;i++){
@@ -6589,6 +6723,7 @@ const BURST_RANGE=5.5;        // how close you have to be to the wall you pick
 let BURST_CHAIN=0.03;         // lump = pot x chain x this, chain capped at 25
 const BURST_CHAIN_CAP=25;
 const WARDEN_CHANCE=0.25;     // per burst, rolled at detonation
+const WARDEN_PITY=3;          // _37: after this many Warden-less bursts the next one always has one
 const WARDEN_AT=8;            // seconds left on the burst when it comes through
 const WARDEN_MULT=1.5;        // the held lump pays this much more once it dies
 const WARDEN_STAG=1.0;        // seconds it stands still per stagger (_19: 1.6 -> 1.0, it is a longer fight now)
@@ -6670,7 +6805,7 @@ function openBreach(bx,by,wx,wy,cell){
   const n=BURST_N0+Math.floor(G.wave*BURST_NW);
   G.burst={b:b,t:BURST_SECS,chain:0,pot:0,left:n,spawnT:0.35,
            gap:clamp(BURST_GAP0-G.wave*BURST_GAPW,BURST_GAPMIN,BURST_GAP0),
-           wardenDue:!noW&&Math.random()<WARDEN_CHANCE,warden:null,wardenDead:false};
+           wardenDue:!noW&&((G.wdMiss||0)>=WARDEN_PITY||Math.random()<WARDEN_CHANCE),   /* _37: pity */warden:null,wardenDead:false};
   showToast(T('TO_BOPEN'),T('TO_BOPENSUB',{n:BURST_SECS}),1);
 }
 function burstSpawn(b,t,tier,delay){
@@ -6717,7 +6852,7 @@ function updBreaches(dt){
   /* the Warden comes through last: once it is due the queue is dropped so the
      burst has a climax instead of a crowd */
   if(B.wardenDue&&!B.warden&&B.t<=WARDEN_AT){
-    B.warden=burstSpawn(B.b,WARDEN_T,-1,1.0); B.left=0;
+    B.warden=burstSpawn(B.b,WARDEN_T,-1,1.0); B.left=0; G.wdMiss=0;   /* _37 */
     A.warp(); A.breach(); G.shake=Math.max(G.shake,1.2);
     showToast(T('TO_WARDEN'),T('TO_WARDSUB'),1);
   }
@@ -6739,6 +6874,7 @@ function updBreaches(dt){
    so the lump goes out on the alert line instead of being overwritten. */
 function closeBurst(quiet){
   const B=G.burst; if(!B) return;
+  G.wdMiss=B.warden?0:(G.wdMiss||0)+1;   /* _37: pity counter */
   const b=B.b, i=b.cell, bx=i%MW, by=(i/MW)|0;
   if(G.realm===0&&!MAP[i]){
     MAP[i]=1; WHP[i]=WMAX[i]; openCells--; mapVer++; REALM[0].geo.open=openCells;
@@ -6767,6 +6903,7 @@ function closeBurst(quiet){
 }
 function wardenDown(e){
   G.shake=Math.max(G.shake,1.3); A.breach(); A.heart();
+  G.wardenKills++; if(G.realm===0) vcDrop(e.x,e.y);   /* _37 */
   for(let k=0;k<70;k++) burst(e.x,e.y,0.2+Math.random()*2,Math.random()<0.5?[196,90,255]:[255,200,255],1,(Math.random()-0.5)*3,(Math.random()-0.5)*3);
   for(let k=0;k<7;k++){
     const th=Math.random()*TAU, r=Math.random()*1.4;
@@ -8068,16 +8205,20 @@ function endGalScene(cleared){
             bonus ? T('TO_GALNOHIT',{n:G.galCredits+bonus, m:GAL_NOHIT})
                   : T('TO_GALPAY',{n:G.galCredits}), 1);
   updHud();
-  const loop=G.galLoop;
-  setTimeout(()=>{
-    if(!G||!G.inGal||G.mode!=='play') return;
-    /* _22: the TEST loop refills integrity between scenes. It used to carry
-       damage from one restart to the next, so a feel test always ended dead. */
-    if(loop){ G.hp=G.maxhp; updHud(); galStart(); } else leaveGallery();
-  },1800);
+  /* _37: on the game clock (ticked in updGallery). The old 1.8 s setTimeout returned early if it fired
+     while paused, which left you standing in a finished scene for good -- now that the Warden's cache
+     brings real runs in here, that would have been a dead run. */
+  G.galEndT=1.8; G.galEndLoop=G.galLoop;
 }
 function updGallery(dt){
-  if(G.galOver) return;
+  if(G.galOver){
+    if(G.galEndT>0){ G.galEndT-=dt;   /* _37 */
+      if(G.galEndT<=0){ G.galEndT=0;
+        /* _22: the TEST loop refills integrity between scenes. It used to carry
+           damage from one restart to the next, so a feel test always ended dead. */
+        if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galStart(); } else leaveGallery(); } }
+    return;
+  }
   G.galT-=dt;
   G.galAtkT=Math.max(0,G.galAtkT-dt);
   G.galChirpT=Math.max(0,G.galChirpT-dt);
@@ -8139,6 +8280,62 @@ function updGallery(dt){
   if(G.galT<=0){ G.galT=0; endGalScene(false); }
 }
 
+
+/* ---------- _37: the VOID CACHE ----------
+   Every Warden that dies drops one. Three hits open it (hits are trigger pulls, not damage: a 9-pellet
+   volley is one hit, a bucket that bursts beside it is one hit). Closed it lasts VC_LIFE, open VC_OPEN,
+   both blink their last 5 s. Open, it is a door: walk in and you play one Gallery scene with integrity
+   back to full, then you are put back where you stood. It lives in G.pickups so it rides across waves
+   exactly like a heart does, but only in the precinct (realm 0): nowhere else is it drawn, hit or ticked. */
+const VC_LIFE=30, VC_OPEN=60, VC_HITS=3, VC_R=0.36, VC_Z0=0.40, VC_Z1=1.05;
+function vcFind(){ for(let i=0;i<G.pickups.length;i++) if(G.pickups[i].vc) return G.pickups[i]; return null; }
+function vcDrop(x,y){
+  const old=vcFind();
+  if(old&&old.open) return;                       /* an open door is worth more than a new box */
+  if(old) G.pickups.splice(G.pickups.indexOf(old),1);
+  if(!canStand(x,y)){
+    let best=null;
+    for(let r=0.3;r<=2.4&&!best;r+=0.3) for(let k=0;k<12;k++){
+      const a=k/12*TAU, tx=x+Math.cos(a)*r, ty=y+Math.sin(a)*r;
+      if(canStand(tx,ty)){ best=[tx,ty]; break; } }
+    if(best){ x=best[0]; y=best[1]; }
+  }
+  G.pickups.push({vc:1,x:x,y:y,life:VC_LIFE,seed:Math.random()*10,hits:0,open:false,
+                  spr:VCF?VCF.c[0]:HEART,sz:0.95,lift:0.30,bobA:0.04});
+  for(let k=0;k<30;k++) burst(x,y,0.6,[196,90,255],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+  A.portal();
+  showAlert(T('AL_VCDROP'));
+}
+function vcHit(){
+  const c=vcFind(); if(!c||c.open) return;
+  c.hits++;
+  A.hitWall(0); G.shake=Math.max(G.shake,0.25);
+  for(let k=0;k<12;k++) burst(c.x,c.y,0.75,Math.random()<0.5?[196,90,255]:[255,200,255],1,(Math.random()-0.5)*2.2,(Math.random()-0.5)*2.2);
+  if(c.hits<VC_HITS){ if(VCF) c.spr=VCF.c[Math.min(2,c.hits)]; c.life=Math.max(c.life,6); return; }
+  c.open=true; c.life=VC_OPEN; c.spr=VCF?VCF.open:PORTAL; c.sz=2.15; c.lift=0; c.bobA=0;
+  for(let k=0;k<46;k++) burst(c.x,c.y,0.9,[170,110,255],1,(Math.random()-0.5)*2.6,(Math.random()-0.5)*2.6);
+  A.portal(); A.warp(); G.shake=Math.max(G.shake,0.7);
+  showToast(T('TO_VCOPEN'),T('TO_VCOPENSUB',{n:VC_OPEN}),1);
+}
+/* the pellet test: distance along the ray if this pellet meets the closed cache, else -1 */
+function vcRay(dx,dy,slope,maxE){
+  if(G.realm!==0) return -1;
+  const c=vcFind(); if(!c||c.open) return -1;
+  const ex=c.x-G.px, ey=c.y-G.py, t=ex*dx+ey*dy;
+  if(t<=0.15||t>maxE) return -1;
+  if(Math.abs(ex*dy-ey*dx)>=VC_R) return -1;
+  const z=EYE_Z+slope*t;
+  return (z<VC_Z0||z>VC_Z1)?-1:t;
+}
+function vcEnter(c){
+  if(G.mode!=='play'||G.inGal||G.inGrove) return false;
+  G.pickups.splice(G.pickups.indexOf(c),1);
+  G.hp=G.maxhp; G.galVisits++;
+  enterGallery(false);
+  showAlert(T('AL_VCFULL'));
+  updHud();
+  return true;
+}
 /* ---------- rainbow heart ----------
    A flat 7% is least likely to save you exactly when you need saving, so the
    rate scales with how hurt you are and a pity counter guarantees one before
@@ -8146,7 +8343,8 @@ function updGallery(dt){
 const HEART_HEAL=0.15, MAXHEARTS=3;
 function maybeDropHeart(x,y){
   G.dryKills++;
-  if(G.pickups.length>=MAXHEARTS) return;
+  let nh=0; for(let i=0;i<G.pickups.length;i++) if(!G.pickups[i].vc) nh++;   /* _37: the cache is not a heart */
+  if(nh>=MAXHEARTS) return;
   const frac=clamp(G.hp/G.maxhp,0,1);
   let chance=0.045+0.14*(1-frac);        // ~7% at healthy hp, ~17% near death
   if(frac>0.92) chance*=0.35;            // barely drop when you're topped up
@@ -9050,7 +9248,7 @@ function update(dt){
      the whole point of cover, and it is what keeps it from being a free button */
   if(G.mode==='play'&&(mouse.down||tFire||keys['Space'])&&!(G.inGal&&G.galCov>GAL_COVFIRE)) fire();
 
-  if(G.mode==='play'&&G.shopT>0){   /* _36 */
+  if(G.mode==='play'&&G.shopT>0&&!G.inGal){   /* _36; _37: not inside the Gallery */
     G.shopT-=dt;
     if(G.shopT<=0){ G.shopT=0; if(!G.inGrove) openShop(); }
   }
@@ -9223,6 +9421,13 @@ function update(dt){
 
   for(let i=G.pickups.length-1;i>=0;i--){
     const p=G.pickups[i];
+    if(p.vc){   /* _37: the Void Cache -- precinct only; walking in only once it is open */
+      if(G.realm!==0) continue;
+      p.life-=dt;
+      if(p.life<=0){ G.pickups.splice(i,1); continue; }
+      if(p.open){ const qx=p.x-G.px, qy=p.y-G.py; if(qx*qx+qy*qy<0.5&&vcEnter(p)) break; }
+      continue;
+    }
     p.life-=dt;
     if(p.life<=0){ G.pickups.splice(i,1); continue; }
     const px2=p.x-G.px, py2=p.y-G.py;
@@ -10450,7 +10655,11 @@ applyStaticText();
           GAL_PTEX=buildGalPropTex();                    // _23: Gallery props
           step(95); },
     ()=>{ HEART=[]; for(let i=0;i<8;i++) HEART.push(sprHeart(i,8)); step(96); },
-    ()=>{ PORTAL=[]; for(let i=0;i<24;i++) PORTAL.push(sprPortal(i,24)); initPortalCracks(); step(99); },
+    ()=>{ PORTAL=[]; for(let i=0;i<24;i++) PORTAL.push(sprPortal(i,24)); initPortalCracks();
+          VCF={c:[[],[],[]],open:[]};   /* _37 */
+          for(let st=0;st<3;st++) for(let f=0;f<8;f++) VCF.c[st].push(u32of(sprVCache(st,f*3)));
+          for(let f=0;f<24;f++) VCF.open.push(u32of(sprVCache(3,f)));
+          step(99); },
     ()=>{
       /* the Gallery is a room in the precinct: same wall roster, same ceiling
          buffer. Shared by reference on purpose — see the REALM[2] comment. */
