@@ -259,6 +259,20 @@
   #galBar.closing #galLbl,#galBar.closing #galT{color:#ff3c3c;
     text-shadow:0 0 16px rgba(255,60,60,.95),0 0 44px rgba(255,60,60,.4);}
   #galBar.closing{animation:groveflash .5s steps(2) infinite;}
+  /* _38: freight elevator bars, 15% each (Carlos) */
+  #cine{position:absolute;inset:0;pointer-events:none;z-index:13;overflow:hidden;}
+  #cine .bar{position:absolute;left:0;right:0;height:15%;background:#000;display:flex;align-items:center;justify-content:space-between;
+    box-sizing:border-box;padding:0 calc(22px + env(safe-area-inset-right)) 0 calc(22px + env(safe-area-inset-left));
+    font-family:'NPS','Avenir Next Condensed','Helvetica Neue',Arial,sans-serif;font-weight:800;font-style:italic;letter-spacing:.08em;
+    font-size:max(13px,3.6vh);white-space:nowrap;transition:transform .35s ease;}
+  #cine .bar.t{top:0;transform:translateY(-101%);}
+  #cine .bar.b{bottom:0;transform:translateY(101%);justify-content:center;}
+  html.cine #cine .bar{transform:none;}
+  #cine .ef{color:rgba(255,194,26,.95);}
+  #cine .er{color:rgba(205,184,255,.88);}
+  #cine .ep{color:#ffe800;margin-right:.7em;text-shadow:0 0 10px rgba(255,232,0,.7);}
+  #cine .eb{color:rgba(255,255,255,.55);font-weight:700;font-size:max(12px,3vh);letter-spacing:.12em;}
+  html.cine #hud,html.cine #touch{opacity:0;transition:opacity .25s;}
 
   #covSlick{display:none;color:#b6ff00;text-shadow:0 0 10px rgba(182,255,0,.95);}
   #covWrap.slick #covSlick{display:inline;}
@@ -1054,6 +1068,8 @@
   <div id="galEdge"><i class="l"></i><i class="r"></i></div>
   <div id="galCov"><i></i></div>
 
+  <!-- _38: the freight elevator's cinema bars (above the HUD, below PAUSE) -->
+  <div id="cine"><div class="bar t"><span class="ef"></span><span class="er"><b class="ep"></b><span class="ec"></span></span></div><div class="bar b"><span class="eb"></span></div></div>
   <div id="hud">
     <!-- _15 HUD, four bracket clusters. TOP-LEFT is THE ROUND. -->
     <div id="topL" class="cl cy"><div class="lbl" data-t="WAVE">WAVE</div><div id="waveN">01</div>
@@ -1450,6 +1466,9 @@ en:{
   TO_GALCLR:'GALLERY CLEAR', TO_GALOUT:'TIME',
   TO_GALPAY:'+%n CR', TO_GALNOHIT:'+%n CR  ·  NEVER TOUCHED ×%m',
   AL_GALCLOSE:'THE GALLERY IS CLOSING — %n SECONDS',
+TO_GALSCN:'SCENE CLEAR', TO_GALSC:'SCENE %a / %b  ·  %n LEFT', GAL_PLUS:'+%n S', GAL_PAUSED:'CLOCK PAUSED  %n',
+GAL_LOADING:'loading the next scene…',
+TH_DOCK:'LOADING DOCK', TH_ARCADE:'NEON ARCADE', TH_SERVER:'SERVER ROOM', TH_SLIME:'SLIME WORKS', TH_PAINT:'PAINT FACTORY', TH_ROOF:'ROOFTOP',
   /* --- weapons --- */
   W_CANNON:'PAINT CANNON', W_SHOTGUN:'SPLATTER GUN', W_BUCKET:'BUCKET LAUNCHER',
   /* --- shop cards --- */
@@ -1583,6 +1602,9 @@ es:{
   TO_GALCLR:'GALERÍA DESPEJADA', TO_GALOUT:'SE ACABÓ EL TIEMPO',
   TO_GALPAY:'+%n CR', TO_GALNOHIT:'+%n CR  ·  SIN UN RASGUÑO ×%m',
   AL_GALCLOSE:'LA GALERÍA CIERRA — %n SEGUNDOS',
+TO_GALSCN:'ESCENA DESPEJADA', TO_GALSC:'ESCENA %a / %b  ·  QUEDAN %n', GAL_PLUS:'+%n S', GAL_PAUSED:'RELOJ EN PAUSA  %n',
+GAL_LOADING:'cargando la siguiente escena…',
+TH_DOCK:'MUELLE DE CARGA', TH_ARCADE:'ARCADE NEÓN', TH_SERVER:'SALA DE SERVIDORES', TH_SLIME:'FÁBRICA DE BABA', TH_PAINT:'FÁBRICA DE PINTURA', TH_ROOF:'AZOTEA',
   W_CANNON:'CAÑÓN CROMA', W_SHOTGUN:'DOBLE CHORRO', W_BUCKET:'LANZABALDES',
   U_DMG:'ALTA PRESIÓN',     D_DMG:'+28% de daño',
   U_RATE:'GATILLO DOBLE',    D_RATE:'+18% de cadencia',
@@ -3538,6 +3560,10 @@ const MW=ARENAS[0].str[0].length, MH=ARENAS[0].str.length;
 /* the live realm's geometry; swapped wholesale on a portal trip */
 let MAP,WHP,WMAX,WTEX,BORDER;
 let WALLTEX=[], CEIL=null, SPRITES=[], HEART=[], PORTAL=[];
+/* _38: drawWalls mirrors the texture on half the faces, which reads text backwards. The Gallery's
+   themes carry text, so in realm 2 the texture column is flipped back (decals keep their column);
+   precinct and Grove are untouched, pixel for pixel. */
+let WFLIP=0;
 let BOLT_SPR=-1;                 /* set at boot; never hard-coded */
 
 /* ---------- realms ----------
@@ -3660,7 +3686,7 @@ const PORTAL_X=PORTAL_CELL[0]+0.5, PORTAL_Y=PORTAL_CELL[1]+0.5;
 function applyRealm(r){
   RL=REALM[r];
   loadGeo(r);                     // the two realms are different rooms now
-  WALLTEX=RL.walls; CEIL=RL.ceil;
+  WALLTEX=RL.walls; CEIL=RL.ceil; WFLIP=r===2?1:0;   /* _38 */
   FOGR=RL.fog[0]; FOGG=RL.fog[1]; FOGB=RL.fog[2];
   CFR=RL.cfog[0]; CFG=RL.cfog[1]; CFB=RL.cfog[2];
   FOGE=RL.fogEnd||FOG_END;
@@ -4055,7 +4081,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_37';
+const BUILD='_38';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -4861,6 +4887,10 @@ const A={
   chirp(low,p){ this.tone('square',low?820:1320,low?600:1020,0.07,0.085,p); },
   /* _22: the Gallery's last seconds — one soft tick a second, brighter for 3-2-1 */
   clockTick(last){ this.tone('triangle',last?1560:1180,last?1480:1120,0.05,last?0.12:0.09); },
+  /* _38: the freight elevator */
+  liftRattle(){ for(let i=0;i<4;i++) setTimeout(()=>this.noise(0.05,2400,1500,0.09,4),i*80); },
+  liftGo(){ this.noise(0.14,900,240,0.24,2); this.tone('square',150,80,0.10,0.12); this.noise(1.9,180,110,0.07,0.7); this.tone('sine',55,48,1.9,0.10); },
+  ding(){ this.tone('sine',1318,1318,0.9,0.16); setTimeout(()=>this.tone('sine',1047,1047,1.1,0.15),190); },
   alarm(){ [0,420,840].forEach(d=>setTimeout(()=>{
              this.tone('sawtooth',760,470,0.30,0.16);
              setTimeout(()=>this.tone('sawtooth',560,340,0.32,0.16),170);
@@ -5045,6 +5075,7 @@ function newGame(){
     brPromptT:0, brPromptHush:0,
     /* _12: THE GALLERY */
     inGal:false, galLoop:false, galT:0, galAlarm:false, galScene:0, bolts:[],
+    galStep:0, galTh:null, galLift:null, galNext:false,   /* _38 */
     galAng:0, galQ:[], galSpots:[], galPop:0, galLeft:0,
     galCov:0, galCovWant:0, galHit:false, galCredits:0, galWarn:0,
     t:0, best:+(localStorage.getItem('np_best')||0)
@@ -5485,6 +5516,7 @@ function drawWalls(W,H,horizon,camZF,camZC,px,py,dirX,dirY,planeX,planeY){
     let tx=(wallX*TEX)|0;
     if((side===0&&rdx>0)||(side===1&&rdy<0)) tx=TEX-1-tx;
     if(tx<0) tx=0; else if(tx>=TEX) tx=TEX-1;
+    const ttx=WFLIP?TEX-1-tx:tx;   /* _38 */
 
     const cellI=isVoid?-1:(mapY*MW+mapX);
     let crk=null, ckr=0, ckg=0, ckb=0, ctx2=0;
@@ -5512,7 +5544,7 @@ function drawWalls(W,H,horizon,camZF,camZC,px,py,dirX,dirY,planeX,planeY){
     for(let y=d0;y<d1;y++){
       let ty=texPos|0; texPos+=texStep;
       if(ty<0) ty=0; else if(ty>=TEXH) ty=TEXH-1;
-      let c=tex[ty*TEX+tx];
+      let c=tex[ty*TEX+ttx];
       if(decPx){
         const dc=decPx[ty*DEC+tx], a=dc>>>24;
         if(a>10){
@@ -5560,6 +5592,7 @@ function render(){
      was these full-screen layers, not resolution). Mouse FULL is untouched. */
   const ovIn=fxLite||FT_TOUCH;
   setOvc(ovIn);
+  if(G.inGal&&G.galLift&&(G.galLift.ph===2||G.galLift.ph===3)){ renderShaft(ovIn); return; }   /* _38 */
   const lite=fxLite;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
@@ -5899,6 +5932,7 @@ function render(){
   if(pfOn){ const n=performance.now(); if(pc>=0) PF.acc[pc]+=n-pt; pt=n; }
   /* blit + bloom + view model */
   rctx.putImageData(img,0,0);
+  if(G.inGal&&G.galLift) liftGate(G.galLift);   /* _38 */
   const dw=view.width, dh=view.height;
   const shx=(Math.random()-0.5)*G.shake*dw*0.022;
   const shy=(Math.random()-0.5)*G.shake*dh*0.022;
@@ -5928,7 +5962,7 @@ function render(){
   vctx.globalAlpha=1; vctx.globalCompositeOperation='source-over';
   }
   if(pfOn){ const n=performance.now(); PF.acc[7]+=n-pt; pt=n; }
-  drawGun(dw,dh);
+  if(!(G.inGal&&G.galLift)) drawGun(dw,dh);   /* _38: no gun in the cutscene */
   if(ovIn) drawOverlays(dw,dh);
   if(pfOn) PF.acc[8]+=performance.now()-pt;
 }
@@ -7287,6 +7321,13 @@ function updGrove(dt){
      - a content pass on the diorama
    ---------------------------------------------------------------------- */
 const GAL_SECS=42, GAL_ALARM=7;
+/* _38: one visit = GAL_VISIT scenes on ONE clock (Carlos: "one big clock"). A cleared scene adds
+   GAL_FAST seconds; the clock is frozen through the end-of-scene beat and the elevator ride.
+   GAL_SECS is still the per-scene feel number the TEST harness and t24 grew up with. */
+const GAL_VISIT=3, GAL_SECS_VISIT=110, GAL_FAST=4;
+/* the freight elevator, in seconds: bars in, gate down, shaft, blackout (next scene built here),
+   gate up, bars out. Ticked on the game clock in updGallery -- pause-safe, no setTimeouts. */
+const LIFT=[0.35,0.60,1.90,0.55,0.60,0.35];
 /* radians either side of the stance's facing. MUST be larger than the worst
    anchor bearing plus its lean (24.2 deg = 0.422 rad on this stage) or that
    anchor is visible and unshootable — the _12 bug. verify.js asserts it. */
@@ -7762,6 +7803,443 @@ const GAL_SCENES=[{
 }];
 const galScene=()=>GAL_SCENES[G.galScene||0];
 
+/* ---------- _38: Gallery themes (the 2026-10-04 mockups, themes.js) ----------
+   Each theme = 3 wall textures (6 seeded copies), its own 1024 ceiling, fog / floor colours, and a hue
+   shift for the cover props. The mockup's `force` layouts are not used: props re-roll every scene. */
+const GALTH=(function(){
+const TW=TEX, THh=TEXH;
+const cvx=(w,h)=>{ const c=mkCv(w,h); return [c,c.getContext('2d',{willReadFrequently:true})]; };
+const R=s=>mulberry32(s);
+const C=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a==null?1:a})`;
+const glowR=(x,cx,cy,r,col,a)=>{ const g=x.createRadialGradient(cx,cy,0,cx,cy,r); g.addColorStop(0,C(col,a)); g.addColorStop(1,C(col,0)); x.fillStyle=g; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.fill(); };
+const neonLine=(x,pts,col,w,close)=>{ x.save(); x.lineJoin='round'; x.lineCap='round'; x.beginPath(); x.moveTo(pts[0][0],pts[0][1]); for(const p of pts) x.lineTo(p[0],p[1]); if(close) x.closePath();
+  x.shadowColor=C(col,1); x.shadowBlur=w*3; x.strokeStyle=C(col,0.9); x.lineWidth=w; x.stroke(); x.shadowBlur=0; x.strokeStyle='rgba(255,255,255,0.75)'; x.lineWidth=Math.max(1,w*0.35); x.stroke(); x.restore(); };
+const neonText=(x,t,cx,cy,font,col)=>{ x.save(); x.font=font; x.textAlign='center'; x.textBaseline='middle'; x.shadowColor=C(col,1); x.shadowBlur=10; x.fillStyle=C(col,1); x.fillText(t,cx,cy); x.shadowBlur=0; x.fillStyle='rgba(255,255,255,0.8)'; x.fillText(t,cx,cy); x.restore(); };
+const noise=(x,w,h,r,n,a)=>{ for(let i=0;i<n;i++){ const v=r(); x.fillStyle=`rgba(${v>0.5?255:0},${v>0.5?255:0},${v>0.5?255:0},${a*r()})`; x.fillRect(r()*w,r()*h,1+r()*2,1+r()*2); } };
+const hazard=(x,X,Y,w,h,c1,c2,st)=>{ x.save(); x.beginPath(); x.rect(X,Y,w,h); x.clip(); x.fillStyle=c2; x.fillRect(X,Y,w,h); x.fillStyle=c1;
+  for(let i=-h;i<w+h;i+=st*2){ x.beginPath(); x.moveTo(X+i,Y+h); x.lineTo(X+i+st,Y+h); x.lineTo(X+i+st+h,Y); x.lineTo(X+i+h,Y); x.fill(); } x.restore(); };
+const u=cv=>u32of(cv);
+
+/* ============ 1. LOADING DOCK ============ */
+function dockShutter(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#1a140e'; x.fillRect(0,0,TW,THh);
+  /* frame + roll-up door */
+  x.fillStyle='#2c2418'; x.fillRect(8,40,112,196);
+  for(let y=44;y<232;y+=7){ const g=x.createLinearGradient(0,y,0,y+7); g.addColorStop(0,'#5a5246'); g.addColorStop(0.5,'#3a342a'); g.addColorStop(1,'#1e1a14'); x.fillStyle=g; x.fillRect(12,y,104,7); }
+  hazard(x,12,214,104,18,'#ffc21a','#151008',9);
+  /* bay number */
+  x.font='800 34px NPS'; x.textAlign='center'; x.fillStyle='rgba(255,194,26,0.92)'; x.fillText(String(3+((seed*7)%9)).padStart(2,'0'),64,100);
+  /* sodium lamp above */
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,22,44,[255,150,40],0.55); x.restore();
+  x.fillStyle='#ffd08a'; x.fillRect(46,18,36,7); x.fillStyle='#3a2c18'; x.fillRect(44,14,40,4);
+  noise(x,TW,THh,r,500,0.18);
+  /* grime streaks */
+  for(let i=0;i<9;i++){ x.fillStyle='rgba(0,0,0,0.18)'; x.fillRect(r()*TW,40,1+r()*3,60+r()*150); }
+  return u(cv); }
+function dockWall(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#24201a'; x.fillRect(0,0,TW,THh);
+  /* concrete blocks */
+  for(let y=0;y<THh;y+=24){ const off=((y/24)%2)*32; for(let xx=-32;xx<TW;xx+=64){ x.fillStyle=`rgba(${60+r()*20},${54+r()*16},${44+r()*12},1)`; x.fillRect(xx+off+1,y+1,62,22); } }
+  hazard(x,0,206,TW,30,'#ffc21a','#141008',10);
+  x.fillStyle='#0d0b08'; x.fillRect(0,236,TW,20);
+  /* stencil + pipe */
+  x.font='800 15px NPS'; x.fillStyle='rgba(255,194,26,0.75)'; x.textAlign='center'; x.fillText(r()<0.5?'LOADING  ZONE':'NO  STACKING',64,130);
+  x.fillStyle='#5a3a1a'; x.fillRect(100,0,10,206); x.fillStyle='rgba(255,180,90,0.25)'; x.fillRect(102,0,3,206);
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,30,30,46,[255,140,40],0.35); x.restore();
+  noise(x,TW,THh,r,700,0.16); return u(cv); }
+function dockCargo(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#16120c'; x.fillRect(0,0,TW,THh);
+  /* stacked shipping containers, ribbed */
+  const cols=[['#7a2a18','#b4452a'],['#1d4a6a','#2f74a0'],['#5a6a20','#85a030']];
+  for(let k=0;k<3;k++){ const [d,l]=cols[(seed+k)%3], y=24+k*76; x.fillStyle=d; x.fillRect(4,y,120,72);
+    for(let xx=8;xx<124;xx+=8){ x.fillStyle=l; x.fillRect(xx,y+4,3,64); }
+    x.fillStyle='rgba(255,255,255,0.75)'; x.font='700 10px NPS'; x.fillText('NPX '+(1000+((r()*8999)|0)),10,y+18); }
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,0,70,[255,150,40],0.3); x.restore();
+  noise(x,TW,THh,r,600,0.2); return u(cv); }
+function dockCeil(){ const [cv,x]=cvx(CW,CH); const r=R(5);
+  x.fillStyle='#120d08'; x.fillRect(0,0,CW,CH);
+  /* girders */
+  for(let i=0;i<CW;i+=64){ x.fillStyle='#2e261a'; x.fillRect(i,0,14,CH); x.fillStyle='#4a3c26'; x.fillRect(i+5,0,4,CH); }
+  for(let j=0;j<CH;j+=128){ x.fillStyle='#2a2216'; x.fillRect(0,j,CW,10); }
+  /* sodium lamps */
+  x.globalCompositeOperation='lighter';
+  for(let j=64;j<CH;j+=128) for(let i=32;i<CW;i+=128){ glowR(x,i,j,46,[255,140,30],0.55); glowR(x,i,j,12,[255,230,160],0.95); }
+  return u(cv); }
+
+/* ============ 2. NEON ARCADE ============ */
+function arcadeCarpet(x,w,h,r,base){ x.fillStyle=base; x.fillRect(0,0,w,h);
+  const cols=[[255,60,190],[60,220,255],[255,230,40],[140,90,255]];
+  for(let i=0;i<w*h/220;i++){ const c=cols[(r()*4)|0], px=r()*w, py=r()*h; x.strokeStyle=C(c,0.9); x.lineWidth=2.2; x.beginPath();
+    const k=r(); if(k<0.35){ x.moveTo(px,py); x.bezierCurveTo(px+8,py-10,px+14,py+10,px+22,py); }
+    else if(k<0.6){ x.arc(px,py,3+r()*4,0,TAU); }
+    else if(k<0.8){ x.moveTo(px,py); x.lineTo(px+6,py-8); x.lineTo(px+12,py); x.lineTo(px+18,py-8); }
+    else { x.moveTo(px-4,py); x.lineTo(px+4,py); x.moveTo(px,py-4); x.lineTo(px,py+4); }
+    x.stroke(); } }
+function arcadeSign(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  arcadeCarpet(x,TW,THh,r,'#120626');
+  x.fillStyle='rgba(8,2,16,0.86)'; x.fillRect(10,40,108,150);
+  const words=[['HI','SCORE'],['PLAY','NOW'],['1UP','2UP'],['INSERT','COIN']][seed%4];
+  neonText(x,words[0],64,80,'800 30px NPS',[255,60,190]);
+  neonText(x,words[1],64,120,'800 24px NPS',[60,220,255]);
+  neonLine(x,[[18,48],[110,48],[110,182],[18,182]],[255,230,40],3,true);
+  /* chaser bulbs */
+  for(let i=0;i<9;i++){ x.fillStyle=i%2?'#fff3a0':'#a07a20'; x.beginPath(); x.arc(22+i*10.5,170,2.6,0,TAU); x.fill(); }
+  return u(cv); }
+function arcadeCabinets(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  arcadeCarpet(x,TW,THh,r,'#0e0420');
+  /* two cabinets */
+  for(let k=0;k<2;k++){ const X=6+k*62;
+    x.fillStyle='#1a0a30'; x.fillRect(X,70,56,186);
+    const sc=[[255,60,190],[60,220,255],[150,255,90]][(seed+k)%3];
+    x.fillStyle='#000'; x.fillRect(X+6,92,44,38);
+    x.save(); x.globalCompositeOperation='lighter';
+    for(let i=0;i<6;i++){ x.fillStyle=C(sc,0.7); x.fillRect(X+10+r()*34,96+r()*30,4,4); } glowR(x,X+28,111,30,sc,0.35); x.restore();
+    x.fillStyle=C(sc,1); x.fillRect(X,70,56,16); x.fillStyle='#000'; x.font='800 9px NPS'; x.textAlign='center'; x.fillText(['BLASTO','ZAPP','RALLY','GALAXA'][(seed+k)%4],X+28,82);
+    x.fillStyle='#2a1446'; x.fillRect(X+4,140,48,16); x.fillStyle='#ff3c3c'; x.beginPath(); x.arc(X+16,148,4,0,TAU); x.fill(); x.fillStyle='#ffe628'; x.beginPath(); x.arc(X+30,148,3,0,TAU); x.fill(); x.beginPath(); x.arc(X+40,148,3,0,TAU); x.fill();
+    neonLine(x,[[X,70],[X+56,70],[X+56,256]],sc,1.5); }
+  return u(cv); }
+function arcadeStar(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  arcadeCarpet(x,TW,THh,r,'#140428');
+  const pts=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?20:44; pts.push([64+Math.cos(a)*rr,110+Math.sin(a)*rr]); }
+  x.fillStyle='rgba(8,2,16,0.8)'; x.beginPath(); x.moveTo(...pts[0]); for(const p of pts) x.lineTo(...p); x.closePath(); x.fill();
+  neonLine(x,pts,[255,230,40],3.2,true);
+  neonText(x,'BONUS',64,184,'800 20px NPS',[255,60,190]);
+  return u(cv); }
+function arcadeCeil(){ const [cv,x]=cvx(CW,CH); const r=R(9);
+  x.fillStyle='#0a0216'; x.fillRect(0,0,CW,CH);
+  x.globalAlpha=0.35; arcadeCarpet(x,CW,CH,r,'rgba(0,0,0,0)'); x.globalAlpha=1;
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<40;i++){ const c=[[255,60,190],[60,220,255],[255,230,40]][i%3]; glowR(x,r()*CW,r()*CH,30+r()*40,c,0.35); }
+  for(let j=96;j<CH;j+=192){ x.strokeStyle='rgba(255,60,190,0.9)'; x.lineWidth=5; x.beginPath(); x.moveTo(0,j); x.lineTo(CW,j); x.stroke(); }
+  return u(cv); }
+
+/* ============ 3. SERVER ROOM ============ */
+function serverRack(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#05080e'; x.fillRect(0,0,TW,THh);
+  x.fillStyle='#0d1420'; x.fillRect(6,10,116,240);
+  for(let y=16;y<244;y+=12){ x.fillStyle=r()<0.1?'#0a0f18':'#141e2e'; x.fillRect(10,y,108,10); x.fillStyle='#1d2a40'; x.fillRect(10,y,108,1);
+    /* vents */ for(let v=0;v<6;v++){ x.fillStyle='#070b12'; x.fillRect(14+v*5,y+3,3,4); }
+    /* LEDs */
+    x.save(); x.globalCompositeOperation='lighter';
+    for(let l=0;l<5;l++){ const on=r(); const c=on<0.55?[60,255,140]:(on<0.85?[60,180,255]:(on<0.95?[255,180,40]:[255,50,60]));
+      const px=70+l*9, py=y+5; x.fillStyle=C(c,1); x.fillRect(px,py-1,3,3); glowR(x,px+1.5,py+0.5,5,c,0.45); }
+    x.restore(); }
+  /* cable bundle down the side */
+  for(let k=0;k<5;k++){ x.strokeStyle=['#1d6aff','#ffcc22','#22d07a','#ff3c8a','#7a7aff'][k]; x.lineWidth=2; x.beginPath(); x.moveTo(118+k*1.6-4,0); x.bezierCurveTo(124,80,112,170,120-k,256); x.stroke(); }
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,0,80,[80,170,255],0.25); x.restore();
+  return u(cv); }
+function serverPanel(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#0a1220'; x.fillRect(0,0,TW,THh);
+  for(let y=0;y<THh;y+=32){ x.strokeStyle='#18263c'; x.lineWidth=2; x.strokeRect(2,y+2,124,28); }
+  /* status screen */
+  x.fillStyle='#02060a'; x.fillRect(16,60,96,70); neonLine(x,[[16,60],[112,60],[112,130],[16,130]],[60,180,255],1.6,true);
+  x.font='700 9px NPS'; x.fillStyle='#5cf09a'; for(let i=0;i<6;i++) x.fillText(['CORE 98%','TEMP 21C','NODE 07 OK','LOAD ▮▮▮▯','SYNC ...','PAINT? NO'][i],22,74+i*10);
+  hazard(x,0,232,TW,10,'#3cb4ff','#06101c',8);
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,95,60,[60,180,255],0.18); x.restore();
+  noise(x,TW,THh,r,200,0.1); return u(cv); }
+function serverCables(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#060a12'; x.fillRect(0,0,TW,THh);
+  for(let k=0;k<26;k++){ const c=['#1d6aff','#ffcc22','#22d07a','#ff3c8a','#7a7aff','#2adfff'][k%6]; x.strokeStyle=c; x.lineWidth=2+r()*2;
+    const sx=r()*TW; x.beginPath(); x.moveTo(sx,0); x.bezierCurveTo(sx+(r()-0.5)*80,90,sx+(r()-0.5)*80,170,r()*TW,256); x.stroke(); }
+  x.fillStyle='rgba(0,0,0,0.35)'; x.fillRect(0,0,TW,THh);
+  x.save(); x.globalCompositeOperation='lighter'; for(let i=0;i<5;i++) glowR(x,r()*TW,r()*THh,20,[60,200,255],0.25); x.restore();
+  return u(cv); }
+function serverCeil(){ const [cv,x]=cvx(CW,CH);
+  x.fillStyle='#04070d'; x.fillRect(0,0,CW,CH);
+  for(let i=0;i<CW;i+=96){ x.fillStyle='#101a2a'; x.fillRect(i,0,40,CH); for(let j=0;j<CH;j+=12){ x.fillStyle='#1a2a44'; x.fillRect(i,j,40,3); } }
+  x.globalCompositeOperation='lighter';
+  for(let i=68;i<CW;i+=96){ x.fillStyle='rgba(200,235,255,0.95)'; x.fillRect(i,0,8,CH); x.fillStyle='rgba(80,170,255,0.25)'; x.fillRect(i-14,0,36,CH); }
+  return u(cv); }
+
+/* ============ 4. SLIME WORKS ============ */
+const SL=[120,255,60];
+function slimePipes(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#0d140c'; x.fillRect(0,0,TW,THh);
+  for(let y=0;y<THh;y+=16){ const off=((y/16)%2)*16; for(let xx=-16;xx<TW;xx+=32){ x.fillStyle=`rgb(${26+r()*10},${36+r()*12},${26+r()*8})`; x.fillRect(xx+off+1,y+1,30,14); } }
+  /* pipes */
+  const pipe=(X,Y,w,h,glow)=>{ const g=x.createLinearGradient(X,Y,X+(w>h?0:w),Y+(w>h?h:0)); g.addColorStop(0,'#2e3a2a'); g.addColorStop(0.45,'#7a8a6a'); g.addColorStop(1,'#1a2216'); x.fillStyle=g; x.fillRect(X,Y,w,h);
+    if(glow){ x.save(); x.globalCompositeOperation='lighter'; x.fillStyle=C(SL,0.55); x.fillRect(X+(w>h?0:w*0.3),Y+(w>h?h*0.3:0),w>h?w:w*0.4,w>h?h*0.4:h); x.restore(); } };
+  pipe(18,0,20,256,true); pipe(0,60,128,16,false); pipe(84,0,14,170,false);
+  for(const yy of [60,170]) { x.fillStyle='#4a5640'; x.fillRect(14,yy-4,28,6); }
+  /* drips + pool */
+  x.save(); x.globalCompositeOperation='lighter';
+  for(let i=0;i<6;i++){ const dx=10+r()*108, dl=20+r()*90; const g=x.createLinearGradient(0,76,0,76+dl); g.addColorStop(0,C(SL,0.9)); g.addColorStop(1,C(SL,0)); x.fillStyle=g; x.fillRect(dx,76,3+r()*3,dl); }
+  glowR(x,64,256,70,SL,0.45); x.restore();
+  /* biohazard-ish sign */
+  if(seed%2){ x.fillStyle='#ffd21a'; x.beginPath(); x.moveTo(64,110); x.lineTo(88,150); x.lineTo(40,150); x.closePath(); x.fill(); x.fillStyle='#000'; x.font='800 20px NPS'; x.textAlign='center'; x.fillText('!',64,146); }
+  return u(cv); }
+function slimeVat(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#0a100a'; x.fillRect(0,0,TW,THh);
+  /* glass tank of glowing slime with bubbles */
+  x.fillStyle='#1c261a'; x.fillRect(12,30,104,200);
+  const g=x.createLinearGradient(0,60,0,220); g.addColorStop(0,C([60,140,30],0.9)); g.addColorStop(1,C([140,255,70],0.95));
+  x.fillStyle=g; x.fillRect(20,80,88,142);
+  x.save(); x.globalCompositeOperation='lighter'; for(let i=0;i<18;i++){ x.strokeStyle='rgba(220,255,190,0.8)'; x.lineWidth=1.2; x.beginPath(); x.arc(24+r()*80,90+r()*125,1.5+r()*4,0,TAU); x.stroke(); }
+  glowR(x,64,150,80,SL,0.35); x.restore();
+  x.strokeStyle='rgba(220,255,220,0.6)'; x.lineWidth=2; x.strokeRect(20,40,88,182);
+  x.fillStyle='#3a4632'; x.fillRect(8,26,112,10); x.fillRect(8,224,112,12);
+  x.fillStyle='rgba(255,255,255,0.35)'; x.fillRect(26,46,6,170);
+  return u(cv); }
+function slimeGrate(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#0b120a'; x.fillRect(0,0,TW,THh);
+  x.fillStyle='#03060a'; x.beginPath(); x.arc(64,150,50,0,TAU); x.fill();
+  for(let i=-3;i<=3;i++){ x.fillStyle='#4a5640'; x.fillRect(64+i*14-2,100,4,100); }
+  x.strokeStyle='#5a6a50'; x.lineWidth=6; x.beginPath(); x.arc(64,150,50,0,TAU); x.stroke();
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,165,46,SL,0.5);
+  const g=x.createLinearGradient(0,198,0,256); g.addColorStop(0,C(SL,0.85)); g.addColorStop(1,C(SL,0.1)); x.fillStyle=g; x.fillRect(48,196,32,60); x.restore();
+  noise(x,TW,THh,r,600,0.15); return u(cv); }
+function slimeCeil(){ const [cv,x]=cvx(CW,CH); const r=R(13);
+  x.fillStyle='#070c06'; x.fillRect(0,0,CW,CH);
+  for(let j=40;j<CH;j+=150){ const g=x.createLinearGradient(0,j,0,j+26); g.addColorStop(0,'#2e3a2a'); g.addColorStop(0.5,'#6e7e5e'); g.addColorStop(1,'#151c12'); x.fillStyle=g; x.fillRect(0,j,CW,26); }
+  for(let i=70;i<CW;i+=200){ const g=x.createLinearGradient(i,0,i+20,0); g.addColorStop(0,'#2e3a2a'); g.addColorStop(0.5,'#6e7e5e'); g.addColorStop(1,'#151c12'); x.fillStyle=g; x.fillRect(i,0,20,CH); }
+  x.globalCompositeOperation='lighter'; for(let i=0;i<50;i++) glowR(x,r()*CW,r()*CH,10+r()*40,SL,0.3+r()*0.3);
+  return u(cv); }
+
+/* ============ 5. PAINT FACTORY ============ */
+const PCOL=[[255,60,190],[60,220,255],[255,230,40],[150,255,90],[255,120,30],[160,90,255]];
+function paintVats(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#16101c'; x.fillRect(0,0,TW,THh);
+  /* drip curtain from the top, in every colour */
+  for(let i=0;i<14;i++){ const c=PCOL[(r()*6)|0], px=r()*TW, w=5+r()*12, l=30+r()*120; x.fillStyle=C(c,0.95); x.fillRect(px,0,w,l); x.beginPath(); x.arc(px+w/2,l,w/2,0,TAU); x.fill(); }
+  /* big vat */
+  const c=PCOL[seed%6];
+  x.fillStyle='#2a2238'; x.beginPath(); x.moveTo(14,150); x.lineTo(114,150); x.lineTo(104,240); x.lineTo(24,240); x.closePath(); x.fill();
+  x.fillStyle=C(c,1); x.beginPath(); x.ellipse(64,150,50,9,0,0,TAU); x.fill();
+  x.fillStyle='rgba(255,255,255,0.4)'; x.beginPath(); x.ellipse(52,148,14,3,0,0,TAU); x.fill();
+  x.fillStyle=C(c,0.95); x.fillRect(30,150,8,40); x.fillRect(80,150,6,58);
+  x.font='800 13px NPS'; x.textAlign='center'; x.fillStyle='#fff'; x.fillText('VAT '+(seed%9+1),64,214);
+  return u(cv); }
+function paintSwatch(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#e8e2d8'; x.fillRect(0,0,TW,THh);
+  /* a giant colour chart, half splattered */
+  for(let j=0;j<6;j++) for(let i=0;i<3;i++){ const c=PCOL[(i+j*2+seed)%6], f=0.45+0.55*(i/2); x.fillStyle=C([c[0]*f,c[1]*f,c[2]*f]); x.fillRect(10+i*38,20+j*34,34,30); }
+  x.font='800 12px NPS'; x.fillStyle='#222'; x.textAlign='center'; x.fillText('WET  PAINT',64,236);
+  for(let i=0;i<10;i++){ const c=PCOL[(r()*6)|0]; x.fillStyle=C(c,0.95); const px=r()*TW, py=r()*THh, s=6+r()*16; x.beginPath(); x.arc(px,py,s,0,TAU); x.fill();
+    for(let k=0;k<5;k++){ x.beginPath(); x.arc(px+(r()-0.5)*s*3,py+(r()-0.5)*s*3,1+r()*3,0,TAU); x.fill(); } }
+  x.fillStyle='rgba(20,10,30,0.35)'; x.fillRect(0,0,TW,THh);
+  return u(cv); }
+function paintBelt(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  x.fillStyle='#120c18'; x.fillRect(0,0,TW,THh);
+  /* hanging buckets on a rail */
+  x.fillStyle='#3a3048'; x.fillRect(0,26,TW,8);
+  for(let k=0;k<3;k++){ const X=12+k*40, c=PCOL[(seed+k*2)%6]; x.strokeStyle='#8a8098'; x.lineWidth=1.5; x.beginPath(); x.moveTo(X+12,34); x.lineTo(X+12,70+k*14); x.stroke();
+    x.fillStyle='#d8d0e0'; x.beginPath(); x.moveTo(X,70+k*14); x.lineTo(X+24,70+k*14); x.lineTo(X+21,98+k*14); x.lineTo(X+3,98+k*14); x.closePath(); x.fill();
+    x.fillStyle=C(c,1); x.fillRect(X+1,70+k*14,22,6); x.fillRect(X+8,98+k*14,5,20+r()*60); }
+  hazard(x,0,220,TW,14,'#ff3cbe','#140a1c',9);
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,140,80,[255,60,190],0.15); x.restore();
+  return u(cv); }
+function paintCeil(){ const [cv,x]=cvx(CW,CH); const r=R(17);
+  x.fillStyle='#0e0814'; x.fillRect(0,0,CW,CH);
+  for(let j=0;j<CH;j+=170){ x.fillStyle='#2a2238'; x.fillRect(0,j,CW,16); }
+  for(let i=0;i<180;i++){ const c=PCOL[(r()*6)|0]; x.fillStyle=C(c,0.9); const px=r()*CW, py=r()*CH, s=4+r()*20; x.beginPath(); x.arc(px,py,s,0,TAU); x.fill(); }
+  x.globalCompositeOperation='lighter'; for(let i=0;i<20;i++) glowR(x,r()*CW,r()*CH,40,[255,240,220],0.25);
+  return u(cv); }
+
+/* ============ 6. ROOFTOP AT NIGHT ============ */
+function skyline(x,r,top,w,h){ /* distant city on the upper part of a wall face */
+  const g=x.createLinearGradient(0,0,0,top); g.addColorStop(0,'#05061a'); g.addColorStop(1,'#2a1048'); x.fillStyle=g; x.fillRect(0,0,w,top);
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,w/2,top,w,[255,60,160],0.18); x.restore();
+  for(let i=0;i<40;i++){ x.fillStyle=`rgba(255,255,255,${0.3+r()*0.6})`; x.fillRect(r()*w,r()*top*0.5,1,1); }
+  let X=-4; while(X<w){ const bw=10+r()*22, bh=20+r()*(top*0.62); x.fillStyle=r()<0.5?'#0b0a20':'#100c2a'; x.fillRect(X,top-bh,bw,bh);
+    for(let yy=top-bh+4;yy<top-3;yy+=5) for(let xx=X+2;xx<X+bw-2;xx+=4) if(r()<0.35){ x.fillStyle=r()<0.7?'rgba(255,220,140,0.9)':'rgba(120,220,255,0.9)'; x.fillRect(xx,yy,2,2); }
+    X+=bw+1; } }
+function roofParapet(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  skyline(x,r,150,TW,THh);
+  /* parapet wall + railing */
+  x.fillStyle='#2a2638'; x.fillRect(0,150,TW,106); for(let y=150;y<256;y+=14){ x.fillStyle='#221e30'; x.fillRect(0,y,TW,1); }
+  x.fillStyle='#4a4660'; x.fillRect(0,146,TW,8);
+  x.strokeStyle='#6a6680'; x.lineWidth=2; x.beginPath(); x.moveTo(0,112); x.lineTo(TW,112); for(let i=4;i<TW;i+=20){ x.moveTo(i,112); x.lineTo(i,146); } x.stroke();
+  return u(cv); }
+function roofBillboard(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  skyline(x,r,200,TW,THh);
+  x.fillStyle='#1a1428'; x.fillRect(58,120,6,80); x.fillRect(20,126,88,4);
+  x.fillStyle='#0a0614'; x.fillRect(8,30,112,92);
+  neonText(x,['NEON','PAINT','CITY'][seed%3],64,64,'800 28px NPS',[255,60,190]);
+  neonText(x,['RUSH','-T','NIGHTS'][seed%3],64,98,'800 20px NPS',[60,220,255]);
+  neonLine(x,[[8,30],[120,30],[120,122],[8,122]],[255,230,40],2,true);
+  x.fillStyle='#2a2638'; x.fillRect(0,200,TW,56); x.fillStyle='#4a4660'; x.fillRect(0,196,TW,7);
+  return u(cv); }
+function roofTank(seed){ const r=R(seed); const [cv,x]=cvx(TW,THh);
+  skyline(x,r,170,TW,THh);
+  /* water tower silhouette + AC units */
+  x.fillStyle='#0a0818'; x.fillRect(30,40,68,70); x.beginPath(); x.moveTo(26,40); x.lineTo(64,14); x.lineTo(102,40); x.fill();
+  for(const lx of [36,90]){ x.fillRect(lx,110,4,60); } x.fillRect(36,140,58,3);
+  x.save(); x.globalCompositeOperation='lighter'; glowR(x,64,24,6,[255,40,40],0.9); x.restore();
+  x.fillStyle='#3a3650'; x.fillRect(6,180,54,60); x.fillRect(68,192,54,48);
+  for(const [cx,cy] of [[33,208],[95,215]]){ x.strokeStyle='#1e1a2c'; x.lineWidth=3; x.beginPath(); x.arc(cx,cy,16,0,TAU); x.stroke(); x.beginPath(); x.moveTo(cx-14,cy); x.lineTo(cx+14,cy); x.moveTo(cx,cy-14); x.lineTo(cx,cy+14); x.stroke(); }
+  x.fillStyle='#2a2638'; x.fillRect(0,240,TW,16);
+  return u(cv); }
+function roofCeil(){ const [cv,x]=cvx(CW,CH); const r=R(21);
+  const g=x.createRadialGradient(CW/2,CH*0.95,40,CW/2,CH*0.95,CW*0.9); g.addColorStop(0,'#3a1450'); g.addColorStop(0.5,'#0c0a26'); g.addColorStop(1,'#03040e');
+  x.fillStyle=g; x.fillRect(0,0,CW,CH);
+  for(let i=0;i<900;i++){ const b=Math.pow(r(),3); x.fillStyle=`rgba(255,255,255,${0.25+b*0.75})`; x.beginPath(); x.arc(r()*CW,r()*CH,0.6+b*1.8,0,TAU); x.fill(); }
+  /* moon */
+  x.globalCompositeOperation='lighter'; glowR(x,CW*0.5,CH*0.42,90,[200,220,255],0.35); x.globalCompositeOperation='source-over';
+  x.fillStyle='#e8ecff'; x.beginPath(); x.arc(CW*0.5,CH*0.42,30,0,TAU); x.fill(); x.fillStyle='#0c0a26'; x.beginPath(); x.arc(CW*0.5+12,CH*0.42-6,27,0,TAU); x.fill();
+  return u(cv); }
+
+/* ---------- theme table ---------- */
+const T={
+ dock:   {walls:[dockShutter,dockWall,dockCargo], seeds:[3,8,5,14,21,6], ceil:dockCeil, fog:[24,15,7], cfog:[14,9,4], lineA:[255,190,30], lineB:[255,110,20], tileA:[30,24,18], tileB:[22,18,13], oob:[8,6,3], hue:120, force:{far:'shutter',L:'crates',R:'crates',mid:'plain',hatch:'off'}},
+ arcade: {walls:[arcadeSign,arcadeCabinets,arcadeStar], seeds:[1,2,3,4,5,6], ceil:arcadeCeil, fog:[20,4,34], cfog:[10,2,20], lineA:[255,60,190], lineB:[255,230,40], tileA:[22,8,40], tileB:[14,5,28], oob:[5,1,10], hue:0, force:{far:'kiosk',L:'drums',R:'crates',mid:'barrier',hatch:'off'}},
+ server: {walls:[serverRack,serverPanel,serverCables], seeds:[2,7,11,4,9,13], ceil:serverCeil, fog:[5,12,24], cfog:[3,7,15], lineA:[60,190,255], lineB:[200,240,255], tileA:[16,22,32], tileB:[11,15,24], oob:[2,4,8], hue:-60, force:{far:'doors',L:'crates',R:'crates',mid:'pillars',hatch:'off'}},
+ slime:  {walls:[slimePipes,slimeVat,slimeGrate], seeds:[1,3,5,2,7,9], ceil:slimeCeil, fog:[8,20,8], cfog:[4,12,4], lineA:[120,255,60], lineB:[60,140,40], tileA:[16,24,14], tileB:[11,17,10], oob:[3,6,2], hue:40, force:{far:'shutter',L:'drums',R:'drums',mid:'plain',hatch:'on'}},
+ paint:  {walls:[paintVats,paintSwatch,paintBelt], seeds:[1,2,3,4,5,6], ceil:paintCeil, fog:[22,8,26], cfog:[12,5,16], lineA:[255,60,190], lineB:[60,220,255], tileA:[28,20,34], tileB:[20,14,26], oob:[6,3,8], hue:0, force:{far:'doors',L:'drums',R:'crates',mid:'barrier',hatch:'off'}},
+ roof:   {walls:[roofParapet,roofBillboard,roofTank], seeds:[1,2,3,5,7,9], ceil:roofCeil, fog:[10,10,32], cfog:[6,6,22], lineA:[60,220,255], lineB:[255,60,190], tileA:[20,18,30], tileB:[15,13,24], oob:[4,4,10], hue:0, force:{far:'kiosk',L:'drums',R:'drums',mid:'pillars',hatch:'off'}},
+};
+function hueShift(px,deg){ if(!deg) return px; const o=new Uint32Array(px.length);
+  for(let i=0;i<px.length;i++){ const c=px[i], a=c>>>24; let r=c&255,g=(c>>>8)&255,b=(c>>>16)&255;
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b); if(mx-mn<40){ o[i]=c; continue; }
+    /* rotate in YIQ-ish space */
+    const th=deg*Math.PI/180, cs=Math.cos(th), sn=Math.sin(th);
+    const nr=(.299+.701*cs+.168*sn)*r+(.587-.587*cs+.330*sn)*g+(.114-.114*cs-.497*sn)*b;
+    const ng=(.299-.299*cs-.328*sn)*r+(.587+.413*cs+.035*sn)*g+(.114-.114*cs+.292*sn)*b;
+    const nb=(.299-.3*cs+1.25*sn)*r+(.587-.588*cs-1.05*sn)*g+(.114+.886*cs-.203*sn)*b;
+    const cl=v=>v<0?0:v>255?255:v|0;
+    o[i]=((a<<24)|(cl(nb)<<16)|(cl(ng)<<8)|cl(nr))>>>0; }
+  return o; }
+return {T:T, hue:hueShift};
+})();
+
+const GAL_THEMES=['dock','arcade','server','slime','paint','roof'];
+const GAL_THK={dock:'TH_DOCK',arcade:'TH_ARCADE',server:'TH_SERVER',slime:'TH_SLIME',paint:'TH_PAINT',roof:'TH_ROOF'};
+let GAL_THFORCE=null;              /* console / tests: e.g. ['dock','server','roof'] */
+let GAL_PTEX0=null, galThCur=null;
+const GAL_PTEXH={};                /* hue-shifted prop textures, one set per hue, built on first use */
+function galTheme(id){
+  const t=GALTH.T[id], rm=REALM[2];
+  if(galThCur!==id){
+    const walls=[REALM[0].walls[0]];
+    for(let i=0;i<t.seeds.length;i++) walls.push(t.walls[i%3](t.seeds[i]));
+    /* its own ceiling buffer now (open item 25). Realm 2 never paints its ceiling, so ceil0 can be
+       the same array. Only the current theme is kept. */
+    const c=t.ceil(); rm.walls=walls; rm.ceil=c; rm.ceil0=c; galThCur=id;
+  }
+  for(const k of ['fog','cfog','lineA','lineB','tileA','tileB','oob']) rm[k]=t[k];
+  if(!GAL_PTEX0) GAL_PTEX0=GAL_PTEX;
+  if(!t.hue) GAL_PTEX=GAL_PTEX0;
+  else {
+    let v=GAL_PTEXH[t.hue];
+    if(!v){ v={};
+      for(const k in GAL_PTEX0){ const a=GAL_PTEX0[k];
+        v[k]=Array.isArray(a)?a.map(x=>x&&x.px?{w:x.w,h:x.h,px:GALTH.hue(x.px,t.hue)}:x):a; }
+      GAL_PTEXH[t.hue]=v; }
+    GAL_PTEX=v;
+  }
+  if(G&&G.realm===2) applyRealm(2);
+}
+/* a new floor is a clean floor: the Gallery's own paint (realm 2 is loaded when this runs) */
+function galWipePaint(){
+  decals=new Map(); decalKeys=[]; floorSplats=new Array(BW*BH).fill(null);
+  if(covPW) covPW.fill(0); if(covRF) covRF.fill(0); if(covRC) covRC.fill(0);
+}
+function galVisitBegin(){
+  const pool=GAL_THEMES.slice(), th=[];
+  for(let i=0;i<GAL_VISIT;i++) th.push(pool.splice((Math.random()*pool.length)|0,1)[0]);
+  G.galTh=GAL_THFORCE?GAL_THFORCE.slice(0,GAL_VISIT):th;
+  G.galStep=0; G.galLift=null; G.galNext=false;
+  galTheme(G.galTh[0]); galWipePaint();
+}
+const fmtClock=s=>s>=60?((s/60)|0)+':'+String(s%60).padStart(2,'0'):String(s);
+function galSceneToast(){
+  if(!G.galStep) showToast(T('TO_GALIN'), T(touchMode?'TO_GALSUB_T':'TO_GALSUB',{n:Math.ceil(G.galT)}), 1);
+  else showToast(T(GAL_THK[G.galTh[G.galStep]]||'TO_GALIN'),
+                 T('TO_GALSC',{a:G.galStep+1,b:GAL_VISIT,n:fmtClock(Math.ceil(G.galT))}), 1);
+}
+/* ---- the freight elevator ---- */
+function liftStart(){
+  G.galLift={ph:0,t:0,b:GAL_FAST,c0:G.galT,built:false,from:G.galStep+1};
+  G.galT+=GAL_FAST;
+}
+function liftBuild(L){
+  L.built=true; G.galStep++;
+  galTheme(G.galTh[G.galStep]); galWipePaint();
+  galStart();
+}
+function liftTick(dt){
+  const L=G.galLift; L.t+=dt;
+  /* the build waits one blackout frame, so its hitch happens on a black screen */
+  if(L.ph===3&&!L.built&&L.t>0.05) liftBuild(L);
+  while(L.t>=LIFT[L.ph]){
+    L.t-=LIFT[L.ph]; L.ph++;
+    if(L.ph===1) A.liftRattle();
+    else if(L.ph===2) A.liftGo();
+    else if(L.ph===4){ if(!L.built) liftBuild(L); A.ding(); A.liftRattle(); }
+    if(L.ph>=LIFT.length){ G.galLift=null; galSceneToast(); updHud(); return; }
+  }
+}
+/* drawing -- reads G, never writes it. Art is in the mockup's 401x180 units, scaled by k=RH/180. */
+function liftShaft(X,W,H,k,u,floor){
+  const off=u*300*k, r=mulberry32(77), sx=W/401, span=H+60*k, ph=30*k, pw=50*k;
+  const C=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const glow=(cx,cy,rr,col,a)=>{ const g=X.createRadialGradient(cx,cy,0,cx,cy,rr); g.addColorStop(0,C(col,a)); g.addColorStop(1,C(col,0)); X.fillStyle=g; X.beginPath(); X.arc(cx,cy,rr,0,TAU); X.fill(); };
+  X.fillStyle='#120e14'; X.fillRect(0,0,W,H);
+  for(let j=-2;j<8;j++){ const y=j*30; const yy=((y*k-off)%span+span)%span-30*k;
+    for(let i=0;i*pw<W;i++){ const v=34+((i*50*7+(y+60)*13)%11); X.fillStyle=`rgb(${v},${v-6},${v+2})`; X.fillRect(i*pw+k,yy+k,pw-2*k,ph-2*k); } }
+  for(let i=0;i<60;i++){ const x=r()*W, l=(10+r()*30)*k, y=((r()*H-off*1.6)%H+H)%H; X.fillStyle='rgba(255,255,255,0.05)'; X.fillRect(x,y,Math.max(1,k*0.6),l); }
+  const tags=[[90,40,[255,60,190]],[300,110,[60,220,255]],[200,150,[255,230,40]]], sp=H+80*k;
+  for(const [tx0,ty,c] of tags){ const tx=tx0*sx, yy=((ty*k-off)%sp+sp)%sp-40*k; X.fillStyle=C(c,0.8); X.beginPath(); X.arc(tx,yy,8*k,0,TAU); X.fill();
+    for(let q=0;q<7;q++){ const a=q*0.9+tx0, d=(10+(q%3)*3)*k; X.beginPath(); X.arc(tx+Math.cos(a)*d,yy+Math.sin(a)*d*0.8,(1.5+(q%2))*k,0,TAU); X.fill(); }
+    for(let q=0;q<3;q++) X.fillRect(tx+(-5+q*5)*k,yy+4*k,2*k,(10+q*6)*k); }
+  { const sl=H+40*k, ly=((150*k-off)%sl+sl)%sl-20*k; X.fillStyle='#3a3020'; X.fillRect(60*k,ly-3*k,W-120*k,7*k);
+    X.globalCompositeOperation='lighter'; X.fillStyle='rgba(255,210,140,0.95)'; X.fillRect(64*k,ly-k,W-128*k,3*k); glow(W/2,ly,120*k,[255,160,60],0.22); X.globalCompositeOperation='source-over'; }
+  for(const x of [34*k,W-46*k]){ X.fillStyle='#2c2a34'; X.fillRect(x,0,12*k,H); X.fillStyle='#5a586a'; X.fillRect(x+4*k,0,3*k,H); }
+  const fy=H*(1.25-1.7*u);   /* the next floor's slab rises past the gate */
+  if(fy>-30*k&&fy<H){ X.fillStyle='#262230'; X.fillRect(0,fy,W,26*k);
+    for(let i=-30*k;i<W+30*k;i+=14*k){ X.fillStyle='#ffc21a'; X.beginPath(); X.moveTo(i,fy+26*k); X.lineTo(i+7*k,fy+26*k); X.lineTo(i+13*k,fy+20*k); X.lineTo(i+6*k,fy+20*k); X.fill(); }
+    X.font='800 '+Math.max(8,Math.round(18*k))+'px NPS'; X.fillStyle='#ffc21a'; X.textAlign='center'; X.textBaseline='alphabetic'; X.fillText(floor,W/2,fy+17*k); }
+  X.globalCompositeOperation='lighter'; glow(W/2,-10*k,170*k,[255,170,80],0.30); X.globalCompositeOperation='source-over';
+  const v=X.createRadialGradient(W/2,H/2,40*k,W/2,H/2,W*0.7); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,0.7)'); X.fillStyle=v; X.fillRect(0,0,W,H);
+}
+function liftGateDraw(X,W,H,k,drop){
+  if(drop<=0) return;
+  const gy=H*drop-H, bars=Math.max(5,Math.round(W/(36.5*k))), sp=W/bars;
+  X.save(); X.beginPath(); X.rect(0,0,W,H); X.clip();
+  for(let i=0;i<=bars;i++){ const bx=i*sp+sp/2-3*k; X.fillStyle='#14121c'; X.fillRect(bx-k,gy,8*k,H); X.fillStyle='#3e3c52'; X.fillRect(bx,gy,6*k,H); X.fillStyle='rgba(120,240,255,0.75)'; X.fillRect(bx+k,gy,Math.max(1,k),H); }
+  for(const f of [0.32,0.66]){ X.fillStyle='#14121c'; X.fillRect(0,gy+H*f-4*k,W,9*k); X.fillStyle='#4a4862'; X.fillRect(0,gy+H*f-3*k,W,6*k); X.fillStyle='rgba(120,240,255,0.6)'; X.fillRect(0,gy+H*f-3*k,W,Math.max(1,k)); }
+  X.fillStyle='#1a1822'; X.fillRect(0,gy+H-16*k,W,16*k);
+  for(let i=-20*k;i<W+20*k;i+=14*k){ X.fillStyle='#ffc21a'; X.beginPath(); X.moveTo(i,gy+H-2*k); X.lineTo(i+7*k,gy+H-2*k); X.lineTo(i+15*k,gy+H-14*k); X.lineTo(i+8*k,gy+H-14*k); X.fill(); }
+  X.restore();
+}
+/* the gate over the world image: dropping on the cleared scene, rising on the new one */
+function liftGate(L){
+  let d=0;
+  if(L.ph===1){ const u=clamp(L.t/LIFT[1],0,1); d=1-(1-u)*(1-u)*(1-u); }
+  else if(L.ph===4){ const u=clamp(L.t/LIFT[4],0,1); d=1-u*u*(3-2*u); }
+  else return;
+  rctx.setTransform(1,0,0,1,0,0); rctx.globalAlpha=1; rctx.globalCompositeOperation='source-over';
+  liftGateDraw(rctx,RW,RH,RH/180,d);
+}
+/* the shaft and the blackout replace the world entirely */
+function renderShaft(ovIn){
+  const L=G.galLift, X=rctx, W=RW, H=RH, k=H/180;
+  X.setTransform(1,0,0,1,0,0); X.globalAlpha=1; X.globalCompositeOperation='source-over';
+  if(L.ph===3){ X.fillStyle='#000'; X.fillRect(0,0,W,H); }
+  else { liftShaft(X,W,H,k,clamp(L.t/LIFT[2],0,1),'B'+(L.from+1)); liftGateDraw(X,W,H,k,1); }
+  const dw=view.width, dh=view.height;
+  vctx.setTransform(1,0,0,1,0,0); vctx.globalCompositeOperation='source-over'; vctx.globalAlpha=1;
+  vctx.imageSmoothingEnabled=false; vctx.drawImage(rcv,0,0,dw,dh);
+  if(ovIn) drawOverlays(dw,dh);
+}
+/* the cinema bars + their text are DOM (#cine), above the HUD and below PAUSE. Synced once a frame. */
+let cineOn=false, cineK='';
+function cineSync(){
+  const L=(G&&G.inGal)?G.galLift:null, on=!!L;
+  if(on!==cineOn){ cineOn=on; document.documentElement.classList.toggle('cine',on); cineK=''; }
+  if(!on) return;
+  const ph=L.ph, a=L.from, b=a+1;
+  const left=ph<=1?'B'+a:(ph<=3?'B'+a+'  ▼  B'+b:'B'+b);
+  const k=ph===2?clamp(L.t/LIFT[2],0,1):(ph<2?0:1);
+  const right=T('GAL_PAUSED',{n:fmtClock(Math.ceil(L.c0+L.b*k))});
+  const plus=ph<=2?T('GAL_PLUS',{n:L.b}):'';
+  const bot=(ph===2||ph===3)?T('GAL_LOADING'):'';
+  const key=left+'|'+right+'|'+plus+'|'+bot;
+  if(key===cineK) return; cineK=key;
+  const c=document.getElementById('cine');
+  c.querySelector('.ef').textContent=left; c.querySelector('.ec').textContent=right;
+  c.querySelector('.ep').textContent=plus; c.querySelector('.eb').textContent=bot;
+}
+
 function galStart(){
   const S=galScene();
   /* anything still standing from a previous scene leaves with it — a restart
@@ -7772,7 +8250,9 @@ function galStart(){
     if(e.gal){ e.gal=0; G.alive.splice(i,1); }
   }
   G.bolts.length=0;
-  G.galT=GAL_SECS; G.galAlarm=false; G.galOver=false;
+  /* _38: the clock is set once per visit (scene 1); later scenes inherit what is left */
+  if(!G.galStep){ G.galT=GAL_SECS_VISIT; G.galAlarm=false; }
+  G.galOver=false; G.galNext=false;
   G.galQ=GAL_ROSTER.slice();
   G.galLeft=G.galQ.length;
   galRollScene();
@@ -7785,7 +8265,7 @@ function galStart(){
   /* unstick() steps OUT of wherever it is asked from, so it must only run when
      the authored stance is actually illegal — otherwise it shifts the camera */
   if(!canStand(G.px,G.py)) unstick();
-  showToast(T('TO_GALIN'), T(touchMode?'TO_GALSUB_T':'TO_GALSUB',{n:GAL_SECS}), 1);
+  if(!G.galLift) galSceneToast();   /* _38: after a ride the toast waits for the bars to go */
 }
 /* `loop` is stage 1: the standalone feel test. The scene restarts instead of
    handing you back to the precinct, so you can sit in it and tune. */
@@ -7806,6 +8286,7 @@ function enterGallery(loop){
   G.inGal=true; G.galLoop=!!loop;
   G.flash=1.4; G.shake=Math.max(G.shake,0.8);
   A.warp();
+  galVisitBegin();   /* _38: three themes, scene 1 dressed, clean floor */
   galStart();
   updHud();
 }
@@ -7814,6 +8295,7 @@ function leaveGallery(){
   G.realm=0; loadRealmPaint(0); applyRealm(0);
   agePaint();
   G.inGal=false; G.galLoop=false; G.galT=0; G.galOver=false;
+  G.galLift=null; G.galStep=0; G.galNext=false;   /* _38 */
   G.galCov=0; G.galCovWant=0; G.galWarn=0; G.bolts.length=0;
   G.galProps=null; G.galDark=0;
   G.alive=[]; G.rockets.length=0;
@@ -8201,9 +8683,11 @@ function endGalScene(cleared){
     bonus=Math.round(G.galCredits*(GAL_NOHIT-1));
     G.credits+=bonus; G.waveCredits+=bonus; A.heart();
   }
-  showToast(T(cleared?'TO_GALCLR':'TO_GALOUT'),
-            bonus ? T('TO_GALNOHIT',{n:G.galCredits+bonus, m:GAL_NOHIT})
-                  : T('TO_GALPAY',{n:G.galCredits}), 1);
+  /* _38: a cleared scene with floors left goes down the elevator, +GAL_FAST s on the clock */
+  G.galNext=cleared&&G.galStep<GAL_VISIT-1&&G.galT>0;
+  showToast(T(G.galNext?'TO_GALSCN':(cleared?'TO_GALCLR':'TO_GALOUT')),
+            (bonus ? T('TO_GALNOHIT',{n:G.galCredits+bonus, m:GAL_NOHIT})
+                   : T('TO_GALPAY',{n:G.galCredits}))+(G.galNext?'  \u00B7  '+T('GAL_PLUS',{n:GAL_FAST}):''), 1);
   updHud();
   /* _37: on the game clock (ticked in updGallery). The old 1.8 s setTimeout returned early if it fired
      while paused, which left you standing in a finished scene for good -- now that the Warden's cache
@@ -8211,12 +8695,14 @@ function endGalScene(cleared){
   G.galEndT=1.8; G.galEndLoop=G.galLoop;
 }
 function updGallery(dt){
+  if(G.galLift){ liftTick(dt); return; }   /* _38: the ride; the clock is frozen */
   if(G.galOver){
     if(G.galEndT>0){ G.galEndT-=dt;   /* _37 */
       if(G.galEndT<=0){ G.galEndT=0;
         /* _22: the TEST loop refills integrity between scenes. It used to carry
            damage from one restart to the next, so a feel test always ended dead. */
-        if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galStart(); } else leaveGallery(); } }
+        if(G.galNext) liftStart();   /* _38 */
+        else if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galVisitBegin(); galStart(); } else leaveGallery(); } }
     return;
   }
   G.galT-=dt;
@@ -8982,9 +9468,10 @@ function updGalHud(){
   }
   if(G.inGal){
     const secs=Math.max(0,Math.ceil(G.galT));
-    if(secs!==galShownT){ galShownT=secs; el('galT').textContent=secs; }
-    if(G.galLeft!==galShownN){
-      galShownN=G.galLeft; el('galN').textContent=T('GAL_TGT',{n:G.galLeft});
+    if(secs!==galShownT){ galShownT=secs; el('galT').textContent=fmtClock(secs); }   /* _38: m:ss */
+    const nk=G.galLeft*8+(G.galStep||0);
+    if(nk!==galShownN){
+      galShownN=nk; el('galN').textContent=T('GAL_TGT',{n:G.galLeft})+'  \u00B7  '+((G.galStep||0)+1)+'/'+GAL_VISIT;
     }
     const cl=G.galT<=GAL_ALARM;
     if(cl!==galShownCl){ galShownCl=cl; galBarEl.classList.toggle('closing',cl); }
@@ -9163,6 +9650,7 @@ function update(dt){
   /* Touch base raised from 0.0032 to 0.0056 — a 180 turn was taking ~614px of
      drag, over 1.5 phone widths. It is now ~350px, and the slider scales it. */
   const sens=(touchMode?0.0056:0.0022)*lookSens;
+  if(G.inGal&&G.galLift){ mouse.dx=0; mouse.dy=0; }   /* _38: hands off during the ride */
   G.ang+=mouse.dx*sens;
   G.pitch=clamp(G.pitch-mouse.dy*sens*0.55,-0.42,0.42);
   mouse.dx=0; mouse.dy=0;
@@ -9183,6 +9671,7 @@ function update(dt){
     G.pitch=clamp(G.pitch,-GAL_PITCH,GAL_PITCH);
     G.galCovWant=(keys['KeyC']||keys['ShiftLeft']||tCover)?1:0;
     G.galCov=clamp(G.galCov+(G.galCovWant?dt*GAL_COVUP:-dt*GAL_COVDN),0,1);
+    if(G.galLift){ G.galCovWant=0; G.galCov=0; const kk=Math.min(1,dt*5); G.ang+=(G.galAng-G.ang)*kk; G.pitch-=G.pitch*kk; }   /* _38 */
   } else if(G.galCov>0){ G.galCov=0; G.galCovWant=0; }
 
   let fwd=0,str=0;
@@ -9246,7 +9735,7 @@ function update(dt){
 
   /* behind the parapet you are safe and you are also useless — that trade is
      the whole point of cover, and it is what keeps it from being a free button */
-  if(G.mode==='play'&&(mouse.down||tFire||keys['Space'])&&!(G.inGal&&G.galCov>GAL_COVFIRE)) fire();
+  if(G.mode==='play'&&(mouse.down||tFire||keys['Space'])&&!(G.inGal&&G.galCov>GAL_COVFIRE)&&!(G.inGal&&G.galLift)) fire();
 
   if(G.mode==='play'&&G.shopT>0&&!G.inGal){   /* _36; _37: not inside the Gallery */
     G.shopT-=dt;
@@ -9526,6 +10015,7 @@ function frame(ts){
      "going mute" after five to eight seconds of scrolling. */
   A.frame();
   if(!G) return;
+  cineSync();   /* _38 */
   if(G.mode==='play'&&ROT.on()) setPaused(true);
   if(ftPend>=0) ftApply(ts);   /* _34: before anything draws */
   if(warmF>0&&G.mode==='play'){   /* _34: warm frames -- draw only */
