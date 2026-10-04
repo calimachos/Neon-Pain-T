@@ -271,8 +271,8 @@
   #cine .ef{color:rgba(255,194,26,.95);}
   #cine .er{color:rgba(205,184,255,.88);}
   #cine .ep{color:#ffe800;margin-right:.7em;text-shadow:0 0 10px rgba(255,232,0,.7);}
-  #cine .eb{color:rgba(255,255,255,.55);font-weight:700;font-size:max(12px,3vh);letter-spacing:.12em;}
-  html.cine #hud,html.cine #touch{opacity:0;transition:opacity .25s;}
+  #cine .eb{color:rgba(255,255,255,.62);font-weight:700;font-size:max(20px,5vh);letter-spacing:.12em;}
+  html.cine #hud,html.cine #touch,html.galin #hud,html.galin #touch{opacity:0;transition:opacity .25s;}
 
   #covSlick{display:none;color:#b6ff00;text-shadow:0 0 10px rgba(182,255,0,.95);}
   #covWrap.slick #covSlick{display:inline;}
@@ -1467,7 +1467,7 @@ en:{
   TO_GALPAY:'+%n CR', TO_GALNOHIT:'+%n CR  ·  NEVER TOUCHED ×%m',
   AL_GALCLOSE:'THE GALLERY IS CLOSING — %n SECONDS',
 TO_GALSCN:'SCENE CLEAR', TO_GALSC:'SCENE %a / %b  ·  %n LEFT', GAL_PLUS:'+%n S', GAL_PAUSED:'CLOCK PAUSED  %n',
-GAL_LOADING:'loading the next scene…',
+GAL_LOADING:'loading the next scene…', GAL_FLR:'FLOOR %n',
 TH_DOCK:'LOADING DOCK', TH_ARCADE:'NEON ARCADE', TH_SERVER:'SERVER ROOM', TH_SLIME:'SLIME WORKS', TH_PAINT:'PAINT FACTORY', TH_ROOF:'ROOFTOP',
   /* --- weapons --- */
   W_CANNON:'PAINT CANNON', W_SHOTGUN:'SPLATTER GUN', W_BUCKET:'BUCKET LAUNCHER',
@@ -1603,8 +1603,8 @@ es:{
   TO_GALPAY:'+%n CR', TO_GALNOHIT:'+%n CR  ·  SIN UN RASGUÑO ×%m',
   AL_GALCLOSE:'LA GALERÍA CIERRA — %n SEGUNDOS',
 TO_GALSCN:'ESCENA DESPEJADA', TO_GALSC:'ESCENA %a / %b  ·  QUEDAN %n', GAL_PLUS:'+%n S', GAL_PAUSED:'RELOJ EN PAUSA  %n',
-GAL_LOADING:'cargando la siguiente escena…',
-TH_DOCK:'MUELLE DE CARGA', TH_ARCADE:'ARCADE NEÓN', TH_SERVER:'SALA DE SERVIDORES', TH_SLIME:'FÁBRICA DE BABA', TH_PAINT:'FÁBRICA DE PINTURA', TH_ROOF:'AZOTEA',
+GAL_LOADING:'cargando la siguiente escena…', GAL_FLR:'PISO %n',
+TH_DOCK:'MUELLE DE CARGA', TH_ARCADE:'ARCADE NEÓN', TH_SERVER:'SALA DE SERVIDORES', TH_SLIME:'FÁBRICA DE SLIME', TH_PAINT:'FÁBRICA DE PINTURA', TH_ROOF:'AZOTEA',
   W_CANNON:'CAÑÓN CROMA', W_SHOTGUN:'DOBLE CHORRO', W_BUCKET:'LANZABALDES',
   U_DMG:'ALTA PRESIÓN',     D_DMG:'+28% de daño',
   U_RATE:'GATILLO DOBLE',    D_RATE:'+18% de cadencia',
@@ -4081,7 +4081,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_38';
+const BUILD='_39';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5075,7 +5075,7 @@ function newGame(){
     brPromptT:0, brPromptHush:0,
     /* _12: THE GALLERY */
     inGal:false, galLoop:false, galT:0, galAlarm:false, galScene:0, bolts:[],
-    galStep:0, galTh:null, galLift:null, galNext:false,   /* _38 */
+    galStep:0, galTh:null, galLift:null, galNext:false, galIn:null,   /* _38, _39 */
     galAng:0, galQ:[], galSpots:[], galPop:0, galLeft:0,
     galCov:0, galCovWant:0, galHit:false, galCredits:0, galWarn:0,
     t:0, best:+(localStorage.getItem('np_best')||0)
@@ -5592,7 +5592,7 @@ function render(){
      was these full-screen layers, not resolution). Mouse FULL is untouched. */
   const ovIn=fxLite||FT_TOUCH;
   setOvc(ovIn);
-  if(G.inGal&&G.galLift&&(G.galLift.ph===2||G.galLift.ph===3)){ renderShaft(ovIn); return; }   /* _38 */
+  if(G.inGal&&G.galLift&&(G.galLift.ph===3||(G.galLift.ph===2&&G.galLift.t>=LIFT_RV))){ renderShaft(ovIn); return; }   /* _38, _39 */
   const lite=fxLite;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
@@ -5933,6 +5933,7 @@ function render(){
   /* blit + bloom + view model */
   rctx.putImageData(img,0,0);
   if(G.inGal&&G.galLift) liftGate(G.galLift);   /* _38 */
+  else if(G.inGal&&G.galIn) galInDraw(G.galIn);   /* _39 */
   const dw=view.width, dh=view.height;
   const shx=(Math.random()-0.5)*G.shake*dw*0.022;
   const shy=(Math.random()-0.5)*G.shake*dh*0.022;
@@ -5962,7 +5963,7 @@ function render(){
   vctx.globalAlpha=1; vctx.globalCompositeOperation='source-over';
   }
   if(pfOn){ const n=performance.now(); PF.acc[7]+=n-pt; pt=n; }
-  if(!(G.inGal&&G.galLift)) drawGun(dw,dh);   /* _38: no gun in the cutscene */
+  if(!(G.inGal&&(G.galLift||G.galIn))) drawGun(dw,dh);   /* _38: no gun in the cutscene; _39: nor in the entry */
   if(ovIn) drawOverlays(dw,dh);
   if(pfOn) PF.acc[8]+=performance.now()-pt;
 }
@@ -7327,7 +7328,15 @@ const GAL_SECS=42, GAL_ALARM=7;
 const GAL_VISIT=3, GAL_SECS_VISIT=110, GAL_FAST=4;
 /* the freight elevator, in seconds: bars in, gate down, shaft, blackout (next scene built here),
    gate up, bars out. Ticked on the game clock in updGallery -- pause-safe, no setTimeouts. */
-const LIFT=[0.35,0.60,1.90,0.55,0.60,0.35];
+/* _39: the ride goes UP and is ~7.4 s (was 4.35). Phase 2 opens with LIFT_RV seconds in which the shaft wall
+   is revealed top to bottom behind the closed gate, over the cleared scene (no pop). The gate (phase 4) opens
+   slowly through a fade up from black. All live-tunable: LIFT[i]=..., LIFT_RV. */
+const LIFT=[0.35,0.80,3.90,0.55,1.40,0.40];
+const LIFT_RV=1.0;
+/* _39: portal entry, in seconds: white flash, white -> black, black, then the view rises from the floor
+   (fade up + eye height + look-up easing out). The clock and the scene are frozen through it. */
+const GAL_IN=[0.12,0.10,0.45,1.20], GAL_IN_EYE=0.30, GAL_IN_PITCH=0.30;
+let galEyeBase=null;
 /* radians either side of the stance's facing. MUST be larger than the worst
    anchor bearing plus its lean (24.2 deg = 0.422 rad on this stage) or that
    anchor is visible and unshootable — the _12 bug. verify.js asserts it. */
@@ -8170,7 +8179,7 @@ function liftTick(dt){
 }
 /* drawing -- reads G, never writes it. Art is in the mockup's 401x180 units, scaled by k=RH/180. */
 function liftShaft(X,W,H,k,u,floor){
-  const off=u*300*k, r=mulberry32(77), sx=W/401, span=H+60*k, ph=30*k, pw=50*k;
+  const ue=u*u*(3-2*u), off=-ue*560*k, r=mulberry32(77), sx=W/401, span=H+60*k, ph=30*k, pw=50*k;
   const C=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const glow=(cx,cy,rr,col,a)=>{ const g=X.createRadialGradient(cx,cy,0,cx,cy,rr); g.addColorStop(0,C(col,a)); g.addColorStop(1,C(col,0)); X.fillStyle=g; X.beginPath(); X.arc(cx,cy,rr,0,TAU); X.fill(); };
   X.fillStyle='#120e14'; X.fillRect(0,0,W,H);
@@ -8184,51 +8193,106 @@ function liftShaft(X,W,H,k,u,floor){
   { const sl=H+40*k, ly=((150*k-off)%sl+sl)%sl-20*k; X.fillStyle='#3a3020'; X.fillRect(60*k,ly-3*k,W-120*k,7*k);
     X.globalCompositeOperation='lighter'; X.fillStyle='rgba(255,210,140,0.95)'; X.fillRect(64*k,ly-k,W-128*k,3*k); glow(W/2,ly,120*k,[255,160,60],0.22); X.globalCompositeOperation='source-over'; }
   for(const x of [34*k,W-46*k]){ X.fillStyle='#2c2a34'; X.fillRect(x,0,12*k,H); X.fillStyle='#5a586a'; X.fillRect(x+4*k,0,3*k,H); }
-  const fy=H*(1.25-1.7*u);   /* the next floor's slab rises past the gate */
+  const fy=H*(-0.25+1.7*u);   /* _39: going UP, the next floor's slab comes down past the gate */
   if(fy>-30*k&&fy<H){ X.fillStyle='#262230'; X.fillRect(0,fy,W,26*k);
     for(let i=-30*k;i<W+30*k;i+=14*k){ X.fillStyle='#ffc21a'; X.beginPath(); X.moveTo(i,fy+26*k); X.lineTo(i+7*k,fy+26*k); X.lineTo(i+13*k,fy+20*k); X.lineTo(i+6*k,fy+20*k); X.fill(); }
     X.font='800 '+Math.max(8,Math.round(18*k))+'px NPS'; X.fillStyle='#ffc21a'; X.textAlign='center'; X.textBaseline='alphabetic'; X.fillText(floor,W/2,fy+17*k); }
   X.globalCompositeOperation='lighter'; glow(W/2,-10*k,170*k,[255,170,80],0.30); X.globalCompositeOperation='source-over';
   const v=X.createRadialGradient(W/2,H/2,40*k,W/2,H/2,W*0.7); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,0.7)'); X.fillStyle=v; X.fillRect(0,0,W,H);
 }
-function liftGateDraw(X,W,H,k,drop){
+function liftGateDraw(X,W,H,k,drop,ga){
   if(drop<=0) return;
   const gy=H*drop-H, bars=Math.max(5,Math.round(W/(36.5*k))), sp=W/bars;
-  X.save(); X.beginPath(); X.rect(0,0,W,H); X.clip();
+  X.save(); X.globalAlpha=ga==null?1:ga; X.beginPath(); X.rect(0,0,W,H); X.clip();
   for(let i=0;i<=bars;i++){ const bx=i*sp+sp/2-3*k; X.fillStyle='#14121c'; X.fillRect(bx-k,gy,8*k,H); X.fillStyle='#3e3c52'; X.fillRect(bx,gy,6*k,H); X.fillStyle='rgba(120,240,255,0.75)'; X.fillRect(bx+k,gy,Math.max(1,k),H); }
   for(const f of [0.32,0.66]){ X.fillStyle='#14121c'; X.fillRect(0,gy+H*f-4*k,W,9*k); X.fillStyle='#4a4862'; X.fillRect(0,gy+H*f-3*k,W,6*k); X.fillStyle='rgba(120,240,255,0.6)'; X.fillRect(0,gy+H*f-3*k,W,Math.max(1,k)); }
   X.fillStyle='#1a1822'; X.fillRect(0,gy+H-16*k,W,16*k);
   for(let i=-20*k;i<W+20*k;i+=14*k){ X.fillStyle='#ffc21a'; X.beginPath(); X.moveTo(i,gy+H-2*k); X.lineTo(i+7*k,gy+H-2*k); X.lineTo(i+15*k,gy+H-14*k); X.lineTo(i+8*k,gy+H-14*k); X.fill(); }
   X.restore();
 }
-/* the gate over the world image: dropping on the cleared scene, rising on the new one */
+/* the gate over the world image: dropping on the cleared scene, rising on the new one.
+   _39: phase 2 opens (LIFT_RV) with the shaft wall REVEALED top to bottom behind the closed gate, over the
+   cleared scene. Phase 4: the gate rises with a cosine ease while the new scene fades up from black. */
+function liftFloor(L){ return T('GAL_FLR',{n:L.from+1}); }
 function liftGate(L){
-  let d=0;
+  const X=rctx, W=RW, H=RH, k=H/180;
+  X.setTransform(1,0,0,1,0,0); X.globalAlpha=1; X.globalCompositeOperation='source-over';
+  let d=0, ga=1;
   if(L.ph===1){ const u=clamp(L.t/LIFT[1],0,1); d=1-(1-u)*(1-u)*(1-u); }
-  else if(L.ph===4){ const u=clamp(L.t/LIFT[4],0,1); d=1-u*u*(3-2*u); }
+  else if(L.ph===2){
+    const u0=clamp(L.t/LIFT_RV,0,1), e=u0*u0*(3-2*u0), yy=H*e;
+    X.save(); X.beginPath(); X.rect(0,0,W,yy); X.clip();
+    liftShaft(X,W,H,k,clamp(L.t/LIFT[2],0,1),liftFloor(L));
+    X.restore();
+    if(yy>0&&yy<H){   /* the glowing edge of the wall coming down */
+      X.globalCompositeOperation='lighter';
+      const g=X.createLinearGradient(0,yy-16*k,0,yy); g.addColorStop(0,'rgba(120,240,255,0)'); g.addColorStop(1,'rgba(160,250,255,0.55)');
+      X.fillStyle=g; X.fillRect(0,yy-16*k,W,16*k);
+      X.fillStyle='rgba(220,255,255,0.9)'; X.fillRect(0,yy-k,W,2*k);
+      X.globalCompositeOperation='source-over';
+    }
+    d=1;
+  }
+  else if(L.ph===4){
+    const u=clamp(L.t/LIFT[4],0,1); d=0.5*(1+Math.cos(Math.PI*u));
+    const f=1-clamp(L.t/(LIFT[4]*0.4),0,1);
+    if(f>0){ X.fillStyle='rgba(0,0,0,'+(f*f).toFixed(3)+')'; X.fillRect(0,0,W,H); }
+    ga=0.6+0.4*clamp(L.t/0.3,0,1);
+  }
   else return;
-  rctx.setTransform(1,0,0,1,0,0); rctx.globalAlpha=1; rctx.globalCompositeOperation='source-over';
-  liftGateDraw(rctx,RW,RH,RH/180,d);
+  liftGateDraw(X,W,H,k,d,ga);
 }
-/* the shaft and the blackout replace the world entirely */
+/* the shaft and the blackout replace the world entirely (after the reveal) */
 function renderShaft(ovIn){
   const L=G.galLift, X=rctx, W=RW, H=RH, k=H/180;
   X.setTransform(1,0,0,1,0,0); X.globalAlpha=1; X.globalCompositeOperation='source-over';
-  if(L.ph===3){ X.fillStyle='#000'; X.fillRect(0,0,W,H); }
-  else { liftShaft(X,W,H,k,clamp(L.t/LIFT[2],0,1),'B'+(L.from+1)); liftGateDraw(X,W,H,k,1); }
+  if(L.ph===3){ X.fillStyle='#000'; X.fillRect(0,0,W,H); liftGateDraw(X,W,H,k,1,0.6); }
+  else {
+    liftShaft(X,W,H,k,clamp(L.t/LIFT[2],0,1),liftFloor(L));
+    const fe=clamp((L.t-(LIFT[2]-0.45))/0.45,0,1);   /* the last 0.45 s dim to the blackout */
+    if(fe>0){ X.fillStyle='rgba(0,0,0,'+fe.toFixed(3)+')'; X.fillRect(0,0,W,H); }
+    liftGateDraw(X,W,H,k,1,1-0.4*fe);
+  }
   const dw=view.width, dh=view.height;
   vctx.setTransform(1,0,0,1,0,0); vctx.globalCompositeOperation='source-over'; vctx.globalAlpha=1;
   vctx.imageSmoothingEnabled=false; vctx.drawImage(rcv,0,0,dw,dh);
   if(ovIn) drawOverlays(dw,dh);
 }
+/* ---- _39: the portal entry (white flash -> black -> the view rises from the floor) ---- */
+function galInTick(dt){
+  const I=G.galIn; I.t+=dt;
+  const A0=GAL_IN[0], A1=A0+GAL_IN[1], A2=A1+GAL_IN[2], tot=A2+GAL_IN[3];
+  if(galEyeBase===null) galEyeBase=EYE_Z;
+  if(I.t>=tot){
+    G.galIn=null; setEyeZ(galEyeBase); galEyeBase=null; G.pitch=0;
+    galSceneToast(); updHud(); return;
+  }
+  if(I.t<=A2){ setEyeZ(GAL_IN_EYE); G.pitch=GAL_IN_PITCH; }
+  else { const u=(I.t-A2)/GAL_IN[3], e=1-Math.pow(1-u,3);   /* ease-out: up quickly, settles gently */
+    setEyeZ(GAL_IN_EYE+(galEyeBase-GAL_IN_EYE)*e); G.pitch=GAL_IN_PITCH*(1-e); }
+}
+function galInDraw(I){
+  const A0=GAL_IN[0], A1=A0+GAL_IN[1], A2=A1+GAL_IN[2], t=I.t;
+  let c='0,0,0', a=1;
+  if(t<A0) c='255,255,255';
+  else if(t<A1){ const v=Math.round(255*(1-(t-A0)/GAL_IN[1])); c=v+','+v+','+v; }
+  else if(t>=A2){ const u=clamp((t-A2)/GAL_IN[3],0,1); a=Math.pow(1-u,1.5); }
+  if(a<=0.004) return;
+  rctx.setTransform(1,0,0,1,0,0); rctx.globalAlpha=1; rctx.globalCompositeOperation='source-over';
+  rctx.fillStyle='rgba('+c+','+a.toFixed(3)+')'; rctx.fillRect(0,0,RW,RH);
+}
 /* the cinema bars + their text are DOM (#cine), above the HUD and below PAUSE. Synced once a frame. */
 let cineOn=false, cineK='';
+let galInOn=false;
 function cineSync(){
+  const gi=!!(G&&G.inGal&&G.galIn);   /* _39 */
+  if(gi!==galInOn){ galInOn=gi; document.documentElement.classList.toggle('galin',gi); }
   const L=(G&&G.inGal)?G.galLift:null, on=!!L;
   if(on!==cineOn){ cineOn=on; document.documentElement.classList.toggle('cine',on); cineK=''; }
   if(!on) return;
   const ph=L.ph, a=L.from, b=a+1;
-  const left=ph<=1?'B'+a:(ph<=3?'B'+a+'  ▼  B'+b:'B'+b);
+  const fa=T('GAL_FLR',{n:a}), fb=T('GAL_FLR',{n:b});   /* _39: going up */
+  const left=ph<=1?fa:(ph<=3?fa+'  ▲  '+fb:fb);
   const k=ph===2?clamp(L.t/LIFT[2],0,1):(ph<2?0:1);
   const right=T('GAL_PAUSED',{n:fmtClock(Math.ceil(L.c0+L.b*k))});
   const plus=ph<=2?T('GAL_PLUS',{n:L.b}):'';
@@ -8265,7 +8329,7 @@ function galStart(){
   /* unstick() steps OUT of wherever it is asked from, so it must only run when
      the authored stance is actually illegal — otherwise it shifts the camera */
   if(!canStand(G.px,G.py)) unstick();
-  if(!G.galLift) galSceneToast();   /* _38: after a ride the toast waits for the bars to go */
+  if(!G.galLift&&!G.galIn) galSceneToast();   /* _38: after a ride the toast waits for the bars to go; _39: and after the entry */
 }
 /* `loop` is stage 1: the standalone feel test. The scene restarts instead of
    handing you back to the precinct, so you can sit in it and tune. */
@@ -8284,8 +8348,9 @@ function enterGallery(loop){
   G.spawnQ=[]; G.alive=[]; G.waveActive=false;
   G.rockets.length=0;
   G.inGal=true; G.galLoop=!!loop;
-  G.flash=1.4; G.shake=Math.max(G.shake,0.8);
+  G.shake=Math.max(G.shake,0.8);
   A.warp();
+  G.galIn={t:0};   /* _39: flash -> black -> the view rises; replaces the red flash */
   galVisitBegin();   /* _38: three themes, scene 1 dressed, clean floor */
   galStart();
   updHud();
@@ -8295,7 +8360,7 @@ function leaveGallery(){
   G.realm=0; loadRealmPaint(0); applyRealm(0);
   agePaint();
   G.inGal=false; G.galLoop=false; G.galT=0; G.galOver=false;
-  G.galLift=null; G.galStep=0; G.galNext=false;   /* _38 */
+  G.galLift=null; G.galStep=0; G.galNext=false; G.galIn=null;   /* _38, _39 */
   G.galCov=0; G.galCovWant=0; G.galWarn=0; G.bolts.length=0;
   G.galProps=null; G.galDark=0;
   G.alive=[]; G.rockets.length=0;
@@ -8695,6 +8760,7 @@ function endGalScene(cleared){
   G.galEndT=1.8; G.galEndLoop=G.galLoop;
 }
 function updGallery(dt){
+  if(G.galIn){ galInTick(dt); return; }   /* _39: the entry; the clock and the scene are frozen */
   if(G.galLift){ liftTick(dt); return; }   /* _38: the ride; the clock is frozen */
   if(G.galOver){
     if(G.galEndT>0){ G.galEndT-=dt;   /* _37 */
@@ -9650,7 +9716,7 @@ function update(dt){
   /* Touch base raised from 0.0032 to 0.0056 — a 180 turn was taking ~614px of
      drag, over 1.5 phone widths. It is now ~350px, and the slider scales it. */
   const sens=(touchMode?0.0056:0.0022)*lookSens;
-  if(G.inGal&&G.galLift){ mouse.dx=0; mouse.dy=0; }   /* _38: hands off during the ride */
+  if(G.inGal&&(G.galLift||G.galIn)){ mouse.dx=0; mouse.dy=0; }   /* _38: hands off during the ride; _39: and the entry */
   G.ang+=mouse.dx*sens;
   G.pitch=clamp(G.pitch-mouse.dy*sens*0.55,-0.42,0.42);
   mouse.dx=0; mouse.dy=0;
@@ -9672,6 +9738,7 @@ function update(dt){
     G.galCovWant=(keys['KeyC']||keys['ShiftLeft']||tCover)?1:0;
     G.galCov=clamp(G.galCov+(G.galCovWant?dt*GAL_COVUP:-dt*GAL_COVDN),0,1);
     if(G.galLift){ G.galCovWant=0; G.galCov=0; const kk=Math.min(1,dt*5); G.ang+=(G.galAng-G.ang)*kk; G.pitch-=G.pitch*kk; }   /* _38 */
+    else if(G.galIn){ G.galCovWant=0; G.galCov=0; }   /* _39 */
   } else if(G.galCov>0){ G.galCov=0; G.galCovWant=0; }
 
   let fwd=0,str=0;
@@ -9735,7 +9802,7 @@ function update(dt){
 
   /* behind the parapet you are safe and you are also useless — that trade is
      the whole point of cover, and it is what keeps it from being a free button */
-  if(G.mode==='play'&&(mouse.down||tFire||keys['Space'])&&!(G.inGal&&G.galCov>GAL_COVFIRE)&&!(G.inGal&&G.galLift)) fire();
+  if(G.mode==='play'&&(mouse.down||tFire||keys['Space'])&&!(G.inGal&&G.galCov>GAL_COVFIRE)&&!(G.inGal&&(G.galLift||G.galIn))) fire();
 
   if(G.mode==='play'&&G.shopT>0&&!G.inGal){   /* _36; _37: not inside the Gallery */
     G.shopT-=dt;
@@ -10014,6 +10081,7 @@ function frame(ts){
      LITE) every sound effect was silently dropped. That was the menu tick
      "going mute" after five to eight seconds of scrolling. */
   A.frame();
+  if(galEyeBase!==null&&!(G&&G.galIn)){ setEyeZ(galEyeBase); galEyeBase=null; }   /* _39 */
   if(!G) return;
   cineSync();   /* _38 */
   if(G.mode==='play'&&ROT.on()) setPaused(true);
