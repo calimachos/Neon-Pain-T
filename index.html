@@ -1276,6 +1276,25 @@
 
   /* _37: the in-game HUD in the menus' Saira (embedded NPS), slanted -- Android had no Avenir and fell back */
   #hud,#hud *,#sysbtns,#sysbtns *,#combo,#combo *,#chainV,#gunPop{font-family:'NPS','Avenir Next Condensed','Helvetica Neue',Arial,sans-serif;font-weight:800;font-style:italic;letter-spacing:.06em;}
+
+  /* ===== _44: mockup option A, chosen by Carlos 2026-10-05 -- ONLY the price buttons, DEPLOY and the two FLATLINE buttons ===== */
+  /* price = an outlined chevron pill, like the selected menu row */
+  #ovShop .zbuy{background:rgba(62,240,255,.05);color:var(--y);box-shadow:inset 0 0 0 1.5px rgba(62,240,255,.8),inset 0 0 14px rgba(62,240,255,.18);
+    display:flex;align-items:center;justify-content:center;padding:calc(5 * var(--k)) 0;font-size:max(12px,calc(14 * var(--k)));letter-spacing:.12em;}
+  #ovShop .zbuy:before{content:'';width:.42em;height:.42em;border-right:2px solid var(--c);border-top:2px solid var(--c);transform:rotate(45deg);margin-right:.8em;flex:0 0 auto;}
+  #ovShop .zbuy.no{color:#7a6aa0;background:none;box-shadow:inset 0 0 0 1px rgba(160,140,220,.3);}
+  #ovShop .zbuy.no:before{border-color:#7a6aa0;}
+  #ovShop .zbuy.sold:before{display:none;}
+  #ovShop .zdep{height:calc(44 * var(--k));width:calc(210 * var(--k));padding:1px;background:linear-gradient(90deg,var(--m),var(--v) 60%,var(--c));}
+  #ovShop .zdep .zi2{background:linear-gradient(90deg,rgba(40,10,60,.95),rgba(14,8,44,.95));color:#fff;box-shadow:inset 0 0 20px rgba(255,60,190,.28);font-size:max(14px,calc(18 * var(--k)));}
+  #ovShop .zdep svg{display:none;}
+  #ovShop .zdep .zi2:after{content:'';width:.5em;height:.5em;border-right:3px solid var(--m);border-top:3px solid var(--m);transform:rotate(45deg);margin-left:.2em;}
+  #ovDead .ddBtns{height:calc(48 * var(--k));}
+  #ovDead .zb1{padding:1px;background:linear-gradient(90deg,var(--m),var(--v) 60%,var(--c));}
+  #ovDead .zb1 .zi2{background:linear-gradient(90deg,rgba(40,10,60,.95),rgba(14,8,44,.95));box-shadow:inset 0 0 24px rgba(255,60,190,.28);}
+  #ovDead .zb1 svg{color:var(--m);}
+  #ovDead .zb2{background:none;padding:0;flex:.8;}
+  #ovDead .zb2 .zi2{background:none;color:#b9a8e8;box-shadow:inset 0 0 0 1px rgba(160,140,220,.35);}
 </style>
 </head>
 <body>
@@ -1304,9 +1323,9 @@
         <span id="leftPips"></span><span class="n" id="leftN">0</span></div>
     </div>
     <div id="groveBar"><div id="groveLbl" data-t="GROVE">THE GROVE</div><div id="groveT">49</div></div>
-    <!-- _20: the Breach Warden's health, notched at its four stagger lines -->
+    <!-- _20: the Breach Warden's health, notched at its stagger lines (_44: three, 25/50/75 %) -->
     <div id="bossBar"><div id="bossLbl" data-t="TO_WARDEN">BREACH WARDEN</div>
-      <div id="bossTrack"><div id="bossFill"></div><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i></div></div>
+      <div id="bossTrack"><div id="bossFill"></div><i style="left:25%"></i><i style="left:50%"></i><i style="left:75%"></i></div></div>
     <div id="galBar"><div id="galLbl" data-t="A_GALLERY">THE GALLERY</div><div id="galT">42</div>
       <div id="galN"></div></div>
     <!-- TOP-RIGHT is THE MONEY. -->
@@ -4330,7 +4349,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_43';
+const BUILD='_44';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5239,7 +5258,10 @@ const ETYPE=[
      which is exactly when everything else in the room catches up with you.
      Not rolled on THE CHEVRON or THE SWITCHBACK (`noWarden`): a boss in a
      funnel or a fold is a wall, not a fight. */
-  {name:'WARDEN',  hp:760,spd:2.55,dmg:26,cr:640,sc:2.35,rad:0.80,spr:10,lift:0.00,atkCd:1.10,knock:0,   col:[196,90,255],  warden:1},
+  {name:'WARDEN',  hp:760,spd:4.40,dmg:26,cr:640,sc:2.35,rad:0.80,spr:10,lift:0.00,atkCd:1.10,knock:0,   col:[196,90,255],  warden:1},
+  /* _44: what the Warden sheds. Same sprite as the Warden, small. 20 % faster than it (4.40 x 1.2), dies to one cannon shot
+     at any wave (its health is NOT run through hpScale), bites for little: a distraction, not a threat. */
+  {name:'MINI SPIDER',hp:20,spd:5.28,dmg:4,cr:4,sc:0.80,rad:0.22,spr:10,lift:0.00,atkCd:0.90,knock:0,col:[222,150,255],mini:1},
 ];
 /* burst tiers: 0 plain, 1 CHARGED (dim void-purple aura), 2 OVERCHARGED
    (white-hot magenta). The purple already means "breach" in the HUD and at the
@@ -5251,6 +5273,7 @@ const ETYPE=[
    less aimable, which is the trap the _11 notes warned about. */
 let TIER_HP=[1,1.75,2.7], TIER_SPD=[1,1.24,1.44], TIER_CR=[1,1.6,3.4];
 const WARDEN_T=ETYPE.findIndex(t=>t.warden);   /* its ETYPE index, never hard-coded */
+const MINI_T=ETYPE.findIndex(t=>t.mini);
 /* The spawn bag. _09 moved it from 3/3/2/2/2 (8 people : 4 insects) to
    4/3/3/3/3 (10 : 6), and cut every credit value to 0.875x — the Grove paid
    about 2x the precinct per kill and Carlos wanted 1.75x. */
@@ -5271,7 +5294,9 @@ function hpScale(){ return (1+(G.wave-1)*0.16+Math.max(0,G.wave-8)*0.10+Math.max
 /* the Warden is a boss on top of that: twice its _11 health from the first
    wave it can appear, climbing to 3.5x by wave 14 */
 let WARDEN_HP0=2, WARDEN_HPW=0.2, WARDEN_HPMAX=3.5;
-function wardenMul(){ return clamp(WARDEN_HP0+WARDEN_HPW*(G.wave-6),WARDEN_HP0,WARDEN_HPMAX); }
+/* _44: +20 % on the whole curve, so it is +20 % at wave 3 and the extra grows with every wave after */
+let WARDEN_HP_BOOST=1.20;
+function wardenMul(){ return clamp(WARDEN_HP0+WARDEN_HPW*(G.wave-6),WARDEN_HP0,WARDEN_HPMAX)*WARDEN_HP_BOOST; }
 let G=null;
 /* The precinct is whatever the title screen picked (or a random one). The Grove
    is always a DIFFERENT arena, so stepping through the portal is a change of
@@ -6904,7 +6929,7 @@ function damageEnemy(e,amt,dx,dy){
   e.hp-=amt; e.flash=0.26;
   if(T.warden){
     /* too heavy to shove; instead it staggers as its health crosses each
-       STAG_STEP line (80 / 60 / 40 / 20 %). _18: it used to accumulate damage
+       STAG_STEP line (_44: 75 / 50 / 25 %; was 80 / 60 / 40 / 20). _18: it used to accumulate damage
        and stagger every 15% — and kept accumulating DURING the stagger, so a
        strong gun re-staggered it the instant it stood up: stagger-locked, it
        never moved again. Lines crossed while it is already staggered are
@@ -7012,7 +7037,13 @@ const WARDEN_PITY=3;          // _37: after this many Warden-less bursts the nex
 const WARDEN_AT=8;            // seconds left on the burst when it comes through
 const WARDEN_MULT=1.5;        // the held lump pays this much more once it dies
 const WARDEN_STAG=1.0;        // seconds it stands still per stagger (_19: 1.6 -> 1.0, it is a longer fight now)
-let STAG_STEP=0.20;           // _18: it staggers each time its health crosses a multiple of this
+let STAG_STEP=0.25;           // _18: it staggers each time its health crosses a multiple of this. _44 (Carlos): 4 -> 3 stops (75/50/25 %), the bar's 3 notches (was 0.20 = 80/60/40/20 %)
+/* ---- _44 (Carlos 2026-10-05) ---- */
+const MINI_EVERY=5, MINI_N=2, MINI_CAP=8;   /* the Warden sheds MINI_N mini spiders every MINI_EVERY s (clock stops while it is staggered), never more than MINI_CAP alive */
+let PL_SPH=0.90;        /* the player sphere: no enemy centre gets closer than this (+ half of what its radius beats 0.40), so it is never inside the camera */
+let HIT_PAD=0.08, HIT_PAD_LAT=0.02;   /* how far past the sphere an enemy can still bite: head-on / from behind, and from the player's sides */
+let GRAZE_T=0.50;       /* a contact from the SIDES has to last this long before it hurts, so passing by never does; head-on and from behind bite at once */
+let ATK_RATE=0.65;      /* enemy bites per second x this (35 % fewer): cooldown = atkCd / ATK_RATE */
 const STOMP_FIRST=7, STOMP_EVERY=11, STOMP_JIT=5, STOMP_RANGE=9, STOMP_WIND=0.75;
 const STOMP_SLOW=2.0;         // seconds your legs are at half speed
 const VENT_EVERY=0.42, VENT_PARTS=0.05;
@@ -7214,6 +7245,35 @@ function wardenStomp(e){
     addFloorSplat(e.x+Math.cos(th)*r,e.y+Math.sin(th)*r,[196,90,255],surfR(0.22,0.16),Math.random()*1e9);
   }
   showAlert(T('AL_STOMP'));
+}
+
+/* _44: the Warden sheds a pair of mini spiders round its feet */
+function wardenMinis(e){
+  let n=0; for(let i=0;i<G.alive.length;i++) if(ETYPE[G.alive[i].t].mini) n++;
+  const MT=ETYPE[MINI_T]; let made=0;
+  for(let k=0;k<MINI_N&&n<MINI_CAP;k++,n++){
+    const th=Math.random()*TAU;
+    let x=e.x+Math.cos(th)*0.95, y=e.y+Math.sin(th)*0.95;
+    if(isSolid(x,y)){ x=e.x; y=e.y; }
+    const m=mkEnemy(MINI_T,x,y,0.35,0); plSphere(m,MT); G.alive.push(m); made++;   /* never born inside the player sphere */
+    for(let j=0;j<10;j++) burst(m.x,m.y,0.4,MT.col,1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+  }
+  if(made) A.portal();
+}
+/* _44: the player sphere. An enemy CENTRE never gets closer to you than this radius, so whatever is hurting you is
+   always at least that far in front of the lens and stays drawn (the sprite pass drops anything under 0.14 deep).
+   Bigger bodies keep a little more room. If the push is walled in, it slides along an axis; boxed in, it stays. */
+function plSphR(T){ return PL_SPH+0.5*Math.max(0,T.rad-0.40); }
+function plSphere(e,T){
+  const r=plSphR(T);
+  let dx=e.x-G.px, dy=e.y-G.py; const d2=dx*dx+dy*dy;
+  if(d2>=r*r) return;
+  let d=Math.sqrt(d2);
+  if(d<1e-4){ const a=G.ang+Math.PI; dx=Math.cos(a); dy=Math.sin(a); d=1; }   /* exactly on top: out the back */
+  const nx=G.px+dx/d*r, ny=G.py+dy/d*r;
+  if(!isSolid(nx,ny)){ e.x=nx; e.y=ny; return; }
+  if(!isSolid(nx,e.y)&&Math.hypot(nx-G.px,e.y-G.py)>d) e.x=nx;
+  else if(!isSolid(e.x,ny)&&Math.hypot(e.x-G.px,ny-G.py)>d) e.y=ny;
 }
 
 /* ---------- the portal ---------- */
@@ -9261,13 +9321,13 @@ function mkEnemy(t,x,y,delay,tier){
      than the type's constant because the insects fly, and the hit tests read
      the same field the renderer does — one number, so a mosquito can never be
      drawn somewhere you cannot shoot it. */
-  const e={t:t,x:x,y:y,hp:T.hp*(T.crit?critScale():hpScale())*TIER_HP[tier]*(T.warden?wardenMul():1),flash:0,seed:Math.random()*10,
+  const e={t:t,x:x,y:y,hp:T.hp*(T.mini?1:(T.crit?critScale():hpScale()))*TIER_HP[tier]*(T.warden?wardenMul():1),flash:0,seed:Math.random()*10,
           grow:0.06,spawnT:delay,atk:0,back:0,lz:T.lift,
           hd:Math.random()*TAU, turn:0.4+Math.random()*1.4, spook:0,
           rx:x, ry:y, roamT:0, wob:Math.random()*TAU, path:null, pi:0, stuck:0,
           /* _11: burst tier (aura + payout), and the Warden's own clocks */
           tier:tier, spm:TIER_SPD[tier], crm:TIER_CR[tier], auraT:0, gt:1, maxhp:0,
-          stag:0, stagK:1, wind:0, stompCd:STOMP_FIRST};
+          stag:0, stagK:1, wind:0, stompCd:STOMP_FIRST, miniT:MINI_EVERY, cT:0, cL:0};
   e.maxhp=e.hp;
   if(T.crit) newRoam(e);
   return e;
@@ -10118,6 +10178,11 @@ function update(dt){
   const len=Math.hypot(fwd,str);
   if(len>1){fwd/=len;str/=len;}
   G.bobAmt=lerp(G.bobAmt,Math.min(1,Math.hypot(fwd,str)),dt*8);
+  { /* _44: which way you are going (world space), for the side-graze rule */
+    const ml=Math.hypot(fwd,str), ca=Math.cos(G.ang), sa=Math.sin(G.ang);
+    G.mvAmt=ml;
+    if(ml>0.01){ G.mvx=(ca*fwd-sa*str)/ml; G.mvy=(sa*fwd+ca*str)/ml; }
+  }
 
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   /* Wet paint is slick. Eased rather than switched, because a splat edge is a
@@ -10212,6 +10277,7 @@ function update(dt){
   for(let i=G.alive.length-1;i>=0;i--){
     const e=G.alive[i], T=ETYPE[e.t];
     if(e.flash>0) e.flash-=dt;
+    if(!e.gal&&!T.crit) plSphere(e,T);   /* _44: keep the player sphere clear first -- also while it is still spawning in (a mini can appear inside it) */
     if(e.spawnT>0){ e.spawnT-=dt; e.grow=lerp(e.grow,1,dt*6); continue; }
     e.grow=lerp(e.grow,e.gt,dt*9);
     const dx=G.px-e.x, dy=G.py-e.y, d=Math.hypot(dx,dy)||1;
@@ -10234,6 +10300,7 @@ function update(dt){
        Otherwise it is a big fast chaser like everything else in the room. */
     if(T.warden){
       if(e.stag>0){ e.stag-=dt; e.gt=0.84; continue; }
+      e.miniT-=dt; if(e.miniT<=0){ e.miniT=MINI_EVERY; wardenMinis(e); }   /* _44 */
       if(e.wind>0){
         e.wind-=dt; e.gt=1.22;
         if(e.wind<=0){ e.gt=1; wardenStomp(e); e.stompCd=STOMP_EVERY+Math.random()*STOMP_JIT; }
@@ -10321,12 +10388,29 @@ function update(dt){
     if(!isSolid(tx,e.y)) e.x=tx;
     if(!isSolid(e.x,ty)) e.y=ty;
     e.atk-=dt;
-    if(d<0.85&&e.atk<=0){
-      e.atk=T.atkCd; e.back=T.knock;
-      G.hp-=T.dmg; G.flash=1; G.shake=Math.max(G.shake,0.55);
-      A.hurt(); updHud();
-      for(let k=0;k<8;k++) burst(e.x,e.y,0.6,[255,60,60],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
-      if(G.hp<=0){ die(); return; }
+    plSphere(e,T);   /* _44: after the step too, so what gets drawn is outside the sphere */
+    /* ---- _44: contact ----
+       Reach is the sphere + HIT_PAD (HIT_PAD_LAT from the sides). `lat` is how far round to your SIDE the enemy is,
+       measured against the way you are moving (or facing, standing still): 0 = dead ahead or dead behind, 1 = beside you.
+       A contact that touches your sides has to last GRAZE_T before it bites, so running past something never costs health;
+       head-on and from-behind (a fast chaser) bite on the first frame. The side-ness of a contact is the most side-on it
+       got, so sliding past (ahead -> beside -> behind) cannot bite on the way out either. */
+    { const cdx=G.px-e.x, cdy=G.py-e.y, cd=Math.hypot(cdx,cdy)||1e-4;
+      let rx=Math.cos(G.ang), ry=Math.sin(G.ang);
+      if((G.mvAmt||0)>0.25&&G.mvx!==undefined){ rx=G.mvx; ry=G.mvy; }
+      const cosT=(-cdx*rx-cdy*ry)/cd, lat=Math.sqrt(Math.max(0,1-cosT*cosT));
+      const reach=plSphR(T)+HIT_PAD+(HIT_PAD_LAT-HIT_PAD)*lat;
+      if(cd<reach){
+        e.cT+=dt; if(lat>e.cL) e.cL=lat;
+        const need=GRAZE_T*clamp((e.cL-0.45)/0.45,0,1);
+        if(e.atk<=0&&e.cT>=need){
+          e.atk=T.atkCd/ATK_RATE; e.back=T.knock;
+          G.hp-=T.dmg; G.flash=1; G.shake=Math.max(G.shake,0.55);
+          A.hurt(); updHud();
+          for(let k=0;k<8;k++) burst(e.x,e.y,0.6,[255,60,60],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+          if(G.hp<=0){ die(); return; }
+        }
+      } else { e.cT=0; e.cL=0; }
     }
   }
 
