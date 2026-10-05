@@ -535,6 +535,15 @@
     font-size:max(13px,calc(16 * var(--k)));letter-spacing:.08em;padding:calc(6 * var(--k)) 0;color:#07040d;
     background:var(--l);flex:0 0 auto;}
   .zbuy.no{background:rgba(120,100,170,.25);color:#7a6aa0;}
+  /* _42: bought this visit -- greyed and inert, the lit progress lines stay readable */
+  .zc.sold{cursor:default;}
+  .zc.sold:active{transform:none;}
+  .zc.sold .zf{background:rgba(120,100,170,.45);}
+  .zc.sold .zi{background:linear-gradient(180deg,rgba(14,8,30,.97),rgba(8,4,18,.97));}
+  .zc.sold .ic,.zc.sold .nm,.zc.sold .ds{opacity:.42;}
+  .zc.sold .ic svg{filter:grayscale(1);}
+  .zbuy.sold{background:rgba(120,100,170,.22);color:#9a8cc0;letter-spacing:.14em;}
+  @media (hover:hover){ .zc.sold:hover .zf{filter:none;} }
   .zc:active{transform:scale(.97);}
   .zc.fresh{animation:shFresh .9s ease-out 1;}
   @keyframes shFresh{0%{transform:translateY(calc(-10 * var(--k)));filter:brightness(2.2);}100%{transform:none;filter:none;}}
@@ -785,33 +794,35 @@
   #galEdge i.on{opacity:1;animation:brpulse .45s ease-in-out infinite;}
   @media (max-height:480px){ #galEdge i{border-top-width:18px;border-bottom-width:18px;}
     #galEdge i.l{border-right-width:22px;} #galEdge i.r{border-left-width:22px;} }
-  #galPrompt{position:absolute;left:50%;top:68%;transform:translate(-50%,-50%);
-    display:none;text-align:center;pointer-events:none;z-index:11;
-    padding:12px 26px;border-radius:16px;
-    background:rgba(14,0,6,.58);border:1px solid rgba(255,60,60,.3);
-    box-shadow:0 0 40px rgba(0,0,0,.5);}
-  #galPrompt.on{display:block;}
-  #galPrompt .big{font-size:clamp(20px,5.2vw,36px);font-weight:800;letter-spacing:.13em;color:#ff3c3c;
-    text-shadow:0 0 22px rgba(255,60,60,.95),0 0 54px rgba(255,60,60,.4);
-    animation:brpulse .46s ease-in-out infinite;}
-  #galPrompt .kcap{border-color:#ff3c3c;color:#ff3c3c;background:rgba(255,60,60,.17);
-    box-shadow:0 0 26px rgba(255,60,60,.6),inset 0 -5px 0 rgba(255,60,60,.3);margin-top:12px;}
-  /* a charger gets its own colour, matching the white-hot tint on its sprite */
-  #galPrompt.chg{background:rgba(18,10,0,.6);border-color:rgba(255,214,90,.38);}
-  #galPrompt.chg .big{color:#ffd65a;text-shadow:0 0 22px rgba(255,214,90,.95),0 0 54px rgba(255,180,40,.4);}
-  #galPrompt.chg .kcap{border-color:#ffd65a;color:#ffd65a;background:rgba(255,214,90,.17);
-    box-shadow:0 0 26px rgba(255,214,90,.6),inset 0 -5px 0 rgba(255,214,90,.3);}
+  /* _41: option C. A small pill (icon + one word) pops at each attack start -- the same instant as the chirp --
+     holds ~1 s and fades. Red = shooter, amber = charger; both can show side by side. The long sentences
+     (INCOMING -- DUCK OR KILL IT, TAKE COVER) are gone from play: they are for a tutorial. */
+  #galPill{position:absolute;left:50%;top:calc(128px + env(safe-area-inset-top));transform:translateX(-50%);
+    display:flex;gap:12px;pointer-events:none;z-index:11;}
+  .gp{display:none;align-items:center;gap:.5em;padding:.32em .95em .32em .6em;border-radius:99px;
+    font-size:clamp(14px,2.3vw,22px);font-weight:800;letter-spacing:.14em;white-space:nowrap;}
+  .gp svg{width:1.35em;height:1.25em;flex:0 0 auto;}
+  .gp.s{background:rgba(40,0,0,.78);color:#ff3c3c;border:2px solid #ff3c3c;box-shadow:0 0 18px rgba(255,60,60,.5);}
+  .gp.c{background:rgba(30,20,0,.78);color:#ffd65a;border:2px solid #ffd65a;box-shadow:0 0 18px rgba(255,214,90,.5);}
+  .gp.on{display:flex;opacity:1;transition:opacity .28s linear;animation:gpin .14s ease-out;}
+  .gp.on.fade{opacity:0;}
+  @keyframes gpin{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:none;}}
+  /* the cover hint is a teacher: shown while something is in the air and you are out of cover, until you have
+     taken cover GAL_HINT_USES times (localStorage np_covuses). On a phone the COVER button's own red pulse stays. */
+  #galHintC{position:absolute;left:50%;top:66%;transform:translate(-50%,-50%);display:none;align-items:center;gap:12px;
+    pointer-events:none;z-index:11;}
+  #galHintC.on{display:flex;}
+  #galHintC svg{width:42px;height:46px;}
+  #galHintC .kcap{min-width:46px;height:46px;font-size:24px;border-color:#3ef0ff;color:#3ef0ff;background:rgba(62,240,255,.14);
+    box-shadow:0 0 22px rgba(62,240,255,.55),inset 0 -5px 0 rgba(62,240,255,.3);}
+  @media (max-height:480px){ #galPill{top:calc(142px + env(safe-area-inset-top));} .gp{font-size:clamp(13px,2.6vw,18px);} }
   /* the touch COVER button. The left thumb has nothing to do in a scene with
      no legs, so it gets the whole left side and a big target. */
-  /* the phone's bottom half is FIRE / RELOAD / BREACH / COVER, so the take-
-     cover shout goes high instead — and the key line comes off entirely,
-     because the COVER button itself turns red and pulses, which is the same
-     instruction in the place the thumb already is. This block has to sit AFTER
-     the base #galPrompt rule: same specificity, so source order decides. */
+  /* the phone's bottom half is FIRE / RELOAD / BREACH / COVER; the hint sits beside the COVER button
+     (no key cap -- the button is the key) and the button itself turns red and pulses. */
   @media (pointer:coarse){
-    #galPrompt{top:35%;padding:8px 16px;max-width:86vw;}
-    #galPrompt .big{font-size:clamp(17px,4.4vw,28px);letter-spacing:.09em;}
-    #galPrompt .kcap{display:none;}
+    #galHintC{left:calc(156px + env(safe-area-inset-left));top:auto;bottom:calc(58px + env(safe-area-inset-bottom));transform:none;}
+    #galHintC .kcap{display:none;}
   }
   #covBtn{left:calc(24px + env(safe-area-inset-left));bottom:calc(32px + env(safe-area-inset-bottom));
     width:116px;height:116px;border:3px solid rgba(0,240,255,.8);background:rgba(0,240,255,.14);
@@ -1322,10 +1333,11 @@
         <span class="big" id="brBig">BREAK OPEN THIS WALL</span></div>
       <div class="sub" id="brSub"></div>
     </div>
-    <div id="galPrompt">
-      <div class="big" id="galCovBig">TAKE COVER</div>
-      <div><span class="kcap" id="galCovKey">HOLD C</span></div>
+    <div id="galPill">
+      <div class="gp s" id="galPillS"><svg viewBox="0 0 30 28" aria-hidden="true"><circle cx="15" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 2v24M3 14h24" stroke="currentColor" stroke-width="2.5"/></svg><span></span></div>
+      <div class="gp c" id="galPillC"><svg viewBox="0 0 30 28" aria-hidden="true"><path d="M6 24l9-10-9-10M17 24l9-10-9-10" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg><span></span></div>
     </div>
+    <div id="galHintC"><svg viewBox="0 0 46 50" aria-hidden="true"><path d="M23 3l18 7v13c0 12-8 20-18 24C13 43 5 35 5 23V10z" fill="rgba(62,240,255,.12)" stroke="#3ef0ff" stroke-width="3"/></svg><span class="kcap">C</span></div>
     <div id="xhair"><i></i><i></i><i></i><i></i></div>
     <div id="gunPop"></div>
   </div>
@@ -1664,7 +1676,7 @@ en:{
   DEPLOY_HINT:'SPACE / TAP TO DEPLOY', SH_STOCK:'STOCK DEPLETED',
   SH_REROLL:'RE-ROLL', SH_ROLL_Y:'pull one more option onto the shelf',
   SH_ROLL_N:'nothing left in stock', CR:'CR',
-  SH_SVC:'SERVICE', SH_DEPLOY:'DEPLOY', SH_H_SW:'SWIPE FOR MORE  ·  TAP TO BUY', SH_H_TAP:'TAP TO BUY',
+  SH_SVC:'SERVICE', SH_SOLD:'BOUGHT', SH_DEPLOY:'DEPLOY', SH_H_SW:'SWIPE FOR MORE  ·  TAP TO BUY', SH_H_TAP:'TAP TO BUY',
   SH_H_CLK:'CLICK TO BUY  ·  SPACE TO DEPLOY',
   DEAD_SUB:'THE PAINT DRIED ON WAVE %w', DEAD_NB:'NEW BEST  ·  WAVE %w', DEAD_PB:'PERSONAL BEST  ·  WAVE %b',
   ST_PAINT:'PAINTED', ST_CHAIN:'BEST CHAIN', DL_CR:'CREDITS EARNED', DL_WD:'WARDENS', DL_GAL:'GALLERY',
@@ -1690,7 +1702,7 @@ en:{
   /* --- _12: the Gallery --- */
   GAL_TEST:'GALLERY · TEST',
   GAL_TGT:'TARGETS %n',
-  GAL_COVER:'TAKE COVER', GAL_COVKEY:'HOLD C', GAL_COVKEY_T:'HOLD COVER',
+  GAL_COVER:'TAKE COVER', GAL_COVKEY:'HOLD C', GAL_COVKEY_T:'HOLD COVER', GAL_SHOT:'SHOT', GAL_RUSH:'RUSH',
   GAL_INCOMING:'INCOMING — DUCK OR KILL IT',
   COVER_BTN:'COVER',
   TO_GALIN:'THE GALLERY',
@@ -1808,7 +1820,7 @@ es:{
   DEPLOY_HINT:'ESPACIO / TOCA PARA DESPLEGAR', SH_STOCK:'SIN EXISTENCIAS',
   SH_REROLL:'OTRA CARTA', SH_ROLL_Y:'saca otra opción al estante',
   SH_ROLL_N:'no queda nada en el estante', CR:'CR',
-  SH_SVC:'SERVICIO', SH_DEPLOY:'DESPLEGAR', SH_H_SW:'DESLIZA PARA VER MÁS  ·  TOCA PARA COMPRAR', SH_H_TAP:'TOCA PARA COMPRAR',
+  SH_SVC:'SERVICIO', SH_SOLD:'COMPRADO', SH_DEPLOY:'DESPLEGAR', SH_H_SW:'DESLIZA PARA VER MÁS  ·  TOCA PARA COMPRAR', SH_H_TAP:'TOCA PARA COMPRAR',
   SH_H_CLK:'CLIC PARA COMPRAR  ·  ESPACIO PARA DESPLEGAR',
   DEAD_SUB:'LA PINTURA SE SECÓ EN LA OLEADA %w', DEAD_NB:'NUEVO RÉCORD  ·  OLEADA %w', DEAD_PB:'RÉCORD  ·  OLEADA %b',
   ST_PAINT:'PINTADOS', ST_CHAIN:'MEJOR CADENA', DL_CR:'CRÉDITOS GANADOS', DL_WD:'GUARDIANES', DL_GAL:'GALERÍA',
@@ -1830,7 +1842,7 @@ es:{
   TO_BRDYSUB_T:'ACÉRCATE A UN MURO EXTERIOR Y TOCA BRECHA — LLAMA A LOS DEL VACÍO',
   GAL_TEST:'GALERÍA · PRUEBA',
   GAL_TGT:'BLANCOS %n',
-  GAL_COVER:'¡A CUBIERTO!', GAL_COVKEY:'MANTÉN C', GAL_COVKEY_T:'MANTÉN CUBRIRSE',
+  GAL_COVER:'¡A CUBIERTO!', GAL_COVKEY:'MANTÉN C', GAL_COVKEY_T:'MANTÉN CUBRIRSE', GAL_SHOT:'DISPARO', GAL_RUSH:'EMBESTIDA',
   GAL_INCOMING:'¡SE TE ECHA ENCIMA — AGÁCHATE O MÁTALO!',
   COVER_BTN:'CUBRIRSE',
   TO_GALIN:'LA GALERÍA',
@@ -4318,7 +4330,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_40';
+const BUILD='_43';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -8849,6 +8861,8 @@ function galChirp(low,pan){
   const k=low?1:0;
   if(G.galChirpK[k]>0) return;
   G.galChirpK[k]=GAL_CHIRP_CD;
+  galPillUntil[k]=performance.now()+GAL_PILL_MS;   /* _41: the sign pops with the sound */
+  if(!GALW.chirp) return;                          /* _42: sound off for now */
   const wait=Math.max(0,G.galChirpLast+GAL_CHIRP_GAP-G.galClk);
   G.galChirpLast=G.galClk+wait;
   if(wait>0.001) setTimeout(()=>A.chirp(low,pan),wait*1000); else A.chirp(low,pan);
@@ -9082,12 +9096,12 @@ function updGallery(dt){
 
 
 /* ---------- _37: the VOID CACHE ----------
-   Every Warden that dies drops one. Three hits open it (hits are trigger pulls, not damage: a 9-pellet
+   Every Warden that dies drops one. Seven hits (VC_HITS) open it (hits are trigger pulls, not damage: a 9-pellet
    volley is one hit, a bucket that bursts beside it is one hit). Closed it lasts VC_LIFE, open VC_OPEN,
    both blink their last 5 s. Open, it is a door: walk in and you play one Gallery scene with integrity
    back to full, then you are put back where you stood. It lives in G.pickups so it rides across waves
    exactly like a heart does, but only in the precinct (realm 0): nowhere else is it drawn, hit or ticked. */
-const VC_LIFE=30, VC_OPEN=60, VC_HITS=3, VC_R=0.36, VC_Z0=0.40, VC_Z1=1.05;
+const VC_LIFE=30, VC_OPEN=60, VC_HITS=7, VC_R=0.36, VC_Z0=0.40, VC_Z1=1.05;
 function vcFind(){ for(let i=0;i<G.pickups.length;i++) if(G.pickups[i].vc) return G.pickups[i]; return null; }
 function vcDrop(x,y){
   const old=vcFind();
@@ -9111,7 +9125,7 @@ function vcHit(){
   c.hits++;
   A.hitWall(0); G.shake=Math.max(G.shake,0.25);
   for(let k=0;k<12;k++) burst(c.x,c.y,0.75,Math.random()<0.5?[196,90,255]:[255,200,255],1,(Math.random()-0.5)*2.2,(Math.random()-0.5)*2.2);
-  if(c.hits<VC_HITS){ if(VCF) c.spr=VCF.c[Math.min(2,c.hits)]; c.life=Math.max(c.life,6); return; }
+  if(c.hits<VC_HITS){ if(VCF) c.spr=VCF.c[c.hits*2<=VC_HITS?1:2];   /* _41: the same two damage frames, spread over the extra hits */ c.life=Math.max(c.life,6); return; }
   c.open=true; c.life=VC_OPEN; c.spr=VCF?VCF.open:PORTAL; c.sz=2.15; c.lift=0; c.bobA=0;
   for(let k=0;k<46;k++) burst(c.x,c.y,0.9,[170,110,255],1,(Math.random()-0.5)*2.6,(Math.random()-0.5)*2.6);
   A.portal(); A.warp(); G.shake=Math.max(G.shake,0.7);
@@ -9267,14 +9281,17 @@ function spawnOne(t){
 /* ---------- shop ---------- */
 /* `max` caps the compounding ones. BLACK-MARKET TAP uncapped was the whole
    reason credits ran away — 1.25^7 is a 4.8x income multiplier. */
+/* _42: every stacking card has a cap. _43: HIGH-PRESSURE MIX too (4), but it is still dealt a little less often (SHOP_W_DMG, a weight against 1 for everything else). As the other cards max out and
+   leave the pool, its share of the shelf rises on its own. `tally` = no cap, but the lit lines still count your buys. */
+const SHOP_W_DMG=0.7;
 const UPGRADES=[
-  {id:'dmg',k:'U_DMG',dk:'D_DMG',            c:120,f:()=>{G.dmgMul*=1.28;}},
-  {id:'rate',k:'U_RATE',dk:'D_RATE',         c:140,f:()=>{G.rateMul*=0.85;},max:6},
-  {id:'mag',k:'U_MAG',dk:'D_MAG',        c:100,f:()=>{G.magUps++;G.ammo[0]=WEAPONS[0].mag+G.magUps*WEAPONS[0].magStep;G.ammo[1]=WEAPONS[1].mag+G.magUps*WEAPONS[1].magStep;}},
-  {id:'rel',k:'U_REL',dk:'D_REL',       c:110,f:()=>{G.reloadMul*=0.78;},max:5},
-  {id:'hp',k:'U_HP',dk:'D_HP',      c:130,f:()=>{G.maxhp+=30;G.hp=G.maxhp;}},
-  {id:'spd',k:'U_SPD',dk:'D_SPD',        c:120,f:()=>{G.speed*=1.14;},max:5},
-  {id:'prc',k:'U_PRC',dk:'D_PRC', c:230,f:()=>{G.pierce++;},max:3},
+  {id:'dmg',k:'U_DMG',dk:'D_DMG',            c:120,f:()=>{G.dmgMul*=1.28;},w:SHOP_W_DMG,max:4},
+  {id:'rate',k:'U_RATE',dk:'D_RATE',         c:140,f:()=>{G.rateMul*=0.85;},max:5},
+  {id:'mag',k:'U_MAG',dk:'D_MAG',        max:4, c:100,f:()=>{G.magUps++;G.ammo[0]=WEAPONS[0].mag+G.magUps*WEAPONS[0].magStep;G.ammo[1]=WEAPONS[1].mag+G.magUps*WEAPONS[1].magStep;}},
+  {id:'rel',k:'U_REL',dk:'D_REL',       c:110,f:()=>{G.reloadMul*=0.78;},max:4},
+  {id:'hp',k:'U_HP',dk:'D_HP',      max:5, c:130,f:()=>{G.maxhp+=30;G.hp=G.maxhp;}},
+  {id:'spd',k:'U_SPD',dk:'D_SPD',        c:120,f:()=>{G.speed*=1.14;},max:4},
+  {id:'prc',k:'U_PRC',dk:'D_PRC', c:230,f:()=>{G.pierce++;},max:2},
   {id:'cr',k:'U_CR',dk:'D_CR',    c:220,f:()=>{G.crMul*=1.20;},max:3},
   {id:'heal',k:'U_HEAL',dk:'D_HEAL', c:80, f:()=>{G.hp=G.maxhp;}, rep:true},
 ];
@@ -9445,7 +9462,9 @@ addEventListener('blur',()=>{ if(G&&G.mode==='play') setPaused(true); });
    that no longer exists. Everything you bought, your credits and the wave you
    are on all carry over. Gated to wave 10 and priced at 7000 so it is a
    late-run decision rather than an opening move. */
-const MAP_WAVE=10, MAP_COST=7000;
+/* _41: CHANGE MAP is no longer a pool card that has to win the 3-from-N draw. From wave MAP_WAVE on, every shop
+   rolls MAP_CHANCE once: a hit puts the card on the shelf (it takes one of the three dealt slots). */
+const MAP_WAVE=7, MAP_COST=6000, MAP_CHANCE=0.40;
 function changeArena(){
   const oldPre=REALM[0].geo.arena;
   const preOpts=ARENAS.filter(a=>a!==oldPre);
@@ -9480,18 +9499,28 @@ function changeArena(){
   G.flash=1.2; G.shake=Math.max(G.shake,0.7); A.warp();
   showToast(T(pre.k), T('TO_NEWMAP',{s:T(grove.k)}), 1);
 }
+function shopDraw(){
+  let tot=0; for(let i=0;i<G.pool.length;i++) tot+=(G.pool[i].w||1);
+  let r=Math.random()*tot, k=G.pool.length-1;
+  for(let i=0;i<G.pool.length;i++){ r-=(G.pool[i].w||1); if(r<0){ k=i; break; } }
+  return G.pool.splice(k,1)[0];
+}
 function shopPool(){
   const pool=UPGRADES.filter(u=>(!u.rep||G.hp<G.maxhp*0.95)&&!maxedOut(u));
   if(wallsDamaged()) pool.push({id:'fix',k:'U_FIX',dk:'D_FIX',c:190,f:repairAll});
-  if(G.wave>=MAP_WAVE) pool.push({id:'map',k:'U_MAP',dk:'D_MAP',c:MAP_COST,flat:true,f:changeArena});
   return pool;
 }
 function openShop(){
-  G.mode='shop'; mouse.down=false; tFire=false; G.rerolls=0; G.shTab=null; G.shNew=null;
+  G.mode='shop'; mouse.down=false; tFire=false; G.rerolls=0; G.shTab=null; G.shNew=null; G.sold={};
   if(document.pointerLockElement) document.exitPointerLock();
   G.pool=shopPool();
   const pick=[];
-  while(pick.length<3&&G.pool.length) pick.push(G.pool.splice((Math.random()*G.pool.length)|0,1)[0]);
+  while(pick.length<3&&G.pool.length) pick.push(shopDraw());
+  if(G.wave>=MAP_WAVE&&Math.random()<MAP_CHANCE){
+    const mc={id:'map',k:'U_MAP',dk:'D_MAP',c:MAP_COST,flat:true,f:changeArena};
+    if(pick.length>=3){ G.pool.push(pick.splice((Math.random()*pick.length)|0,1)[0]); }   /* the bumped card goes back in the pool */
+    pick.push(mc); G.mapDealt=true;
+  } else G.mapDealt=false;
   G.cards=pick;
   /* unowned weapons always sit on the shelf rather than being left to chance */
   G.wcards=WEAPON_CARDS.filter(w=>!G.owned[w.weapon]);
@@ -9499,18 +9528,21 @@ function openShop(){
   ovShop.classList.add('on');
 }
 function buyCard(u,i,fromWeapons){
+  if(G.sold&&G.sold[u.id]) return;
   const pr=priceOf(u);
   if(G.credits<pr) return;
   G.credits-=pr; G.spent+=pr; u.f(); G.bought[u.id]=(G.bought[u.id]||0)+1;
   A.buy();
-  (fromWeapons?G.wcards:G.cards).splice(i,1);
+  /* _42: the card stays where it is, greyed, with its progress line lit, so you can see what you took this visit.
+     G.sold is per visit (reset in openShop); the next RESUPPLY deals a fresh shelf. */
+  (G.sold||(G.sold={}))[u.id]=1;
   renderShop(); updHud();
 }
 function doReroll(){
   const c=rerollCost();
   if(G.credits<c||!G.pool.length){ A.dry(); return; }
   G.credits-=c; G.spent+=c; G.rerolls++;
-  const nu=G.pool.splice((Math.random()*G.pool.length)|0,1)[0];
+  const nu=shopDraw();
   G.cards.push(nu);
   /* _40: on a phone the new card may live on another tab — follow it, and flash it */
   G.shNew=nu; if(shPhoneMQ.matches) G.shTab=shCat(nu);
@@ -9540,14 +9572,16 @@ function shGlyph(u){
   return '<svg viewBox="0 0 52 52" aria-hidden="true">'+(SH_IC[id]||SH_IC.cr)+'</svg>';
 }
 function mkCard(u,cls,onClick){
-  const p=priceOf(u), poor=G.credits<p, d=document.createElement('div');
+  const sold=!!(G.sold&&G.sold[u.id]);
+  const p=priceOf(u), poor=!sold&&G.credits<p, d=document.createElement('div');
   const lv=G.bought[u.id]||0; let pips='';
   if(u.max) for(let i=0;i<u.max;i++) pips+='<i'+(i<lv?' class="on"':'')+'></i>';
-  d.className='zc'+cls+(poor?' poor':'')+(u===G.shNew?' fresh':'');
+  else if(u.tally&&lv) for(let i=0;i<Math.min(lv,10);i++) pips+='<i class="on"></i>';
+  d.className='zc'+cls+(sold?' sold':'')+(poor?' poor':'')+(u===G.shNew?' fresh':'');
   d.innerHTML='<div class="zf zcz"><div class="zi zcz"><div class="ic">'+shGlyph(u)+'</div><div class="tx"><div class="nm">'+
     T(u.k)+'</div><div class="ds">'+T(u.dk)+'</div></div><div class="zpips">'+pips+'</div><div class="zbuy zcz'+
-    (poor?' no':'')+'">'+p+' '+T('CR')+'</div></div></div>';
-  d.addEventListener('click',()=>{ if(G.credits<priceOf(u)){ A.dry(); return; } onClick(); });
+    (poor||sold?' no':'')+(sold?' sold':'')+'">'+(sold?T('SH_SOLD'):p+' '+T('CR'))+'</div></div></div>';
+  d.addEventListener('click',()=>{ if(sold) return; if(G.credits<priceOf(u)){ A.dry(); return; } onClick(); });
   return d;
 }
 function shRails(){ return {arm:document.getElementById('wcards'),upg:document.getElementById('ucards'),rep:document.getElementById('rcards')}; }
@@ -9842,10 +9876,19 @@ function breachTarget(){
    scene you cannot walk out of. The parapet, the red edges and the TAKE COVER
    prompt are all one signal at three volumes. */
 const galBarEl=el('galBar'), galCovEl=el('galCov'), galWarnEl=el('galWarn');
-const galPromptEl=el('galPrompt'), covBtnEl=el('covBtn');
+const covBtnEl=el('covBtn');
+const galPillEl=[el('galPillS'),el('galPillC')], galPillTx=[galPillEl[0].lastElementChild,galPillEl[1].lastElementChild], galHintEl=el('galHintC');
 const galEdgeL=document.querySelector('#galEdge i.l'), galEdgeR=document.querySelector('#galEdge i.r');
 let galShownOn=false, galShownT=-1, galShownN=-1, galShownCl=false;
 let galCovShown=-1, galWarnShown=-1, galPromptShown=false, galPromptKind=-1;
+/* _41: GAL_PILL_MS how long a pill lives, the last GAL_PILL_FADE of it fading; GAL_HINT_USES how many times you duck
+   behind cover under fire before the C hint retires for good */
+const GAL_PILL_MS=1100, GAL_PILL_FADE=280, GAL_HINT_USES=4;
+/* _42: Carlos asked to feel the Gallery without these four. 0 = off, 1 = on; flip one in the console to bring it back:
+   GALW.chirp=0 turns the sound off (on since _43: an off-screen shooter must stay audible)  GALW.glow=1  (red edge vignette)  GALW.chev=1  (side chevrons)  GALW.pulse=1  (COVER button's red pulse) */
+const GALW={chirp:1,glow:0,chev:0,pulse:0};
+let covUses=0; try{ covUses=+(localStorage.getItem('np_covuses')||0)||0; }catch(e){}
+const galPillUntil=[0,0], galPillSt=[0,0]; let galHintShown=false;
 let galEdgeLOn=false, galEdgeROn=false;
 function updGalHud(){
   if(G.inGal!==galShownOn){
@@ -9871,12 +9914,12 @@ function updGalHud(){
     galCovShown=cv;
     galCovEl.style.transform='translateY('+((1-cv)*100).toFixed(1)+'%)';
   }
-  const wn=G.inGal?G.galWarn:0;
+  const wn=G.inGal?G.galWarn*GALW.glow:0;
   if(Math.abs(wn-galWarnShown)>0.04){ galWarnShown=wn; galWarnEl.style.opacity=String(wn*GAL_WARN_A); }
   /* which side is it on? At most three targets are ever out, so this is a
      three-iteration loop, not a scan of the room. */
   let wl=false, wr=false;
-  if(G.inGal) for(let i=0;i<G.alive.length;i++){
+  if(G.inGal&&GALW.chev) for(let i=0;i<G.alive.length;i++){
     const e=G.alive[i];
     if(!e.gal||!(e.gwind>0)) continue;
     const b=((Math.atan2(e.y-G.py,e.x-G.px)-G.ang+Math.PI*3)%TAU)-Math.PI;
@@ -9885,29 +9928,26 @@ function updGalHud(){
   if(wl!==galEdgeLOn){ galEdgeLOn=wl; galEdgeL.classList.toggle('on',wl); }
   if(wr!==galEdgeROn){ galEdgeROn=wr; galEdgeR.classList.toggle('on',wr); }
 
-  /* a body in the air and a bolt in the air both mean duck, but they do not
-     mean the same thing, and a player who cannot tell them apart cannot learn
-     either. `kind` is tracked separately from `pr` because a charge can launch
-     while the prompt is already up. */
-  let inc=false;
-  if(G.inGal) for(let i=0;i<G.alive.length;i++){
-    const e=G.alive[i];
-    if(e.gal&&(e.chg===2||(e.charger&&e.gwind>0))){ inc=true; break; }
-  }
-  const pr=G.inGal&&G.galWarn>0.5&&G.galCov<GAL_COVMIN;
-  const kind=pr?(inc?1:0):-1;
-  if(kind!==galPromptKind){
-    galPromptKind=kind;
-    if(pr){
-      el('galCovBig').textContent=T(inc?'GAL_INCOMING':'GAL_COVER');
-      el('galCovKey').textContent=T(touchMode?'GAL_COVKEY_T':'GAL_COVKEY');
-      galPromptEl.classList.toggle('chg',inc);
+  /* _41: pills. galChirp() stamps galPillUntil[kind] at every attack start; here they just live out their second.
+     In cover there is nothing to warn about, so they hide. */
+  const covd=G.inGal&&G.galCov>=GAL_COVMIN;
+  const nowp=performance.now();
+  for(let k=0;k<2;k++){
+    const rem=(G.inGal&&!covd)?galPillUntil[k]-nowp:0;
+    const st=rem>GAL_PILL_FADE?1:(rem>0?2:0);
+    if(st!==galPillSt[k]){
+      const pe=galPillEl[k];
+      if(st&&!galPillSt[k]) galPillTx[k].textContent=T(k?'GAL_RUSH':'GAL_SHOT');
+      galPillSt[k]=st; pe.classList.toggle('on',st>0); pe.classList.toggle('fade',st===2);
     }
   }
+  /* anything in the air and you are not behind cover: the COVER button pulses (touch) and the C hint teaches (until used up) */
+  const pr=G.inGal&&G.galWarn>0.5&&!covd;
+  const hint=pr&&covUses<GAL_HINT_USES;
+  if(hint!==galHintShown){ galHintShown=hint; galHintEl.classList.toggle('on',hint); }
   if(pr!==galPromptShown){
     galPromptShown=pr;
-    galPromptEl.classList.toggle('on',pr);
-    if(touchMode) covBtnEl.classList.toggle('warn',pr);
+    if(touchMode) covBtnEl.classList.toggle('warn',pr&&!!GALW.pulse);
   }
 }
 let groveShown=false, groveShownT=-1, groveShownCl=false;
@@ -10060,9 +10100,12 @@ function update(dt){
     G.pitch=clamp(G.pitch,-GAL_PITCH,GAL_PITCH);
     G.galCovWant=(keys['KeyC']||keys['ShiftLeft']||tCover)?1:0;
     G.galCov=clamp(G.galCov+(G.galCovWant?dt*GAL_COVUP:-dt*GAL_COVDN),0,1);
+    { const cvd=G.galCov>=GAL_COVMIN;
+      if(cvd&&!G.galWasCov&&G.galWarn>0.5){ covUses++; try{ localStorage.setItem('np_covuses',String(covUses)); }catch(e){} }   /* _41 */
+      G.galWasCov=cvd; }
     if(G.galLift){ G.galCovWant=0; G.galCov=0; const kk=Math.min(1,dt*5); G.ang+=(G.galAng-G.ang)*kk; G.pitch-=G.pitch*kk; }   /* _38 */
     else if(G.galIn){ G.galCovWant=0; G.galCov=0; }   /* _39 */
-  } else if(G.galCov>0){ G.galCov=0; G.galCovWant=0; }
+  } else if(G.galCov>0){ G.galCov=0; G.galCovWant=0; G.galWasCov=false; }
 
   let fwd=0,str=0;
   if(G.mode==='play'&&!G.inGal){
