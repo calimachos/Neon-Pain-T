@@ -4349,7 +4349,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_44';
+const BUILD='_45';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -4990,6 +4990,84 @@ try{
 const sfxOn   = ()=>audioMode===0||audioMode===1;
 const musicOn = ()=>audioMode===0||audioMode===2;
 
+/* _45: the Warden's laugh. Four synthesized voices -- no samples, nothing fetched (single-file rule).
+   A syllable is a buzzy source (saw / square) with a falling pitch, pushed through two band-pass
+   "formant" filters that make the vowel, plus a short noise puff in front for the "h".
+   LAUGH_FX(C,dest,t,v,nb) builds the graph on context C at time t and returns its length in seconds.
+   It only uses the context it is given, so the same code plays live or renders offline. */
+const LAUGH_VOW={a:[800,1250],e:[520,1850],i:[320,2300],o:[460,820],u:[360,720]};
+const LAUGH_NAMES=['GREMLIN GIGGLE','VILLAIN CHUCKLE','ROBO CACKLE','SPIDER CHITTER'];
+function LAUGH_FX(C,dest,t,v,nb){
+  const out=C.createGain(); out.gain.value=[0.45,0.25,1,1][v]; out.connect(dest);   /* levelled: every voice peaks ~0.45 (the hurt thud peaks 0.36) */
+  /* a touch of echo on every voice so it sounds like it fills the room */
+  const dl=C.createDelay(1); dl.delayTime.value=v===1?0.21:0.13;
+  const fb=C.createGain(); fb.gain.value=v===1?0.34:0.22;
+  const wet=C.createGain(); wet.gain.value=v===1?0.45:0.28;
+  out.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(dest);
+  const puff=(s,dur,f,g)=>{
+    if(!nb) return;
+    const n=C.createBufferSource(); n.buffer=nb; n.playbackRate.value=0.9+Math.random()*0.2;
+    const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=f; bp.Q.value=1.1;
+    const e=C.createGain(); e.gain.setValueAtTime(0.0001,s); e.gain.exponentialRampToValueAtTime(g,s+dur*0.3);
+    e.gain.exponentialRampToValueAtTime(0.0005,s+dur);
+    n.connect(bp); bp.connect(e); e.connect(out); n.start(s,Math.random()*0.5); n.stop(s+dur+0.02);
+  };
+  const syl=(s,o)=>{
+    const src=C.createOscillator(); src.type=o.type||'sawtooth';
+    src.frequency.setValueAtTime(o.f0,s); src.frequency.exponentialRampToValueAtTime(o.f1,s+o.dur);
+    if(o.vib){ const l=C.createOscillator(), lg=C.createGain(); l.frequency.value=o.vib; lg.gain.value=o.f0*0.05;
+      l.connect(lg); lg.connect(src.frequency); l.start(s); l.stop(s+o.dur+0.03); }
+    const env=C.createGain(); env.gain.setValueAtTime(0.0001,s);
+    env.gain.exponentialRampToValueAtTime(o.g,s+o.dur*(o.atk||0.18));
+    env.gain.setValueAtTime(o.g,s+o.dur*0.45);
+    env.gain.exponentialRampToValueAtTime(0.0008,s+o.dur);
+    let head=src;
+    if(o.trem){ const tg=C.createGain(), l=C.createOscillator(), lg=C.createGain();
+      tg.gain.value=0.55; l.type='square'; l.frequency.value=o.trem; lg.gain.value=0.45;
+      l.connect(lg); lg.connect(tg.gain); src.connect(tg); head=tg; l.start(s); l.stop(s+o.dur+0.03); }
+    head.connect(env);
+    const F=LAUGH_VOW[o.vow];
+    F.forEach((f,i)=>{ const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=f*(o.fs||1); bp.Q.value=o.q||5;
+      const fg=C.createGain(); fg.gain.value=(i?0.6:1)*(o.fg||7); env.connect(bp); bp.connect(fg); fg.connect(out); });
+    if(o.sub){ const so=C.createOscillator(); so.type='sine';
+      so.frequency.setValueAtTime(o.f0/2,s); so.frequency.exponentialRampToValueAtTime(o.f1/2,s+o.dur);
+      const sg=C.createGain(); sg.gain.setValueAtTime(0.0001,s); sg.gain.exponentialRampToValueAtTime(o.sub,s+o.dur*0.2);
+      sg.gain.exponentialRampToValueAtTime(0.0008,s+o.dur); so.connect(sg); sg.connect(out); so.start(s); so.stop(s+o.dur+0.03); }
+    src.start(s); src.stop(s+o.dur+0.03);
+  };
+  let s=t, end=t;
+  if(v===0){            /* GREMLIN GIGGLE -- high, quick "hee-hee-hee", tumbling down, a squeak at the end */
+    const n=7;
+    for(let i=0;i<n;i++){
+      const f=430*Math.pow(0.95,i), d=0.085;
+      puff(s,0.03,2600,0.05); syl(s+0.02,{f0:f*1.05,f1:f*0.9,dur:d,vow:i%2?'i':'e',g:0.22,q:6,fs:1.15});
+      s+=0.115; }
+    syl(s+0.02,{f0:560,f1:720,dur:0.16,vow:'i',g:0.20,q:6,fs:1.2}); end=s+0.2;
+  } else if(v===1){     /* VILLAIN CHUCKLE -- deep, slow "ho... ho... ho... HOHO", sub-octave, big echo */
+    const P=[[118,104],[112,98],[108,92],[124,100],[100,78]], D=[0.22,0.22,0.22,0.17,0.34], G=[0.32,0.32,0.32,0.36,0.34];
+    for(let i=0;i<P.length;i++){
+      puff(s,0.06,1100,0.08); syl(s+0.04,{f0:P[i][0],f1:P[i][1],dur:D[i],vow:'o',g:G[i],q:4,fg:9,sub:0.28});
+      s+=D[i]+(i<2?0.12:0.06); }
+    end=s+0.35;
+  } else if(v===2){     /* ROBO CACKLE -- square wave, stepped pitches, a 38 Hz gate makes it buzz like a machine */
+    const N=[392,349,330,294,262,220];
+    for(let i=0;i<N.length;i++){
+      const d=i===0?0.15:0.11;
+      syl(s,{type:'square',f0:N[i],f1:N[i]*0.98,dur:d,vow:'a',g:0.12,q:5,fg:6,trem:38,atk:0.08});
+      s+=d+0.045; }
+    syl(s,{type:'square',f0:196,f1:150,dur:0.28,vow:'a',g:0.12,q:5,fg:6,trem:38,vib:7,atk:0.08}); end=s+0.32;
+  } else {              /* SPIDER CHITTER -- mandible clicks between nasal, rising "keh-keh-keh" (mocking), speeding up */
+    let gap=0.12;
+    for(let i=0;i<9;i++){
+      const f=180+i*9;
+      puff(s,0.018,5200,0.22); puff(s+0.03,0.015,3800,0.16);
+      syl(s+0.035,{type:'sawtooth',f0:f,f1:f*1.25,dur:0.07,vow:'e',g:0.20,q:9,fs:1.3,fg:8});
+      s+=gap; gap=Math.max(0.075,gap*0.93); }
+    puff(s,0.02,5200,0.24); syl(s+0.03,{f0:250,f1:330,dur:0.2,vow:'i',g:0.20,q:9,fs:1.3,fg:8,vib:18}); end=s+0.25;
+  }
+  return end-t;
+}
+
 const A={
   ctx:null,master:null,musicGain:null,sfxGain:null,on:false,noiseBuf:null,nextNote:0,step:0,
   musicLevel:0.165,           // was 0.15
@@ -5133,6 +5211,8 @@ const A={
   hitEnemy(p){ this.sfx('hitEnemy',p); },
   kill(p){ this.sfx('kill',p); },
   hurt(){ this.sfx('hurt'); },
+  /* _45: the Warden laughs at you. Never dropped by the voice budget (like the chirp); starts just after the hurt thud. */
+  laugh(v){ if(!this.on||!sfxOn()) return; try{ LAUGH_FX(this.ctx,this.sfxGain,this.ctx.currentTime+0.12,v,this.noiseBuf); }catch(e){} },
   dry(){ this.sfx('dry'); },
   reload(){ this.tone('square',300,520,0.06,0.10); setTimeout(()=>this.tone('square',520,240,0.07,0.10),90); },
   buy(){ this.tone('triangle',520,780,0.09,0.18); setTimeout(()=>this.tone('triangle',780,1180,0.12,0.16),80); },
@@ -7044,6 +7124,15 @@ let PL_SPH=0.90;        /* the player sphere: no enemy centre gets closer than t
 let HIT_PAD=0.08, HIT_PAD_LAT=0.02;   /* how far past the sphere an enemy can still bite: head-on / from behind, and from the player's sides */
 let GRAZE_T=0.50;       /* a contact from the SIDES has to last this long before it hurts, so passing by never does; head-on and from behind bite at once */
 let ATK_RATE=0.65;      /* enemy bites per second x this (35 % fewer): cooldown = atkCd / ATK_RATE */
+/* ---- _45 (Carlos 2026-10-06): every time the Warden bites you it stops and LAUGHS for WARDEN_LAUGH s --
+   no moving, no biting, no stomp wind-up, no mini spiders -- your window to get away, reload and paint ahead.
+   LAUGH_V picks the voice: 0 GREMLIN GIGGLE, 1 VILLAIN CHUCKLE, 2 ROBO CACKLE, 3 SPIDER CHITTER
+   (URL ?laugh=1..4 or the console). */
+let WARDEN_LAUGH=3.0;
+let LAUGH_V=-1;               /* -1 = Carlos's call-and-answer (2026-10-06, in place on _45): LAUGH_SEQ in strict turns */
+let LAUGH_SEQ=[0,3];          /* GREMLIN GIGGLE, then SPIDER CHITTER, then GIGGLE... one-to-one, never random */
+let laughN=0;                 /* whose turn it is; back to the giggle at every new run */
+try{ const m=/[?&]laugh=([1-4])/.exec(location.search); if(m) LAUGH_V=+m[1]-1; }catch(e){}
 const STOMP_FIRST=7, STOMP_EVERY=11, STOMP_JIT=5, STOMP_RANGE=9, STOMP_WIND=0.75;
 const STOMP_SLOW=2.0;         // seconds your legs are at half speed
 const VENT_EVERY=0.42, VENT_PARTS=0.05;
@@ -9327,7 +9416,7 @@ function mkEnemy(t,x,y,delay,tier){
           rx:x, ry:y, roamT:0, wob:Math.random()*TAU, path:null, pi:0, stuck:0,
           /* _11: burst tier (aura + payout), and the Warden's own clocks */
           tier:tier, spm:TIER_SPD[tier], crm:TIER_CR[tier], auraT:0, gt:1, maxhp:0,
-          stag:0, stagK:1, wind:0, stompCd:STOMP_FIRST, miniT:MINI_EVERY, cT:0, cL:0};
+          stag:0, stagK:1, wind:0, stompCd:STOMP_FIRST, miniT:MINI_EVERY, cT:0, cL:0, laugh:0};
   e.maxhp=e.hp;
   if(T.crit) newRoam(e);
   return e;
@@ -10299,7 +10388,11 @@ function update(dt){
        staggered: stands still and crouches. Winding up: rears, then stomps.
        Otherwise it is a big fast chaser like everything else in the room. */
     if(T.warden){
+      if(e.laugh>0) e.laugh-=dt;   /* _45: the laugh clock runs through a stagger too */
       if(e.stag>0){ e.stag-=dt; e.gt=0.84; continue; }
+      if(e.laugh>0){   /* _45: laughing -- stands still and shakes while the laugh plays, then just stands */
+        e.atk-=dt;   /* the bite cooldown keeps running, so it can bite again the moment the laugh is over */
+        const k=e.laugh-(WARDEN_LAUGH-1.6); e.gt=k>0?1+0.07*Math.abs(Math.sin(G.t*21)):1; continue; }
       e.miniT-=dt; if(e.miniT<=0){ e.miniT=MINI_EVERY; wardenMinis(e); }   /* _44 */
       if(e.wind>0){
         e.wind-=dt; e.gt=1.22;
@@ -10409,6 +10502,7 @@ function update(dt){
           A.hurt(); updHud();
           for(let k=0;k<8;k++) burst(e.x,e.y,0.6,[255,60,60],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
           if(G.hp<=0){ die(); return; }
+          if(T.warden){ e.laugh=WARDEN_LAUGH; e.cT=0; e.cL=0; A.laugh(LAUGH_V>=0?LAUGH_V:LAUGH_SEQ[laughN++%LAUGH_SEQ.length]); }   /* _45 */
         }
       } else { e.cT=0; e.cL=0; }
     }
@@ -10628,6 +10722,7 @@ function preWarm(){
   preWarming=false; PF.on=pf; last=0; warmF=WARM_FRAMES;
 }
 function startRun(){
+  laughN=0;   /* _45: each run's first laugh is the giggle */
   A.init(); A.resume();
   ovTitle.classList.remove('on');
   newGame(); popW=-1; hideGunPop();
