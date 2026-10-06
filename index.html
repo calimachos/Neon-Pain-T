@@ -3532,6 +3532,59 @@ function sprHeart(f,total){
   return u32of(cv);
 }
 
+/* _47: the Warden's heart. A rainbow heart body (30 px radius on the 128 sheet; the plain heart is 38 at sz 0.42, this one is
+   drawn at sz WH_SZ 0.80 -> the heart itself is 1.5x the size of a normal pickup heart, the legs are extra) on four pairs of
+   spider legs. The 8 frames are a scuttle: the legs run in alternating pairs while the rainbow keeps turning. */
+function sprSpiderHeart(f,total){
+  const cv=mkCv(SPR,SPR), x=cv.getContext('2d',{willReadFrequently:true});
+  const cx=64, cy=52, R=30, base=f/total*360, ph0=f/total*TAU;
+  x.lineCap='round'; x.lineJoin='round';
+  x.globalCompositeOperation='lighter';
+  for(let i=0;i<5;i++){
+    const h=(base+i*72)%360, r=40+i*7;
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,'hsla('+h+',100%,66%,0.10)'); g.addColorStop(1,'hsla('+h+',100%,60%,0)');
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.fill();
+  }
+  x.globalCompositeOperation='source-over';
+  /* legs: hip -> knee (high and wide) -> foot on the floor; right side, mirrored. feet are at y~122 so they stand on the floor */
+  const legs=[
+    [86,40, 112,18, 124,52],
+    [92,52, 118,46, 127,86],
+    [88,62, 116,76, 123,113],
+    [78,70, 100,94, 105,123]];
+  for(const pass of [0,1]) for(let li=0;li<legs.length;li++) for(const sd of [1,-1]){
+    const L=legs[li];
+    const ph=ph0*1+li*Math.PI/2+(sd<0?Math.PI:0);   /* pairs alternate, left against right */
+    const sw=Math.sin(ph), lf=Math.max(0,Math.cos(ph));
+    const hx=cx+(L[0]-cx)*sd, hy=L[1];
+    const kx=cx+(L[2]-cx)*sd+sw*2*sd, ky=L[3]-lf*5;
+    const fx=cx+(L[4]-cx)*sd+sw*6*sd, fy=L[5]-lf*7;
+    x.strokeStyle=pass?'rgba(255,228,252,0.96)':'rgba(18,4,34,0.95)'; x.lineWidth=pass?4.0:7.2;
+    x.beginPath(); x.moveTo(hx,hy); x.lineTo(kx,ky); x.lineTo(fx,fy); x.stroke();
+    if(pass){ x.fillStyle='rgba(255,255,255,0.95)'; x.beginPath(); x.arc(kx,ky,2.4,0,TAU); x.fill(); }
+  }
+  /* the body: the same rainbow heart, smaller, with a dark rim under the white one so it separates from the legs */
+  const path=()=>{
+    x.beginPath();
+    x.moveTo(cx,cy+R*0.82);
+    x.bezierCurveTo(cx-R*1.32,cy+R*0.02,cx-R*0.70,cy-R*1.00,cx,cy-R*0.32);
+    x.bezierCurveTo(cx+R*0.70,cy-R*1.00,cx+R*1.32,cy+R*0.02,cx,cy+R*0.82);
+    x.closePath();
+  };
+  const a0=base*Math.PI/180, gx=Math.cos(a0)*R, gy=Math.sin(a0)*R;
+  const lg=x.createLinearGradient(cx-gx,cy-gy,cx+gx,cy+gy);
+  for(let i=0;i<=6;i++) lg.addColorStop(i/6,'hsl('+((base+i*60)%360)+',100%,61%)');
+  path(); x.strokeStyle='rgba(18,4,34,0.9)'; x.lineWidth=9; x.stroke();
+  path(); x.fillStyle=lg; x.fill();
+  x.lineWidth=4; x.strokeStyle='rgba(255,255,255,0.92)'; x.stroke();
+  x.globalCompositeOperation='lighter';
+  const sp=x.createRadialGradient(cx-12,cy-14,0,cx-12,cy-14,14);
+  sp.addColorStop(0,'rgba(255,255,255,0.8)'); sp.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=sp; x.beginPath(); x.arc(cx-12,cy-14,14,0,TAU); x.fill();
+  return u32of(cv);
+}
+
 /* ---------- MAP ---------- */
 /* ---------- the arenas ----------
    MAPSTR used to be one const read by buildMap() and repairAll(). It is now a
@@ -3827,7 +3880,7 @@ const GAL_ARENA={id:'gallery', k:'A_GALLERY', cv:0.08, noWarden:true, str:GAL_ST
 const MW=ARENAS[0].str[0].length, MH=ARENAS[0].str.length;
 /* the live realm's geometry; swapped wholesale on a portal trip */
 let MAP,WHP,WMAX,WTEX,BORDER;
-let WALLTEX=[], CEIL=null, SPRITES=[], HEART=[], PORTAL=[];
+let WALLTEX=[], CEIL=null, SPRITES=[], HEART=[], WHEART=[], PORTAL=[];   /* _47: WHEART = the Warden's legged heart */
 /* _38: drawWalls mirrors the texture on half the faces, which reads text backwards. The Gallery's
    themes carry text, so in realm 2 the texture column is flipped back (decals keep their column);
    precinct and Grove are untouched, pixel for pixel. */
@@ -4349,7 +4402,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_46';
+const BUILD='_47';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5974,7 +6027,7 @@ function render(){
   }
   for(let i=0;i<G.pickups.length;i++){
     const q=G.pickups[i], dx=q.x-px, dy=q.y-py;
-    if(q.vc&&G.realm!==0) continue;   /* _37 */
+    if((q.vc||q.wh)&&G.realm!==0) continue;   /* _37 (_47: the Warden's heart too) */
     const o=lent(); o.d=dx*dx+dy*dy; o.pk=q; list.push(o);
   }
   if(G.portalSeen){
@@ -7018,6 +7071,7 @@ function damageEnemy(e,amt,dx,dy){
     while(e.stagK*STAG_STEP<1-1e-6 && e.hp<=e.maxhp*(1-e.stagK*STAG_STEP)){ e.stagK++; crossed=true; }
     if(crossed && e.stag<=0 && e.hp>0){
       e.stag=WARDEN_STAG; e.wind=0;
+      if(WH_ON) e.hurl=WH_DELAY;   /* _47: it coughs a heart up in a moment */
       A.hitWall(0); G.shake=Math.max(G.shake,0.4);
       for(let k=0;k<18;k++) burst(e.x,e.y,0.2+Math.random()*1.4,[255,200,255],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
     }
@@ -9309,9 +9363,28 @@ function vcEnter(c){
    rate scales with how hurt you are and a pity counter guarantees one before
    a death spiral can set in. ~7% is still the baseline at healthy HP. */
 const HEART_HEAL=0.15, MAXHEARTS=3;
+/* _47 (Carlos 2026-10-06): every time the Warden staggers it coughs up a heart. It leaves the mouth WH_DELAY s after the hit
+   (WH_Z0 high, a short lob: WH_VZ up, WH_G down -> ~0.6 s in the air), flies WH_RANGE units toward where it is looking (always
+   you; shortened when you are close), stops dead against any wall or column it meets, lands, and then runs at you at the
+   mini spiders' speed and heals on touch like any heart. It is a pickup, not an enemy: shots do nothing to it, it never
+   counts for the wave, it is 1.5x a normal heart (WH_SZ, legs included -> the heart body is 1.5x). Knobs are console lines. */
+let WH_ON=1, WH_DELAY=0.30, WH_Z0=1.15, WH_ZL=0.04, WH_VZ=2.8, WH_G=15, WH_RANGE=2.2, WH_SZ=0.80, WH_HEAL_K=1, WH_LIFE=30, WH_PICK=0.55;
+function wardenHurl(e){
+  const dx=G.px-e.x, dy=G.py-e.y, d=Math.hypot(dx,dy)||1;
+  const a=Math.atan2(dy,dx)+(Math.random()-0.5)*0.16, cx=Math.cos(a), cy=Math.sin(a);
+  let x=e.x+cx*0.7, y=e.y+cy*0.7;
+  if(isSolid(x,y)){ x=e.x; y=e.y; }                      /* spat against a wall: it just drops at the Warden's feet */
+  const Tf=(WH_VZ+Math.sqrt(WH_VZ*WH_VZ+2*WH_G*(WH_Z0-WH_ZL)))/WH_G;   /* flight time of the arc */
+  const rng=clamp(d-0.7-0.4,1.0,WH_RANGE);                /* not clean over your head when you are close */
+  const hv=rng/Tf;
+  G.pickups.push({wh:1,x:x,y:y,z:WH_Z0,vz:WH_VZ,vx:cx*hv,vy:cy*hv,air:1,life:WH_LIFE,seed:Math.random()*10,
+                  spr:WHEART,sz:WH_SZ,lift:WH_Z0,bobA:0});
+  A.hatchPop(clamp((x-G.px)*0.25,-1,1));
+  for(let k=0;k<14;k++) burst(x,y,WH_Z0+0.1,[255,170,255],1,cx*1.2+(Math.random()-0.5)*1.6,cy*1.2+(Math.random()-0.5)*1.6);
+}
 function maybeDropHeart(x,y){
   G.dryKills++;
-  let nh=0; for(let i=0;i<G.pickups.length;i++) if(!G.pickups[i].vc) nh++;   /* _37: the cache is not a heart */
+  let nh=0; for(let i=0;i<G.pickups.length;i++) if(!G.pickups[i].vc&&!G.pickups[i].wh) nh++;   /* _37: the cache is not a heart; _47: nor is the Warden's */
   if(nh>=MAXHEARTS) return;
   const frac=clamp(G.hp/G.maxhp,0,1);
   let chance=0.045+0.14*(1-frac);        // ~7% at healthy hp, ~17% near death
@@ -9322,7 +9395,7 @@ function maybeDropHeart(x,y){
   G.pickups.push({x:x,y:y,life:24,seed:Math.random()*10});
 }
 function collectHeart(p){
-  const heal=Math.round(G.maxhp*HEART_HEAL);
+  const heal=Math.round(G.maxhp*HEART_HEAL*(p&&p.wh?WH_HEAL_K:1));   /* _47 */
   if(G.hp>=G.maxhp-1){
     G.credits+=45; G.waveCredits+=45;
     showToast(T('TO_CR45'),T('TO_FULL'));
@@ -10394,7 +10467,7 @@ function update(dt){
        Otherwise it is a big fast chaser like everything else in the room. */
     if(T.warden){
       if(e.laugh>0) e.laugh-=dt;   /* _45: the laugh clock runs through a stagger too */
-      if(e.stag>0){ e.stag-=dt; e.gt=0.84; continue; }
+      if(e.stag>0){ e.stag-=dt; e.gt=0.84; if(e.hurl>0){ e.hurl-=dt; if(e.hurl<=0) wardenHurl(e); } continue; }   /* _47 */
       if(e.laugh>0){   /* _45: laughing -- stands still and shakes while the laugh plays, then just stands */
         e.atk-=dt;   /* the bite cooldown keeps running, so it can bite again the moment the laugh is over */
         const k=e.laugh-(WARDEN_LAUGH-1.6); e.gt=k>0?1+0.07*Math.abs(Math.sin(G.t*21)):1; continue; }
@@ -10531,6 +10604,29 @@ function update(dt){
       p.life-=dt;
       if(p.life<=0){ G.pickups.splice(i,1); continue; }
       if(p.open){ const qx=p.x-G.px, qy=p.y-G.py; if(qx*qx+qy*qy<0.5&&vcEnter(p)) break; }
+      continue;
+    }
+    if(p.wh){   /* _47: the Warden's heart -- an arc, then a scuttle at the mini spiders' speed */
+      if(G.realm!==0) continue;
+      p.life-=dt;
+      if(p.life<=0){ G.pickups.splice(i,1); continue; }
+      if(p.air){
+        p.vz-=WH_G*dt; p.z+=p.vz*dt;
+        const nx=p.x+p.vx*dt, ny=p.y+p.vy*dt;
+        if(!isSolid(nx,p.y)) p.x=nx; else p.vx=0;           /* a wall or a column stops it dead on that axis */
+        if(!isSolid(p.x,ny)) p.y=ny; else p.vy=0;
+        if(p.z<=WH_ZL){ p.z=WH_ZL; p.air=0; p.vx=p.vy=0;
+          for(let k=0;k<8;k++) burst(p.x,p.y,0.15,[255,200,255],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2); }
+        p.lift=p.z; p.bobA=0;
+        continue;
+      }
+      const fd=flowSteer(p), mv=ETYPE[MINI_T].spd*dt;
+      const tx=p.x+fd.x*mv, ty=p.y+fd.y*mv;
+      if(!isSolid(tx,p.y)) p.x=tx;
+      if(!isSolid(p.x,ty)) p.y=ty;
+      p.lift=WH_ZL; p.bobA=0.04;
+      const wx=p.x-G.px, wy=p.y-G.py;
+      if(wx*wx+wy*wy < WH_PICK*WH_PICK){ G.pickups.splice(i,1); collectHeart(p); }
       continue;
     }
     p.life-=dt;
@@ -11774,7 +11870,9 @@ applyStaticText();
           BOLT_SPR=SPRITES.push(sprBolt())-1;            // 11: the Gallery's bolt
           GAL_PTEX=buildGalPropTex();                    // _23: Gallery props
           step(95); },
-    ()=>{ HEART=[]; for(let i=0;i<8;i++) HEART.push(sprHeart(i,8)); step(96); },
+    ()=>{ HEART=[]; for(let i=0;i<8;i++) HEART.push(sprHeart(i,8));
+          WHEART=[]; for(let i=0;i<8;i++) WHEART.push(sprSpiderHeart(i,8));   /* _47 */
+          step(96); },
     ()=>{ PORTAL=[]; for(let i=0;i<24;i++) PORTAL.push(sprPortal(i,24)); initPortalCracks();
           VCF={c:[[],[],[]],open:[]};   /* _37 */
           for(let st=0;st<3;st++) for(let f=0;f<8;f++) VCF.c[st].push(u32of(sprVCache(st,f*3)));
