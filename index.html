@@ -4349,7 +4349,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_45';
+const BUILD='_46';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5338,7 +5338,7 @@ const ETYPE=[
      which is exactly when everything else in the room catches up with you.
      Not rolled on THE CHEVRON or THE SWITCHBACK (`noWarden`): a boss in a
      funnel or a fold is a wall, not a fight. */
-  {name:'WARDEN',  hp:760,spd:4.40,dmg:26,cr:640,sc:2.35,rad:0.80,spr:10,lift:0.00,atkCd:1.10,knock:0,   col:[196,90,255],  warden:1},
+  {name:'WARDEN',  hp:760,spd:4.40,dmg:15,cr:640,sc:2.35,rad:0.80,spr:10,lift:0.00,atkCd:1.10,knock:0,   col:[196,90,255],  warden:1},
   /* _44: what the Warden sheds. Same sprite as the Warden, small. 20 % faster than it (4.40 x 1.2), dies to one cannon shot
      at any wave (its health is NOT run through hpScale), bites for little: a distraction, not a threat. */
   {name:'MINI SPIDER',hp:20,spd:5.28,dmg:4,cr:4,sc:0.80,rad:0.22,spr:10,lift:0.00,atkCd:0.90,knock:0,col:[222,150,255],mini:1},
@@ -5413,7 +5413,7 @@ function newGame(){
     curW:0, owned:[true,false,false], ammo:[12,2,1], swap:0,
     cool:0, pierce:0, speed:3.5, crMul:1, rerolls:0,
     wave:0, alive:[], spawnQ:[], spawnT:0, waveActive:false, waveTotal:0,
-    pickups:[], dryKills:0, rockets:[], wdMiss:0, wardenKills:0, galVisits:0,   /* _37 */
+    pickups:[], dryKills:0, rockets:[], wdMiss:0, wardenKills:0, galVisits:0, wardenN:0,   /* _37 */
     realm:0, portalSeen:false, portalOpen:false,
     groveNext:GROVE_EVERY, inGrove:false, groveT:0, groveAlarm:false,
     groveSpawnT:0, frozen:null,
@@ -7129,6 +7129,10 @@ let ATK_RATE=0.65;      /* enemy bites per second x this (35 % fewer): cooldown 
    LAUGH_V picks the voice: 0 GREMLIN GIGGLE, 1 VILLAIN CHUCKLE, 2 ROBO CACKLE, 3 SPIDER CHITTER
    (URL ?laugh=1..4 or the console). */
 let WARDEN_LAUGH=3.0;
+/* _46 (Carlos 2026-10-06): the Warden's bite was 26 from the first one on. Now the run's 1st Warden bites for WD_DMG0,
+   every later one (counted per run, also several in the same wave) WD_DMG_STEP more, capped at WD_DMG_MAX:
+   15, 19, 23, 27, 31, 35, 35... */
+let WD_DMG0=15, WD_DMG_STEP=4, WD_DMG_MAX=35;
 let LAUGH_V=-1;               /* -1 = Carlos's call-and-answer (2026-10-06, in place on _45): LAUGH_SEQ in strict turns */
 let LAUGH_SEQ=[0,3];          /* GREMLIN GIGGLE, then SPIDER CHITTER, then GIGGLE... one-to-one, never random */
 let laughN=0;                 /* whose turn it is; back to the giggle at every new run */
@@ -7258,6 +7262,7 @@ function updBreaches(dt){
      burst has a climax instead of a crowd */
   if(B.wardenDue&&!B.warden&&B.t<=WARDEN_AT){
     B.warden=burstSpawn(B.b,WARDEN_T,-1,1.0); B.left=0; G.wdMiss=0;   /* _37 */
+    B.warden.dmg=Math.min(WD_DMG_MAX,WD_DMG0+WD_DMG_STEP*(G.wardenN||0)); G.wardenN=(G.wardenN||0)+1;   /* _46 */
     A.warp(); A.breach(); G.shake=Math.max(G.shake,1.2);
     showToast(T('TO_WARDEN'),T('TO_WARDSUB'),1);
   }
@@ -10498,7 +10503,7 @@ function update(dt){
         const need=GRAZE_T*clamp((e.cL-0.45)/0.45,0,1);
         if(e.atk<=0&&e.cT>=need){
           e.atk=T.atkCd/ATK_RATE; e.back=T.knock;
-          G.hp-=T.dmg; G.flash=1; G.shake=Math.max(G.shake,0.55);
+          G.hp-=(e.dmg!==undefined?e.dmg:T.dmg); /* _46: a Warden carries its own bite */ G.flash=1; G.shake=Math.max(G.shake,0.55);
           A.hurt(); updHud();
           for(let k=0;k<8;k++) burst(e.x,e.y,0.6,[255,60,60],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
           if(G.hp<=0){ die(); return; }
