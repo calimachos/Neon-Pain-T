@@ -1970,7 +1970,7 @@ const STATURE_BASE=0.65, SMALL_TYPES=[[0,0.95],[1,0.66]];   // DRIFTER, ZIPPER
 function setStature(eye){
   setEyeZ(eye);
   const k=Math.min(EYE_Z/STATURE_BASE,1.60);
-  for(let i=0;i<SMALL_TYPES.length;i++) ETYPE[SMALL_TYPES[i][0]].sc=SMALL_TYPES[i][1]*k;
+  for(let i=0;i<SMALL_TYPES.length;i++) { ETYPE[SMALL_TYPES[i][0]].sc=SMALL_TYPES[i][1]*k*(typeof ENEMY_SZ==='number'?ENEMY_SZ:1); if(typeof SZ_BASE!=='undefined') SZ_BASE[i].sc=SMALL_TYPES[i][1]*k; }   /* _48 */
   return {eye:EYE_Z, headroom:CEIL_H, drifter:ETYPE[0].sc, zipper:ETYPE[1].sc};
 }
 
@@ -4402,7 +4402,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_47';
+const BUILD='_48';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5407,6 +5407,14 @@ const ETYPE=[
 let TIER_HP=[1,1.75,2.7], TIER_SPD=[1,1.24,1.44], TIER_CR=[1,1.6,3.4];
 const WARDEN_T=ETYPE.findIndex(t=>t.warden);   /* its ETYPE index, never hard-coded */
 const MINI_T=ETYPE.findIndex(t=>t.mini);
+/* _48 (Carlos, from a friend: the octopus is too big up close on a phone): DRIFTER, ZIPPER, BULWARK and MONOLITH are drawn ENEMY_SZ
+   (0.75) as tall and wide, and their hit width (rad) follows by ENEMY_RAD_K so you cannot hit empty air beside them. The Warden (and the
+   mini spiders it sheds) keep their size, so the Warden now looms larger beside them. Grove critters are untouched. Console: change
+   ENEMY_SZ / ENEMY_RAD_K, then applyEnemySize(). The lift (floating height) is unchanged. */
+let ENEMY_SZ=0.75, ENEMY_RAD_K=0.75;
+const SZ_TYPES=[0,1,2,3], SZ_BASE=SZ_TYPES.map(i=>({sc:ETYPE[i].sc,rad:ETYPE[i].rad}));
+function applyEnemySize(){ SZ_TYPES.forEach((i,k)=>{ ETYPE[i].sc=SZ_BASE[k].sc*ENEMY_SZ; ETYPE[i].rad=SZ_BASE[k].rad*ENEMY_RAD_K; }); }
+applyEnemySize();
 /* The spawn bag. _09 moved it from 3/3/2/2/2 (8 people : 4 insects) to
    4/3/3/3/3 (10 : 6), and cut every credit value to 0.875x — the Grove paid
    about 2x the precinct per kill and Carlos wanted 1.75x. */
@@ -5556,8 +5564,24 @@ view.addEventListener('mousedown',()=>{
   if(G&&G.mode==='play'){ mouse.down=true; lockIfDesktop(); }
 });
 addEventListener('mouseup',()=>{mouse.down=false;});
+/* _48 (Carlos: "after every pause and resume the camera snaps, desktop only"): the first mousemove after the pointer is locked
+   again carries a bogus movement (measured in Chromium: -350,-337 = the cursor's own position, so the size and direction of the
+   snap depend on where the RESUME row was). The look code turned it into a 44 degree yaw the first time the mouse moved.
+   Now every lock gain zeroes what is pending, throws the first event away, and for the next LOCK_SPIKE_N events also drops
+   anything over LOCK_SPIKE px (a real hand cannot do that in the first frames). */
+const LOCK_SKIP=1, LOCK_SPIKE_N=3, LOCK_SPIKE=250;
+let lockLeft=0;
+document.addEventListener('pointerlockchange',()=>{
+  if(document.pointerLockElement===view){ lockLeft=LOCK_SKIP+LOCK_SPIKE_N; mouse.dx=0; mouse.dy=0; } else lockLeft=0;
+});
 addEventListener('mousemove',e=>{
-  if(document.pointerLockElement===view){ mouse.dx+=e.movementX; mouse.dy+=e.movementY; }
+  if(document.pointerLockElement===view){
+    if(lockLeft>0){
+      const first=lockLeft>LOCK_SPIKE_N; lockLeft--;
+      if(first||Math.abs(e.movementX)>LOCK_SPIKE||Math.abs(e.movementY)>LOCK_SPIKE) return;
+    }
+    mouse.dx+=e.movementX; mouse.dy+=e.movementY;
+  }
 });
 
 const stickEl=document.getElementById('stick'), knobEl=document.getElementById('knob');
@@ -7192,6 +7216,7 @@ let LAUGH_SEQ=[0,3];          /* GREMLIN GIGGLE, then SPIDER CHITTER, then GIGGL
 let laughN=0;                 /* whose turn it is; back to the giggle at every new run */
 try{ const m=/[?&]laugh=([1-4])/.exec(location.search); if(m) LAUGH_V=+m[1]-1; }catch(e){}
 const STOMP_FIRST=7, STOMP_EVERY=11, STOMP_JIT=5, STOMP_RANGE=9, STOMP_WIND=0.75;
+let STOMP_FREQ=0.75;   /* _48 (Carlos): 25 % fewer slowing stomps -> every wait is divided by this (first 9.3 s, then 14.7-21.3 s instead of 11-16 s) */
 const STOMP_SLOW=2.0;         // seconds your legs are at half speed
 const VENT_EVERY=0.42, VENT_PARTS=0.05;
 /* ---- how often the big prompt is allowed to speak (_14) ----
@@ -9494,7 +9519,7 @@ function mkEnemy(t,x,y,delay,tier){
           rx:x, ry:y, roamT:0, wob:Math.random()*TAU, path:null, pi:0, stuck:0,
           /* _11: burst tier (aura + payout), and the Warden's own clocks */
           tier:tier, spm:TIER_SPD[tier], crm:TIER_CR[tier], auraT:0, gt:1, maxhp:0,
-          stag:0, stagK:1, wind:0, stompCd:STOMP_FIRST, miniT:MINI_EVERY, cT:0, cL:0, laugh:0};
+          stag:0, stagK:1, wind:0, stompCd:STOMP_FIRST/STOMP_FREQ, miniT:MINI_EVERY, cT:0, cL:0, laugh:0};
   e.maxhp=e.hp;
   if(T.crit) newRoam(e);
   return e;
@@ -9609,7 +9634,7 @@ function setPaused(on){
   if(on){
     if(G.mode!=='play') return;
     pauseGuard=t;
-    G.mode='paused'; mouse.down=false; tFire=false;
+    G.mode='paused'; mouse.down=false; tFire=false; mouse.dx=0; mouse.dy=0;   /* _48 */
     for(const k in keys) keys[k]=false;
     if(document.pointerLockElement) document.exitPointerLock();
     paintPauseStats();
@@ -9626,6 +9651,7 @@ function setPaused(on){
     ovPause.classList.remove('on');
     applyVolume();
     last=0;                       // swallow the paused interval, no dt spike
+    mouse.dx=0; mouse.dy=0;       /* _48 */
     lockIfDesktop();
   }
 }
@@ -10474,7 +10500,7 @@ function update(dt){
       e.miniT-=dt; if(e.miniT<=0){ e.miniT=MINI_EVERY; wardenMinis(e); }   /* _44 */
       if(e.wind>0){
         e.wind-=dt; e.gt=1.22;
-        if(e.wind<=0){ e.gt=1; wardenStomp(e); e.stompCd=STOMP_EVERY+Math.random()*STOMP_JIT; }
+        if(e.wind<=0){ e.gt=1; wardenStomp(e); e.stompCd=(STOMP_EVERY+Math.random()*STOMP_JIT)/STOMP_FREQ; }
         continue;
       }
       e.gt=1;
