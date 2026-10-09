@@ -809,20 +809,40 @@
   @keyframes gpin{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:none;}}
   /* the cover hint is a teacher: shown while something is in the air and you are out of cover, until you have
      taken cover GAL_HINT_USES times (localStorage np_covuses). On a phone the COVER button's own red pulse stays. */
-  #galHintC{position:absolute;left:50%;top:66%;transform:translate(-50%,-50%);display:none;align-items:center;gap:12px;
+  #galHintC{position:absolute;left:50%;top:68%;transform:translate(-50%,-50%);display:none;
     pointer-events:none;z-index:11;}
   #galHintC.on{display:flex;}
-  #galHintC svg{width:42px;height:46px;}
-  #galHintC .kcap{min-width:46px;height:46px;font-size:24px;border-color:#3ef0ff;color:#3ef0ff;background:rgba(62,240,255,.14);
-    box-shadow:0 0 22px rgba(62,240,255,.55),inset 0 -5px 0 rgba(62,240,255,.3);}
+  /* _49 (Carlos: "the C with the shield is very easy to miss now, too small and transparent"): about 1.8x bigger, an opaque dark plate
+     with a bright cyan frame and a slow pulse, and the word COVER / CÚBRETE under it. It still retires after GAL_HINT_USES covers. */
+  #galHintC .ghBox{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 24px 11px;border-radius:16px;
+    background:rgba(3,14,26,.94);border:3px solid #3ef0ff;
+    box-shadow:0 0 36px rgba(62,240,255,.8),0 0 0 3px rgba(0,0,0,.55),inset 0 0 26px rgba(62,240,255,.28);
+    animation:ghpulse .62s ease-in-out infinite alternate;}
+  #galHintC .ghRow{display:flex;align-items:center;gap:16px;}
+  #galHintC svg{width:78px;height:86px;filter:drop-shadow(0 0 9px rgba(62,240,255,.9));}
+  #galHintC .kcap{min-width:78px;height:78px;font-size:48px;border-width:4px;border-radius:14px;border-color:#3ef0ff;color:#fff;
+    background:rgba(62,240,255,.32);text-shadow:0 0 14px #3ef0ff;animation:none;
+    box-shadow:0 0 28px rgba(62,240,255,.75),inset 0 -6px 0 rgba(62,240,255,.38);}
+  #galHintC .ghTx{font-size:31px;font-weight:800;letter-spacing:.24em;padding-left:.24em;line-height:1;white-space:nowrap;
+    color:#3ef0ff;text-shadow:0 0 16px rgba(62,240,255,.95),0 2px 0 #000;}
+  @keyframes ghpulse{from{transform:scale(1);}to{transform:scale(1.07);}}
+  @media (max-height:560px){
+    #galHintC .ghBox{padding:9px 16px 8px;gap:5px;}
+    #galHintC svg{width:52px;height:57px;}
+    #galHintC .kcap{min-width:52px;height:52px;font-size:32px;border-width:3px;}
+    #galHintC .ghTx{font-size:21px;}
+  }
   @media (max-height:480px){ #galPill{top:calc(142px + env(safe-area-inset-top));} .gp{font-size:clamp(13px,2.6vw,18px);} }
   /* the touch COVER button. The left thumb has nothing to do in a scene with
      no legs, so it gets the whole left side and a big target. */
   /* the phone's bottom half is FIRE / RELOAD / BREACH / COVER; the hint sits beside the COVER button
      (no key cap -- the button is the key) and the button itself turns red and pulses. */
   @media (pointer:coarse){
-    #galHintC{left:calc(156px + env(safe-area-inset-left));top:auto;bottom:calc(58px + env(safe-area-inset-bottom));transform:none;}
+    #galHintC{left:calc(156px + env(safe-area-inset-left));top:auto;bottom:calc(32px + env(safe-area-inset-bottom));transform:none;}
     #galHintC .kcap{display:none;}
+    #galHintC svg{width:60px;height:66px;}
+    #galHintC .ghTx{font-size:22px;}
+    #galHintC .ghBox{padding:9px 18px 8px;}
   }
   #covBtn{left:calc(24px + env(safe-area-inset-left));bottom:calc(32px + env(safe-area-inset-bottom));
     width:116px;height:116px;border:3px solid rgba(0,240,255,.8);background:rgba(0,240,255,.14);
@@ -1356,7 +1376,7 @@
       <div class="gp s" id="galPillS"><svg viewBox="0 0 30 28" aria-hidden="true"><circle cx="15" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 2v24M3 14h24" stroke="currentColor" stroke-width="2.5"/></svg><span></span></div>
       <div class="gp c" id="galPillC"><svg viewBox="0 0 30 28" aria-hidden="true"><path d="M6 24l9-10-9-10M17 24l9-10-9-10" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg><span></span></div>
     </div>
-    <div id="galHintC"><svg viewBox="0 0 46 50" aria-hidden="true"><path d="M23 3l18 7v13c0 12-8 20-18 24C13 43 5 35 5 23V10z" fill="rgba(62,240,255,.12)" stroke="#3ef0ff" stroke-width="3"/></svg><span class="kcap">C</span></div>
+    <div id="galHintC"><div class="ghBox"><div class="ghRow"><svg viewBox="0 0 46 50" aria-hidden="true"><path d="M23 3l18 7v13c0 12-8 20-18 24C13 43 5 35 5 23V10z" fill="rgba(62,240,255,.34)" stroke="#3ef0ff" stroke-width="3.2"/></svg><span class="kcap">C</span></div><b class="ghTx" data-t="GAL_COVL">COVER</b></div></div>
     <div id="xhair"><i></i><i></i><i></i><i></i></div>
     <div id="gunPop"></div>
   </div>
@@ -1721,7 +1741,7 @@ en:{
   /* --- _12: the Gallery --- */
   GAL_TEST:'GALLERY · TEST',
   GAL_TGT:'TARGETS %n',
-  GAL_COVER:'TAKE COVER', GAL_COVKEY:'HOLD C', GAL_COVKEY_T:'HOLD COVER', GAL_SHOT:'SHOT', GAL_RUSH:'RUSH',
+  GAL_COVER:'TAKE COVER', GAL_COVKEY:'HOLD C', GAL_COVKEY_T:'HOLD COVER', GAL_COVL:'COVER', GAL_SHOT:'SHOT', GAL_RUSH:'RUSH',
   GAL_INCOMING:'INCOMING — DUCK OR KILL IT',
   COVER_BTN:'COVER',
   TO_GALIN:'THE GALLERY',
@@ -1770,6 +1790,7 @@ TH_DOCK:'LOADING DOCK', TH_ARCADE:'NEON ARCADE', TH_SERVER:'SERVER ROOM', TH_SLI
   TO_GSUB:'%n SECONDS · RUN THEM OFF', TO_BACK:'BACK TO THE PAINT',
   TO_HEAL:'+%n INTEGRITY', TO_HEART:'RAINBOW HEART',
   TO_CR45:'+45 CR', TO_FULL:'INTEGRITY ALREADY FULL',
+  TO_GHI:'DRAGONFLY HEART', TO_GHH:'BERRY HEART', TO_CRN:'+%n CR',   /* _50 */
   TO_WAVE:'WAVE %n', TO_HOST:'%n HOSTILES',
   TO_CLEAR:'WAVE CLEAR', TO_BONUS:'+%n CR BONUS',
   TO_PAINTX:'+%n CR  ·  PAINT ×%m',
@@ -1861,7 +1882,7 @@ es:{
   TO_BRDYSUB_T:'ACÉRCATE A UN MURO EXTERIOR Y TOCA BRECHA — LLAMA A LOS DEL VACÍO',
   GAL_TEST:'GALERÍA · PRUEBA',
   GAL_TGT:'BLANCOS %n',
-  GAL_COVER:'¡A CUBIERTO!', GAL_COVKEY:'MANTÉN C', GAL_COVKEY_T:'MANTÉN CUBRIRSE', GAL_SHOT:'DISPARO', GAL_RUSH:'EMBESTIDA',
+  GAL_COVER:'¡A CUBIERTO!', GAL_COVKEY:'MANTÉN C', GAL_COVKEY_T:'MANTÉN CUBRIRSE', GAL_COVL:'CÚBRETE', GAL_SHOT:'DISPARO', GAL_RUSH:'EMBESTIDA',
   GAL_INCOMING:'¡SE TE ECHA ENCIMA — AGÁCHATE O MÁTALO!',
   COVER_BTN:'CUBRIRSE',
   TO_GALIN:'LA GALERÍA',
@@ -1907,6 +1928,7 @@ TH_DOCK:'MUELLE DE CARGA', TH_ARCADE:'ARCADE NEÓN', TH_SERVER:'SALA DE SERVIDOR
   TO_GSUB:'%n SEGUNDOS · SÁCALOS DE AQUÍ', TO_BACK:'DE VUELTA A LA PINTURA',
   TO_HEAL:'+%n INTEGRIDAD', TO_HEART:'CORAZÓN ARCOÍRIS',
   TO_CR45:'+45 CR', TO_FULL:'INTEGRIDAD YA COMPLETA',
+  TO_GHI:'CORAZÓN DE LIBÉLULA', TO_GHH:'CORAZÓN DE MORA', TO_CRN:'+%n CR',   /* _50 */
   TO_WAVE:'OLEADA %n', TO_HOST:'%n HOSTILES',
   TO_CLEAR:'OLEADA SUPERADA', TO_BONUS:'+%n CR DE BONO',
   TO_PAINTX:'+%n CR  ·  PINTURA ×%m',
@@ -3585,6 +3607,78 @@ function sprSpiderHeart(f,total){
   return u32of(cv);
 }
 
+/* _50: the Grove's own hearts (Carlos 2026-10-09, picked in grove-heart-picker.html). Not rainbow, so they can't be confused with the
+   regular heart: a mosquito/fly kill drops the DRAGONFLY heart (teal, four see-through wings that shimmer, worth GH_PCT_INS), a LOGGER /
+   HUNTER / TROPHY kill drops the BERRY heart (violet, seeded, leaf crown, smaller, worth GH_PCT_HUM). Dark outline instead of the rainbow
+   heart's white rim, so the silhouette reads on the Grove's pale floor. The tip sits at y~118 so the sprite can rest on the floor. */
+function ghPath(x,cx,cy,R){
+  x.beginPath();
+  x.moveTo(cx,cy+R*0.82);
+  x.bezierCurveTo(cx-R*1.32,cy+R*0.02,cx-R*0.70,cy-R*1.00,cx,cy-R*0.32);
+  x.bezierCurveTo(cx+R*0.70,cy-R*1.00,cx+R*1.32,cy+R*0.02,cx,cy+R*0.82);
+  x.closePath();
+}
+function ghGlow(x,cx,cy,r,rgb,a){
+  const g=x.createRadialGradient(cx,cy,0,cx,cy,r);
+  g.addColorStop(0,'rgba('+rgb+','+a+')'); g.addColorStop(1,'rgba('+rgb+',0)');
+  x.fillStyle=g; x.beginPath(); x.arc(cx,cy,r,0,TAU); x.fill();
+}
+function ghBody(x,cx,cy,R,c0,c1,ink,rim){
+  ghPath(x,cx,cy,R); x.strokeStyle=ink; x.lineWidth=8; x.lineJoin='round'; x.stroke();
+  const lg=x.createLinearGradient(cx-R*0.8,cy-R*0.8,cx+R*0.6,cy+R*0.9);
+  lg.addColorStop(0,c0); lg.addColorStop(1,c1);
+  ghPath(x,cx,cy,R); x.fillStyle=lg; x.fill();
+  x.save(); ghPath(x,cx,cy,R); x.clip(); ghPath(x,cx,cy,R); x.strokeStyle=rim; x.lineWidth=5; x.stroke(); x.restore();
+}
+function ghShine(x,cx,cy,R,a){
+  x.save(); x.globalCompositeOperation='lighter'; ghGlow(x,cx-R*0.42,cy-R*0.36,R*0.42,'255,255,255',a); x.restore();
+}
+function sprGroveHeart(ins,f,total){
+  const cv=mkCv(SPR,SPR), x=cv.getContext('2d',{willReadFrequently:true});
+  const ph=f/total*TAU, s=Math.sin(ph);
+  x.lineCap='round'; x.lineJoin='round';
+  if(ins){                 /* DRAGONFLY: teal heart, four long see-through wings that shimmer */
+    const R=30, cx=64, cy=118-0.82*R-3;
+    x.save(); x.globalCompositeOperation='lighter'; ghGlow(x,cx,cy-6,60,'60,240,230',0.20+0.05*s); x.restore();
+    const fl=0.10*Math.sin(ph*2);
+    for(const sd of [-1,1]) for(const [ang,len,wd,yo] of [[-0.42,50,10,-0.52],[0.02,44,9,-0.22]]){
+      x.save(); x.translate(cx+sd*R*0.40,cy+R*yo); x.scale(sd,1); x.rotate(ang+(yo<-0.4?-fl:fl));
+      x.beginPath(); x.ellipse(len*0.5,0,len*0.5,wd,0,0,TAU);
+      x.strokeStyle='rgba(4,36,42,0.9)'; x.lineWidth=3.5; x.stroke();
+      const g=x.createLinearGradient(0,0,len,0);
+      g.addColorStop(0,'rgba(200,255,250,0.80)'); g.addColorStop(0.55,'rgba(255,190,240,0.70)'); g.addColorStop(1,'rgba(170,150,255,0.75)');
+      x.fillStyle=g; x.fill();
+      x.strokeStyle='rgba(40,120,140,0.9)'; x.lineWidth=1.3; x.beginPath(); x.moveTo(2,0); x.lineTo(len-4,0); x.stroke();
+      x.restore();
+    }
+    ghBody(x,cx,cy,R,'#6cfbe9','#0a8aa2','#04242a','rgba(190,255,250,0.7)');
+    ghShine(x,cx,cy,R,0.85);
+  } else {                 /* BERRY: violet heart dotted with seeds, a green leaf crown, breathing slightly */
+    const R=28, cx=64, cy=118-0.82*R-3, br=1+0.035*s;
+    x.save(); x.translate(cx,cy); x.scale(br,br); x.translate(-cx,-cy);
+    x.save(); x.globalCompositeOperation='lighter'; ghGlow(x,cx,cy,52,'190,120,255',0.18); x.restore();
+    ghBody(x,cx,cy,R,'#c08cff','#5418b8','#16052e','rgba(225,200,255,0.6)');
+    x.save(); ghPath(x,cx,cy,R); x.clip();
+    for(let row=0;row<6;row++) for(let col=0;col<7;col++){
+      const px=cx-R*0.95+col*R*0.32+(row%2)*R*0.16, py=cy-R*0.62+row*R*0.27;
+      x.fillStyle='rgba(60,10,110,0.55)'; x.beginPath(); x.ellipse(px+0.8,py+1,2.9,2.3,0,0,TAU); x.fill();
+      x.fillStyle='rgba(245,230,255,0.85)'; x.beginPath(); x.ellipse(px,py,1.9,1.5,0,0,TAU); x.fill();
+    }
+    x.restore();
+    const top=cy-R*0.32;
+    for(let i=0;i<5;i++){
+      const a=-Math.PI/2+(i-2)*0.55+0.08*s*(i-2);
+      x.save(); x.translate(cx,top+2); x.rotate(a+Math.PI/2);
+      x.beginPath(); x.moveTo(-4,0); x.lineTo(0,-15); x.lineTo(4,0); x.closePath();
+      x.strokeStyle='#0c2a10'; x.lineWidth=3.5; x.stroke(); x.fillStyle='#5fd86a'; x.fill();
+      x.restore();
+    }
+    ghShine(x,cx,cy,R,0.75);
+    x.restore();
+  }
+  return u32of(cv);
+}
+
 /* ---------- MAP ---------- */
 /* ---------- the arenas ----------
    MAPSTR used to be one const read by buildMap() and repairAll(). It is now a
@@ -3880,7 +3974,7 @@ const GAL_ARENA={id:'gallery', k:'A_GALLERY', cv:0.08, noWarden:true, str:GAL_ST
 const MW=ARENAS[0].str[0].length, MH=ARENAS[0].str.length;
 /* the live realm's geometry; swapped wholesale on a portal trip */
 let MAP,WHP,WMAX,WTEX,BORDER;
-let WALLTEX=[], CEIL=null, SPRITES=[], HEART=[], WHEART=[], PORTAL=[];   /* _47: WHEART = the Warden's legged heart */
+let WALLTEX=[], CEIL=null, SPRITES=[], HEART=[], WHEART=[], PORTAL=[], GHEART_I=[], GHEART_H=[];   /* _50: the Grove's dragonfly / berry hearts */   /* _47: WHEART = the Warden's legged heart */
 /* _38: drawWalls mirrors the texture on half the faces, which reads text backwards. The Gallery's
    themes carry text, so in realm 2 the texture column is flipped back (decals keep their column);
    precinct and Grove are untouched, pixel for pixel. */
@@ -4402,7 +4496,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_48';
+const BUILD='_50';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5121,6 +5215,26 @@ function LAUGH_FX(C,dest,t,v,nb){
   return end-t;
 }
 
+/* _50: the Grove hearts' pickup sound (Carlos picked set 2, WOOD & WINGS, in grove-heart-picker.html; no landing tick).
+   BERRY (people, the small heart): a wooden tok-tok. DRAGONFLY (insects, the big heart): a wing flutter, then two soft bells.
+   Builds on whatever context it is given, so it plays live or renders offline. Never dropped by the voice budget (A.gheart). */
+let GH_VOL=1.25;
+function GHEART_FX(C,dest,t,ins,nb){
+  const out=C.createGain(); out.gain.value=GH_VOL; out.connect(dest);
+  const tn=(type,f0,f1,s0,dur,g)=>{ const o=C.createOscillator(); o.type=type;
+    o.frequency.setValueAtTime(f0,t+s0); o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+s0+dur);
+    const a=C.createGain(); a.gain.setValueAtTime(0.0001,t+s0); a.gain.exponentialRampToValueAtTime(g,t+s0+0.006); a.gain.exponentialRampToValueAtTime(0.0006,t+s0+dur);
+    o.connect(a); a.connect(out); o.start(t+s0); o.stop(t+s0+dur+0.03); };
+  const nz=(s0,dur,f0,f1,g,q)=>{ if(!nb) return; const n=C.createBufferSource(); n.buffer=nb;
+    const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=q||1.5; bp.frequency.setValueAtTime(f0,t+s0); bp.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+s0+dur);
+    const a=C.createGain(); a.gain.setValueAtTime(g,t+s0); a.gain.exponentialRampToValueAtTime(0.0008,t+s0+dur);
+    n.connect(bp); bp.connect(a); a.connect(out); n.start(t+s0,Math.random()*0.5); n.stop(t+s0+dur+0.03); };
+  if(!ins){ nz(0,0.03,2600,1800,0.12,2); tn('sine',523,500,0,0.13,0.20); tn('sine',1046,1000,0,0.06,0.05);
+            tn('sine',784,760,0.085,0.15,0.18); tn('sine',1568,1500,0.085,0.06,0.04); return 0.26; }
+  for(let k=0;k<6;k++) nz(k*0.028,0.026,3400,2600,0.10,4);
+  tn('sine',1319,1319,0.17,0.50,0.13); tn('sine',1760,1760,0.24,0.55,0.11); tn('sine',2637,2637,0.24,0.25,0.03);
+  return 0.8;
+}
 const A={
   ctx:null,master:null,musicGain:null,sfxGain:null,on:false,noiseBuf:null,nextNote:0,step:0,
   musicLevel:0.165,           // was 0.15
@@ -5272,6 +5386,8 @@ const A={
   waveStart(){ [0,120,240,400].forEach((d,i)=>setTimeout(()=>this.tone('sawtooth',180*Math.pow(1.3,i),200*Math.pow(1.3,i),0.22,0.13),d)); },
   breach(){ this.noise(0.9,1800,60,0.45,0.6); this.tone('sawtooth',90,28,0.9,0.28); },
   heart(){ [0,90,180,300].forEach((d,i)=>setTimeout(()=>this.tone('triangle',523*Math.pow(1.26,i),523*Math.pow(1.26,i)*1.5,0.18,0.16),d)); },
+  /* _50: the Grove hearts -- exempt from ok() like the chirp and the laugh: picking up health is never dropped */
+  gheart(ins){ if(!this.on||!sfxOn()) return; try{ GHEART_FX(this.ctx,this.sfxGain,this.ctx.currentTime+0.01,ins,this.noiseBuf); }catch(e){} },
   /* closing-time klaxon: a falling two-tone, three times, unmistakably an exit cue */
   /* _22: the Gallery's threat chirp. The klaxon below used to fire on EVERY
      wind-up and rear-up — six tones over 1.2 s, per attack, stacked four deep.
@@ -5795,6 +5911,12 @@ function lockIfDesktop(){
 
 /* ---------- renderer ---------- */
 const FOV=0.72, FOG_START=2.2, FOG_END=15.0;
+/* _49 (Carlos, after playing _48: "when the mini spiders bite me up close I almost could not hit them, the camera view does not
+   reach them -- we need at least 20 degrees more view range downwards"): the vertical look is a SLOPE (tan of the angle) and was
+   clamped to +-0.42 = 22.8 degrees both ways. Down is now PITCH_DN 1.0 = 45 degrees (+22.2 degrees); up stays at PITCH_UP 0.42.
+   The render, the pellets and the bucket launcher read the same pair, so the crosshair and the shot never drift apart. The
+   Gallery keeps its own tighter GAL_PITCH 0.30. Console: PITCH_DN = 0.42 puts the old limit back. */
+let PITCH_UP=0.42, PITCH_DN=1.0;
 /* the live realm's draw distance. Mutable because the Gallery needs to see
    further than a precinct arena does — see applyRealm and REALM[2].fogEnd. */
 let FOGE=FOG_END;
@@ -6028,7 +6150,7 @@ function render(){
   const lite=fxLite;
   const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang);
   const planeX=-dirY*FOV, planeY=dirX*FOV;
-  const pitchPx=clamp(G.pitch,-0.42,0.42)*H;
+  const pitchPx=clamp(G.pitch,-PITCH_DN,PITCH_UP)*H;   /* _49 */
   const horizon=(H*0.5+pitchPx)|0;
   /* floor and ceiling are no longer equidistant from the eye — 0.65 below,
      1.85 above — so each plane needs its own projection constant */
@@ -6052,6 +6174,7 @@ function render(){
   for(let i=0;i<G.pickups.length;i++){
     const q=G.pickups[i], dx=q.x-px, dy=q.y-py;
     if((q.vc||q.wh)&&G.realm!==0) continue;   /* _37 (_47: the Warden's heart too) */
+    if(q.gh&&G.realm===2) continue;          /* _50: Grove hearts wait outside the Gallery */
     const o=lent(); o.d=dx*dx+dy*dy; o.pk=q; list.push(o);
   }
   if(G.portalSeen){
@@ -6306,7 +6429,7 @@ function render(){
       const SA=q.spr||HEART, spr=SA[((G.t*11)|0)%SA.length];
       /* self-lit, so keep it readable deep in the fog */
       let fog=1-clamp((trY-FOG_START)/(FOGE-FOG_START),0,1);
-      fog=Math.max(fog*fog*0.94+0.10, 0.6);
+      fog=Math.min(1,Math.max(fog*fog*0.94+0.10, 0.6));   /* _50: was up to 1.04 -> a close heart's white highlights wrapped past 255 into dark/green specks */
       const fi=(fog*256)|0, ifi=256-fi;
       for(let sxp=cx0;sxp<cx1;sxp++){
         if(trY>=zbuf[sxp]) continue;
@@ -6846,7 +6969,7 @@ function fire(){
 /* ---------- bucket launcher ---------- */
 function launchBucket(w){
   const ang=G.ang+(Math.random()-0.5)*w.spread;
-  const slope=clamp(G.pitch,-0.42,0.42);
+  const slope=clamp(G.pitch,-PITCH_DN,PITCH_UP);   /* _49 */
   G.rockets.push({
     x:G.px+Math.cos(ang)*0.35, y:G.py+Math.sin(ang)*0.35, z:EYE_Z+slope*0.35,
     vx:Math.cos(ang)*w.speed, vy:Math.sin(ang)*w.speed, vz:slope*w.speed,
@@ -6942,7 +7065,7 @@ function firePellet(w,dmgEach,batch,hitTally,pIdx){
      horizontal travel. The crosshair sits at y=H/2 and horizon=H/2+pitch*H,
      so the centre ray rises by exactly `pitch` per unit. Deriving it from the
      same relation is what keeps the shot and the view from drifting apart. */
-  const slope=clamp(G.pitch,-0.42,0.42)+(Math.random()-0.5)*w.vspread;
+  const slope=clamp(G.pitch,-PITCH_DN,PITCH_UP)+(Math.random()-0.5)*w.vspread;   /* _49 */
   const EYE=EYE_Z;
 
   const hit=castRay(G.px,G.py,dx,dy,60);
@@ -7158,7 +7281,8 @@ function killEnemy(e,pan){
     if(made) showAlert(T('AL_FRACT',{n:made}));
     G.shake=Math.max(G.shake,0.6);
   }
-  if(!G.inGal) maybeDropHeart(e.x,e.y);   /* you cannot walk to it in here */
+  if(G.inGrove&&GH_ON) groveHeart(e,ET);     /* _50: the Grove has its own hearts and no rainbow roll */
+  else if(!G.inGal) maybeDropHeart(e.x,e.y);   /* you cannot walk to it in here */
   G.hudDirty=true;
 }
 
@@ -7703,6 +7827,7 @@ function portalReady(){
 function enterPortal(){
   stashRealmPaint(0);
   G.realm=1; loadRealmPaint(1); applyRealm(1);
+  ghUnstick();   /* _50 */
   /* the Grove has been sitting untouched while its paint should have been
      drying. Stamps are absolute wave numbers, so catching it up on arrival is
      exactly equivalent to having aged it every wave. */
@@ -7725,6 +7850,7 @@ function enterPortal(){
 function leaveGrove(){
   stashRealmPaint(1);
   G.realm=0; loadRealmPaint(0); applyRealm(0);
+  ghUnstick();   /* _50: leftover Grove hearts carry into the precinct; one standing in a precinct wall moves to the nearest open cell */
   agePaint();
   G.inGrove=false; G.groveT=0; G.groveAlarm=false;
   G.alive=[]; G.rockets.length=0;
@@ -9393,7 +9519,20 @@ const HEART_HEAL=0.15, MAXHEARTS=3;
    you; shortened when you are close), stops dead against any wall or column it meets, lands, and then runs at you at the
    mini spiders' speed and heals on touch like any heart. It is a pickup, not an enemy: shots do nothing to it, it never
    counts for the wave, it is 1.5x a normal heart (WH_SZ, legs included -> the heart body is 1.5x). Knobs are console lines. */
-let WH_ON=1, WH_DELAY=0.30, WH_Z0=1.15, WH_ZL=0.04, WH_VZ=2.8, WH_G=15, WH_RANGE=2.2, WH_SZ=0.80, WH_HEAL_K=1, WH_LIFE=30, WH_PICK=0.55;
+let WH_ON=1, WH_DELAY=0.30, WH_Z0=1.15, WH_ZL=0.04, WH_VZ=4.2, WH_G=12, WH_RANGE=2.8, WH_SZ=0.80, WH_HEAL_K=1, WH_LIFE=30, WH_PICK=0.55;
+/* _49 (Carlos, after playing _47/_48: "the heart looks good, but I don't see the arched jump out of the spider, make it a bit more obvious"):
+   the arc peaked only 0.26 above the mouth (WH_VZ 2.8, WH_G 15, 0.6 s) and its first moments sat on the Warden's big sprite. Now it
+   leaves much steeper and floatier (WH_VZ 4.2, WH_G 12 -> peak 1.89 = 0.74 above the mouth, 0.9 s in the air, WH_RANGE 2.8) and drops a
+   trail of rainbow sparkles every WH_TRAIL s all the way down, so the curve stays drawn in the air even where the sprite overlaps the
+   Warden. WH_TRAIL 0 = no trail. Sparkles are ordinary particles (they obey FX.cap and the near-lens cull). */
+let WH_TRAIL=0.02, WH_SPK=[[255,110,200],[255,235,120],[120,255,225],[175,150,255],[255,255,255]];
+function whSpark(p,sp){
+  if(G.parts.length>FX.cap-30) return;
+  const c=WH_SPK[(Math.random()*WH_SPK.length)|0], life=0.5+Math.random()*0.3, a=Math.random()*TAU, v=sp?(0.6+Math.random()*1.6)*sp:0.3;
+  G.parts.push({x:p.x+(Math.random()-0.5)*0.08, y:p.y+(Math.random()-0.5)*0.08, z:p.z+(Math.random()-0.5)*0.08,
+    vx:Math.cos(a)*v, vy:Math.sin(a)*v, vz:0.3+Math.random()*(sp?1.4:0.4),
+    rad:0.05+Math.random()*0.035, life:life, max:life, cr:c[0], cg:c[1], cb:c[2]});
+}
 function wardenHurl(e){
   const dx=G.px-e.x, dy=G.py-e.y, d=Math.hypot(dx,dy)||1;
   const a=Math.atan2(dy,dx)+(Math.random()-0.5)*0.16, cx=Math.cos(a), cy=Math.sin(a);
@@ -9406,10 +9545,11 @@ function wardenHurl(e){
                   spr:WHEART,sz:WH_SZ,lift:WH_Z0,bobA:0});
   A.hatchPop(clamp((x-G.px)*0.25,-1,1));
   for(let k=0;k<14;k++) burst(x,y,WH_Z0+0.1,[255,170,255],1,cx*1.2+(Math.random()-0.5)*1.6,cy*1.2+(Math.random()-0.5)*1.6);
+  if(WH_TRAIL>0){ const q={x:x,y:y,z:WH_Z0}; for(let k=0;k<12;k++) whSpark(q,1.6); }   /* _49: a ring of sparkles at the mouth */
 }
 function maybeDropHeart(x,y){
   G.dryKills++;
-  let nh=0; for(let i=0;i<G.pickups.length;i++) if(!G.pickups[i].vc&&!G.pickups[i].wh) nh++;   /* _37: the cache is not a heart; _47: nor is the Warden's */
+  let nh=0; for(let i=0;i<G.pickups.length;i++) if(!G.pickups[i].vc&&!G.pickups[i].wh&&!G.pickups[i].gh) nh++;   /* _37: the cache is not a heart; _47: nor is the Warden's; _50: Grove hearts have their own rule */
   if(nh>=MAXHEARTS) return;
   const frac=clamp(G.hp/G.maxhp,0,1);
   let chance=0.045+0.14*(1-frac);        // ~7% at healthy hp, ~17% near death
@@ -9432,6 +9572,74 @@ function collectHeart(p){
   for(let k=0;k<24;k++)
     burst(p.x,p.y,0.42,PAL[(Math.random()*PAL.length)|0],1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
   updHud();
+}
+
+/* _50 (Carlos 2026-10-08/09): in the Grove every kill is a health chance. GH_P 70 % per kill (no per-visit cap). A mosquito or fly
+   (the hard, fast kills) drops the DRAGONFLY heart worth GH_PCT_INS 10 % of max integrity; a LOGGER / HUNTER / TROPHY drops the BERRY
+   heart worth GH_PCT_HUM 5 % -- percentages, so they keep pace with PLATE WEAVE. This REPLACES the rainbow roll in the Grove (no
+   rainbow hearts in there, no pity counter); the precinct is untouched. Overheal is never wasted: whatever part of the heal does not
+   fit pays credits pro rata (a whole dragonfly heart at full = GH_CR_INS 30 cr, a whole berry = GH_CR_HUM 15 cr).
+   The heart falls from where the critter died (a flyer's height, or a hop up out of a person's chest), bounces once (GH_BOUNCE),
+   and rests on the floor; you can also catch it on the way down. Hearts left when the Grove closes carry into the precinct
+   (a heart standing in what is a wall there is moved to the nearest open cell -- the two realms are different rooms). They are
+   frozen and hidden inside the Gallery. GH_MAX is only a safety ceiling on hearts lying on the floor at once. GH_ON 0 = old rule. */
+let GH_ON=1, GH_P=0.70, GH_PCT_INS=0.10, GH_PCT_HUM=0.05, GH_CR_INS=30, GH_CR_HUM=15, GH_LIFE=24, GH_MAX=16,
+    GH_SZ_INS=0.70, GH_SZ_HUM=0.58, GH_ZR=-0.03, GH_G=9, GH_POP_INS=1.0, GH_POP_HUM=2.0, GH_DRIFT=0.6, GH_BOUNCE=0.38, GH_PICK2=0.40, GH_RAD=0.30;
+const GH_COL_I=[110,250,235], GH_COL_H=[190,130,255];
+function groveHeart(e,ET){
+  if(Math.random()>=GH_P) return;
+  let n=0; for(let i=0;i<G.pickups.length;i++) if(G.pickups[i].gh) n++;
+  if(n>=GH_MAX) return;
+  const ins=ET.fly?1:0, sz=ins?GH_SZ_INS:GH_SZ_HUM;
+  const z=Math.max(GH_ZR,(e.lz||0)+ET.sc*0.45-sz*0.45);       /* the heart's middle where the body's middle was */
+  const a=Math.random()*TAU, v=GH_DRIFT*(0.5+Math.random()*0.5);
+  G.pickups.push({gh:1,ins:ins,x:e.x,y:e.y,z:z,vz:ins?GH_POP_INS:GH_POP_HUM,vx:Math.cos(a)*v,vy:Math.sin(a)*v,air:1,bn:0,
+                  life:GH_LIFE,seed:Math.random()*10,spr:ins?GHEART_I:GHEART_H,sz:sz,lift:z,bobA:0});
+}
+function ghStep(p,dt){
+  p.vz-=GH_G*dt; p.z+=p.vz*dt;
+  /* it drifts a little as it falls, but stops GH_RAD short of a wall so a wall never hides half of it */
+  const nx=p.x+p.vx*dt, ny=p.y+p.vy*dt;
+  if(p.vx&&!isSolid(nx+(p.vx>0?GH_RAD:-GH_RAD),p.y)) p.x=nx; else p.vx=0;
+  if(p.vy&&!isSolid(p.x,ny+(p.vy>0?GH_RAD:-GH_RAD))) p.y=ny; else p.vy=0;
+  if(p.z<=GH_ZR){
+    p.z=GH_ZR;
+    if(!p.bn&&p.vz<-1.2){
+      p.bn=1; p.vz=-p.vz*GH_BOUNCE; p.vx*=0.5; p.vy*=0.5;
+      const c=p.ins?GH_COL_I:GH_COL_H;
+      for(let k=0;k<6;k++) burst(p.x,p.y,0.05,c,1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+    } else { p.air=0; p.vz=p.vx=p.vy=0; }
+  }
+  p.lift=p.z;
+}
+function collectGroveHeart(p){
+  const pct=p.ins?GH_PCT_INS:GH_PCT_HUM, crFull=p.ins?GH_CR_INS:GH_CR_HUM;
+  const heal=Math.max(1,Math.round(G.maxhp*pct));
+  let got=Math.min(heal,Math.max(0,G.maxhp-G.hp)); if(got<1) got=0;
+  const cr=Math.round(crFull*(heal-got)/heal);
+  if(got>0) G.hp=Math.min(G.maxhp,G.hp+got);
+  if(cr>0){ G.credits+=cr; G.waveCredits+=cr; }
+  G.ghHeal=(G.ghHeal||0)+got; G.ghCr=(G.ghCr||0)+cr; G.ghN=(G.ghN||0)+1;
+  const name=T(p.ins?'TO_GHI':'TO_GHH'), hn=Math.round(got);
+  if(got>0&&cr>0) showToast(T('TO_HEAL',{n:hn}),T('TO_CRN',{n:cr})+'  ·  '+name);   /* both on one line wrapped on the phone in Spanish */
+  else if(got>0) showToast(T('TO_HEAL',{n:hn}),name);
+  else showToast(T('TO_CRN',{n:cr}),T('TO_FULL'));
+  A.gheart(p.ins);
+  const c=p.ins?GH_COL_I:GH_COL_H;
+  for(let k=0;k<18;k++) burst(p.x,p.y,0.3,c,1,(Math.random()-0.5)*2,(Math.random()-0.5)*2);
+  updHud();
+}
+function ghUnstick(){
+  for(let i=0;i<G.pickups.length;i++){
+    const p=G.pickups[i]; if(!p.gh||!isSolid(p.x,p.y)) continue;
+    let bx=-1, by=-1, bd=1e9;
+    for(let y=1;y<MH-1;y++) for(let x=1;x<MW-1;x++){
+      if(MAP[y*MW+x]||(x===PORTAL_CELL[0]&&y===PORTAL_CELL[1])) continue;
+      const d=(x+0.5-p.x)*(x+0.5-p.x)+(y+0.5-p.y)*(y+0.5-p.y);
+      if(d<bd){ bd=d; bx=x+0.5; by=y+0.5; }
+    }
+    if(bx>0){ p.x=bx; p.y=by; }
+  }
 }
 
 function burst(x,y,z,col,n,vx,vy){
@@ -9648,6 +9856,7 @@ function setPaused(on){
     if(G.mode!=='paused') return;
     pauseGuard=t;
     G.mode='play';
+    dropSheets();                 /* _49: OPTIONS / CONTROLS can never stay on screen over a running game */
     ovPause.classList.remove('on');
     applyVolume();
     last=0;                       // swallow the paused interval, no dt spike
@@ -10334,7 +10543,7 @@ function update(dt){
   const sens=(touchMode?0.0056:0.0022)*lookSens;
   if(G.inGal&&(G.galLift||G.galIn)){ mouse.dx=0; mouse.dy=0; }   /* _38: hands off during the ride; _39: and the entry */
   G.ang+=mouse.dx*sens;
-  G.pitch=clamp(G.pitch-mouse.dy*sens*0.55,-0.42,0.42);
+  G.pitch=clamp(G.pitch-mouse.dy*sens*0.55,-PITCH_DN,PITCH_UP);   /* _49 */
   mouse.dx=0; mouse.dy=0;
   if(keys['ArrowLeft'])  G.ang-=2.4*dt;
   if(keys['ArrowRight']) G.ang+=2.4*dt;
@@ -10638,6 +10847,7 @@ function update(dt){
       if(p.life<=0){ G.pickups.splice(i,1); continue; }
       if(p.air){
         p.vz-=WH_G*dt; p.z+=p.vz*dt;
+        if(WH_TRAIL>0){ p.tr=(p.tr||0)-dt; for(let k=0;k<3&&p.tr<=0;k++){ p.tr+=WH_TRAIL; whSpark(p,0); } }   /* _49: the sparkle trail */
         const nx=p.x+p.vx*dt, ny=p.y+p.vy*dt;
         if(!isSolid(nx,p.y)) p.x=nx; else p.vx=0;           /* a wall or a column stops it dead on that axis */
         if(!isSolid(p.x,ny)) p.y=ny; else p.vy=0;
@@ -10653,6 +10863,15 @@ function update(dt){
       p.lift=WH_ZL; p.bobA=0.04;
       const wx=p.x-G.px, wy=p.y-G.py;
       if(wx*wx+wy*wy < WH_PICK*WH_PICK){ G.pickups.splice(i,1); collectHeart(p); }
+      continue;
+    }
+    if(p.gh){   /* _50: a Grove heart -- falls, one small bounce, rests; carried into the precinct; frozen in the Gallery */
+      if(G.realm===2) continue;
+      p.life-=dt;
+      if(p.life<=0){ G.pickups.splice(i,1); continue; }
+      if(p.air) ghStep(p,dt);
+      const gx=p.x-G.px, gy=p.y-G.py;
+      if(gx*gx+gy*gy<GH_PICK2){ G.pickups.splice(i,1); collectGroveHeart(p); }
       continue;
     }
     p.life-=dt;
@@ -11784,6 +12003,15 @@ function openSheet(id){
   if(id==='ovOpt'&&OPTS) OPTS.reset();
   if(id==='ovCtrl'&&CTRL) CTRL.reset();
 }
+/* _49 (Carlos: "P inside the options or controls menu during pause started the game with the menu still up, everything moving and
+   nothing visible"): in those two sheets menuKey() ignores P, so it fell through to the pause toggle, which resumed the game and
+   left the sheet standing. Resuming now always takes the sheets down with it (setPaused(false) calls this, after its own guard),
+   so P inside either sheet = no menu at all, straight back to gameplay. ESC / BACK still step back to the pause menu. */
+function dropSheets(){
+  el('ovCtrl').classList.remove('on');
+  el('ovOpt').classList.remove('on');
+  sheetBack=null;
+}
 function closeSheet(){
   el('ovCtrl').classList.remove('on');
   el('ovOpt').classList.remove('on');
@@ -11898,6 +12126,7 @@ applyStaticText();
           step(95); },
     ()=>{ HEART=[]; for(let i=0;i<8;i++) HEART.push(sprHeart(i,8));
           WHEART=[]; for(let i=0;i<8;i++) WHEART.push(sprSpiderHeart(i,8));   /* _47 */
+          GHEART_I=[]; GHEART_H=[]; for(let i=0;i<8;i++){ GHEART_I.push(sprGroveHeart(1,i,8)); GHEART_H.push(sprGroveHeart(0,i,8)); }   /* _50 */
           step(96); },
     ()=>{ PORTAL=[]; for(let i=0;i<24;i++) PORTAL.push(sprPortal(i,24)); initPortalCracks();
           VCF={c:[[],[],[]],open:[]};   /* _37 */
