@@ -508,6 +508,15 @@
     font-size:max(11px,calc(13 * var(--k)));color:#9a8cc0;background:rgba(40,20,80,.6);cursor:pointer;
     -webkit-tap-highlight-color:transparent;}
   .ztab.on{color:#07040d;background:linear-gradient(90deg,var(--c),#9ff8ff);}
+  /* _52 (Carlos: "I even forgot they existed"): a tab you are not on breathes lime while it holds a card you can afford.
+     The tabs are clipped chevrons, so the glow lives inside them (inset shadow + text glow), no outer shadow or filter. */
+  .ztab.pulse{color:#eaffd0;animation:tabPulse 1.15s ease-in-out infinite;}
+  .ztab.pulse::after{content:'';display:inline-block;width:.5em;height:.5em;margin-left:.55em;vertical-align:.08em;
+    border-radius:50%;background:var(--l);box-shadow:0 0 6px var(--l);}
+  @keyframes tabPulse{
+    0%,100%{background:rgba(40,20,80,.6);box-shadow:inset 0 0 0 2px rgba(166,255,58,.30);text-shadow:none;}
+    50%{background:rgba(52,78,40,.72);box-shadow:inset 0 0 0 2px rgba(166,255,58,.95),inset 0 0 16px rgba(166,255,58,.45);
+        text-shadow:0 0 8px rgba(166,255,58,.9);}}
   .shBody{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;}
   .shSec{display:flex;flex-direction:column;min-height:0;flex:1 1 auto;}
   .zrail{flex:1 1 auto;min-height:0;}
@@ -817,6 +826,8 @@
     box-shadow:inset 0 0 0 3px rgba(62,240,255,.9),inset 0 0 90px rgba(62,240,255,.5);}
   /* _51: the free-card screen reuses the shop's card style */
   #ovPick{z-index:22;}
+  /* _52: a little lighter than the shop's backdrop, so the cleared scene reads behind the cards */
+  #ovPick{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.60),rgba(4,1,12,.90));}
   #ovPick .pkp{justify-content:center;gap:calc(18 * var(--k));}
   #ovPick .shH1{color:#ffe628;text-shadow:0 0 18px rgba(255,220,40,.55);}
   #ovPick .shHead{justify-content:center;text-align:center;}
@@ -862,6 +873,9 @@
     #galHintC .ghTx{font-size:21px;}
   }
   @media (max-height:480px){ #galPill{top:calc(142px + env(safe-area-inset-top));} .gp{font-size:clamp(13px,2.6vw,18px);} }
+  /* _52: in the Gallery galLayout() sets the combo's and the pills' top in px -- each gets its own row under TARGETS.
+     On a phone the row is a touch narrower, so all three pills at once stay clear of the PAUSE button. */
+  @media (max-height:480px){ #galPill{gap:8px;} .gp{font-size:clamp(12px,2.4vw,17px);letter-spacing:.1em;} }
   /* the touch COVER button. The left thumb has nothing to do in a scene with
      no legs, so it gets the whole left side and a big target. */
   /* the phone's bottom half is FIRE / RELOAD / BREACH / COVER; the hint sits beside the COVER button
@@ -1169,6 +1183,7 @@
   /* while a menu is up over a run the HUD, PAUSE and the thumb buttons step
      aside: the right side is the frozen scene, not a live readout */
   body.menuUp #hud,body.menuUp #sysbtns,body.menuUp #touch{visibility:hidden;}
+  body.pickUp #hud,body.pickUp #sysbtns,body.pickUp #touch{visibility:hidden;}   /* _52: the GALLERY CLEARED card screen */
 
   /* ---------- touch devices are landscape-only ---------- */
   #rotGate{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -1286,6 +1301,9 @@
     .sysbtn{padding:9px 13px;}
     /* ...so the round clocks step down past the money cluster */
     #groveBar,#galBar,#bossBar{top:calc(52px + env(safe-area-inset-top));}
+    /* _52: the Gallery clock goes back to the top edge -- under it come TARGETS, the combo row and the pill row,
+       and that stack has to end above the crosshair on a 375-px-tall phone */
+    #galBar{top:calc(12px + env(safe-area-inset-top));}
 
     /* the centre prompts are sized for a laptop; they read as a wall here */
     #ventChip{max-width:min(40vw,300px);}
@@ -4459,6 +4477,44 @@ function sprSpan(spr){
   SPANS.set(spr,s); return s;
 }
 
+/* _52 (Carlos: "the hitbox of the bull's-eye enemy with the little legs is really high up outside the actual enemy shape") --
+   a shot hits what is DRAWN. Each sprite gets a hit silhouette, built once: for every texture row, the leftmost..rightmost
+   texel the renderer draws visibly (alpha >= SHOT_A), grown SHOT_PADU world units on every side so a near-miss on a thin
+   leg or tentacle still counts (a fixed distance, so a mosquito keeps the same forgiveness as a BULWARK).
+   The old test was a box -- the billboard's full height (+0.12 u above and below) and rad x 1.15 wide. Since _48 shrank
+   the four precinct enemies that box was up to 0.3 u of empty air over their heads and, on the BULWARK, 0.18 u either side;
+   on the ZIPPER it was 7x the triangle you can see. Measured hit areas (u^2), old -> new: DRIFTER 0.91 -> 0.62,
+   ZIPPER 0.54 -> 0.24, BULWARK 1.37 -> 0.70, MONOLITH 1.97 -> 1.21, WARDEN 4.77 -> 4.94, MINI SPIDER 0.53 -> 0.77,
+   the Grove's people +32..39 % (their arms and guns used to be unhittable), MOSQUITO / FLY -8 %.
+   Console: SHOT_PADU = 0.12 for more forgiveness; SHOT_SHAPE = 0 = the old box. */
+let SHOT_SHAPE=1, SHOT_PADU=0.08;
+const SHOT_A=60;
+const SHOTS=new WeakMap();
+function shotRows(spr,P){   /* P = pad in texels; cached per sprite and pad (the Warden and its minis share one sprite) */
+  let c=SHOTS.get(spr); if(!c){ c={}; SHOTS.set(spr,c); }
+  if(c[P]) return c[P];
+  if(!c.lo){
+    const lo=new Int16Array(SPR).fill(SPR), hi=new Int16Array(SPR).fill(-1);
+    for(let y=0;y<SPR;y++) for(let x=0;x<SPR;x++) if((spr[y*SPR+x]>>>24)>=SHOT_A){ if(x<lo[y]) lo[y]=x; if(x>hi[y]) hi[y]=x; }
+    c.lo=lo; c.hi=hi;
+  }
+  const lo=c.lo, hi=c.hi, n=SPR+2*P, L=new Float32Array(n).fill(1e9), R=new Float32Array(n).fill(-1e9);
+  for(let y=0;y<SPR;y++){
+    if(hi[y]<0) continue;
+    for(let k=y;k<=y+2*P;k++){ if(lo[y]-P<L[k]) L[k]=lo[y]-P; if(hi[y]+1+P>R[k]) R[k]=hi[y]+1+P; }
+  }
+  return (c[P]={P:P,L:L,R:R});
+}
+/* d: how far right of the sprite's centre the ray passes (world units, screen-right positive); z: the ray's height there.
+   Same numbers the renderer uses: the billboard is T.sc x grow tall and wide, its bottom on e.lz, bobbing 4.5 %. */
+function enemyHitAt(e,T,d,z){
+  const sc=T.sc*(e.grow>0?e.grow:1);
+  const top=e.lz+sc-Math.sin(G.t*4.5+e.seed)*sc*0.045;
+  const ty=(top-z)/sc*SPR, tx=(0.5+d/sc)*SPR;
+  const h=shotRows(SPRITES[T.spr],Math.max(1,Math.round(SHOT_PADU/T.sc*SPR))), k=Math.floor(ty)+h.P;
+  return k>=0&&k<h.L.length&&tx>=h.L[k]&&tx<h.R[k];
+}
+
 /* _29: FRAME RATE. On a 90/120/144 Hz screen requestAnimationFrame fires at
    the screen's rate, so the whole raycaster ran twice as often with half the
    time per frame. The cap keeps 60 whatever the screen: frame() adds up the
@@ -4550,7 +4606,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_51';
+const BUILD='_52';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -6626,8 +6682,9 @@ function render(){
   if(G.inGal&&G.galLift) liftGate(G.galLift);   /* _38 */
   else if(G.inGal&&G.galIn) galInDraw(G.galIn);   /* _39 */
   const dw=view.width, dh=view.height;
-  const shx=(Math.random()-0.5)*G.shake*dw*0.022;
-  const shy=(Math.random()-0.5)*G.shake*dh*0.022;
+  const shk=(G.mode==='paused'||G.mode==='pick')?0:G.shake;   /* _52: a frozen world does not shake */
+  const shx=(Math.random()-0.5)*shk*dw*0.022;
+  const shy=(Math.random()-0.5)*shk*dh*0.022;
   vctx.setTransform(1,0,0,1,0,0);
   vctx.globalCompositeOperation='source-over'; vctx.globalAlpha=1;
   if(ovIn){
@@ -7225,9 +7282,12 @@ function firePellet(w,dmgEach,batch,hitTally,pIdx){
     const ex=e.x-G.px, ey=e.y-G.py, t=ex*dx+ey*dy;
     if(t<=0.15||t>maxE) continue;
     const T=ETYPE[e.t];
-    if(Math.abs(ex*dy-ey*dx) >= T.rad*1.15) continue;
     const z=EYE+slope*t;                       // ray height where it passes them
-    if(z<e.lz-0.12 || z>e.lz+T.sc+0.12) continue;
+    if(SHOT_SHAPE){ if(!enemyHitAt(e,T,ex*dy-ey*dx,z)) continue; }   /* _52 */
+    else {
+      if(Math.abs(ex*dy-ey*dx) >= T.rad*1.15) continue;
+      if(z<e.lz-0.12 || z>e.lz+T.sc+0.12) continue;
+    }
     cand.push({t:t,e:e});
   }
   cand.sort((a,b)=>a.t-b.t);
@@ -9286,7 +9346,7 @@ function galFloatTick(dt){
     if(trY<=0.14){ f.d.style.opacity='0'; continue; }
     const z=f.z+GALF_RISE*f.t/GALF_T;
     f.d.style.left=(50*(1+trX/trY)).toFixed(2)+'%';
-    f.d.style.top=(Math.max(0.37,hor+(EYE_Z-z)/trY)*100).toFixed(2)+'%';   /* never up into the clock */
+    f.d.style.top=(Math.max(galFloatMin,hor+(EYE_Z-z)/trY)*100).toFixed(2)+'%';   /* _52: never up into the pill row */
     const a=f.t<0.08?f.t/0.08:(f.t>GALF_T-0.35?(GALF_T-f.t)/0.35:1);
     f.d.style.opacity=a.toFixed(2);
   }
@@ -9331,14 +9391,17 @@ function galPickDeal(){
   }
   return out;
 }
-function openGalPick(){
+function openGalPick(then){
   G.mode='pick'; mouse.down=false; tFire=false;
+  G.pkThen=then||null;   /* _52: 'leave' (a real run: back to the precinct on take), 'loop' (TEST: next loop on take) */
+  G.shake=0; G.flash=0; G.bolts.length=0;
+  galPillUntil[0]=galPillUntil[1]=0; galKillUntil=0; galFl.forEach(f=>f.d.remove()); galFl.length=0;
   if(document.pointerLockElement) document.exitPointerLock();
   G.hp=G.maxhp;
   toastT=0; document.getElementById('toast').style.opacity='0';   /* the PRECINCT toast would show through */
   G.pkCards=galPickDeal();
   renderGalPick();
-  document.getElementById('ovPick').classList.add('on');
+  document.getElementById('ovPick').classList.add('on'); document.body.classList.add('pickUp');   /* _52 */
   A.heart(); updHud();
 }
 function renderGalPick(){
@@ -9360,8 +9423,12 @@ function takeGalPick(i){
   u.f();
   if(u.id==='mx20') G.mx20=(G.mx20||0)+1; else G.bought[u.id]=(G.bought[u.id]||0)+1;
   G.hp=G.maxhp; G.pkCards=null;
-  document.getElementById('ovPick').classList.remove('on');
-  G.mode='play'; G.safeT=G.inGal?0:SAFE_T;
+  document.getElementById('ovPick').classList.remove('on'); document.body.classList.remove('pickUp');   /* _52 */
+  G.mode='play';
+  const then=G.pkThen; G.pkThen=null;   /* _52 */
+  if(then==='leave'&&G.inGal) leaveGallery();
+  else if(then==='loop'&&G.inGal){ galVisitBegin(); galStart(); }
+  G.hp=G.maxhp; G.safeT=G.inGal?0:SAFE_T;
   A.buy();
   showToast(T(u.k),T('TO_PKSUB'),1);
   updHud(); lockIfDesktop();
@@ -9703,9 +9770,11 @@ function updGallery(dt){
            damage from one restart to the next, so a feel test always ended dead. */
         if(G.galNext) liftStart();   /* _38 */
         else { const full=G.galFull&&GALC_ON; G.galFull=false;   /* _51 */
-          if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galVisitBegin(); galStart(); }
-          else leaveGallery();
-          if(full) openGalPick(); } } }
+          /* _52 (Carlos: "behind is the regular map shaking around like if player was hit"): a full clear opens the card
+             screen over the finished last scene, still; the trip back (or the TEST loop's restart) waits for the card */
+          if(full) openGalPick(G.galEndLoop?'loop':'leave');
+          else if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galVisitBegin(); galStart(); }
+          else leaveGallery(); } } }
     return;
   }
   G.galT-=dt;
@@ -10242,7 +10311,8 @@ addEventListener('blur',()=>{ if(G&&G.mode==='play') setPaused(true); });
    late-run decision rather than an opening move. */
 /* _41: CHANGE MAP is no longer a pool card that has to win the 3-from-N draw. From wave MAP_WAVE on, every shop
    rolls MAP_CHANCE once: a hit puts the card on the shelf (it takes one of the three dealt slots). */
-const MAP_WAVE=7, MAP_COST=6000, MAP_CHANCE=0.40;
+/* _52 (Carlos: "almost never showing up"): 0.40 -> 0.60. On a phone it was also hiding on the SERVICE tab -- see the tab pulse. */
+const MAP_WAVE=7, MAP_COST=6000, MAP_CHANCE=0.60;
 function changeArena(){
   const oldPre=REALM[0].geo.arena;
   const preOpts=ARENAS.filter(a=>a!==oldPre);
@@ -10417,7 +10487,9 @@ function renderShop(){
   const tabs=$('shTabs'); tabs.innerHTML='';
   if(phone&&order.length>1) order.forEach(t=>{
     const b=document.createElement('div');
-    b.className='ztab zcz'+(t===tab?' on':''); b.textContent=T(t==='arm'?'ARMORY':t==='upg'?'UPGRADES':'SH_SVC');
+    /* _52: something on it you can buy right now (not sold this visit, affordable) */
+    const buyable=t!==tab&&lists[t].some(([u])=>!(G.sold&&G.sold[u.id])&&G.credits>=priceOf(u));
+    b.className='ztab zcz'+(t===tab?' on':'')+(buyable?' pulse':''); b.textContent=T(t==='arm'?'ARMORY':t==='upg'?'UPGRADES':'SH_SVC');
     b.addEventListener('click',()=>{ if(G.shTab===t) return; G.shTab=t; renderShop(); shRails()[t].scrollLeft=0; shScrollUI(); });
     tabs.appendChild(b);
   });
@@ -10668,6 +10740,27 @@ const GALW={chirp:1,glow:0,chev:0,pulse:0};
 let covUses=0; try{ covUses=+(localStorage.getItem('np_covuses')||0)||0; }catch(e){}
 const galPillUntil=[0,0], galPillSt=[0,0]; let galHintShown=false;
 let galEdgeLOn=false, galEdgeROn=false;
+/* _52 (Carlos: "the pills should be on a different horizontal plane than the points and combo readings"). In the Gallery the
+   centre column is one stack: THE GALLERY / clock / TARGETS n · s/3, then the combo (6x CHAIN +50%) on its own row, then the
+   SHOT / RUSH / special-kill pills on the row under it. Measured from the TARGETS line on entry and on every resize, so it
+   holds at any screen size. The floating "+8 ♥ / +24 CR" never rises into the pill row (galFloatMin). */
+const GAL_ROWGAP=4;
+let galLayK='', galFloatMin=0.37;
+function galLayout(){
+  const c=el('combo'), gp=el('galPill');
+  if(!G||!G.inGal){ if(galLayK){ c.style.top=''; gp.style.top=''; galLayK=''; galFloatMin=0.37; } return; }
+  galLayK=innerWidth+'x'+innerHeight;
+  const par=c.offsetParent||document.body, pr=par.getBoundingClientRect();
+  const nb=el('galN').getBoundingClientRect().bottom-pr.top;
+  const cfs=parseFloat(getComputedStyle(c).fontSize)||30, ch=Math.round(cfs*1.16);
+  const cTop=nb+GAL_ROWGAP;
+  c.style.top=(cTop+ch/2).toFixed(1)+'px';               /* #combo is centred on its top (translate -50%) */
+  const pTop=cTop+ch+GAL_ROWGAP+2;
+  gp.style.top=pTop.toFixed(1)+'px';
+  const gfs=parseFloat(getComputedStyle(el('galPillS')).fontSize)||18, pH=gfs*1.89+4;   /* pill: 1.25em icon + .64em padding + 2 px borders */
+  const fb=el('galFloats').getBoundingClientRect(), ffs=clamp(innerWidth*0.038,20,36);
+  galFloatMin=clamp((pr.top+pTop+pH+GAL_ROWGAP+ffs*1.2-fb.top)/Math.max(1,fb.height),0.2,0.62);   /* a float's top edge stays under the pills */
+}
 function updGalHud(){
   if(G.inGal!==galShownOn){
     galShownOn=G.inGal;
@@ -10676,6 +10769,7 @@ function updGalHud(){
     if(!G.inGal) galBarEl.classList.remove('closing');
     if(touchMode) covBtnEl.classList.toggle('on',G.inGal);
     galShownT=-1; galShownN=-1; galShownCl=!G.inGal;
+    if(G.inGal) galLayK=''; else galLayout();   /* _52: measured below, once TARGETS has its text */
   }
   if(G.inGal){
     const secs=Math.max(0,Math.ceil(G.galT));
@@ -10686,6 +10780,7 @@ function updGalHud(){
     }
     const cl=G.galT<=GAL_ALARM;
     if(cl!==galShownCl){ galShownCl=cl; galBarEl.classList.toggle('closing',cl); }
+    if(galLayK!==innerWidth+'x'+innerHeight) galLayout();   /* _52: on entry, and on a rotate / resize */
   }
   const cv=G.inGal?G.galCov:0;
   if(Math.abs(cv-galCovShown)>0.012){
@@ -11317,6 +11412,7 @@ function frame(ts){
   }
   if(G.mode!=='play'){ ftReset(); if(FTW.cool<ts+FTN.cool) FTW.cool=ts+FTN.cool; }   /* _35: resume cool */
   if((G.mode==='paused')!==menuUp){ menuUp=(G.mode==='paused'); document.body.classList.toggle('menuUp',menuUp); }
+  if((G.mode==='pick')!==document.body.classList.contains('pickUp')) document.body.classList.toggle('pickUp',G.mode==='pick');   /* _52 */
   if(G.mode==='title'){
     /* _16: the title no longer raycasts. It used to spin the player's own
        camera inside the arena for a backdrop nobody could read, at the cost
