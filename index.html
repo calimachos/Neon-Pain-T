@@ -475,12 +475,12 @@
      on phones (height-scaled), 1px = the 1440x900 desktop mockup elsewhere.
      No backdrop blur and no drop-shadow filters on phones (perf rule).
      ====================================================================== */
-  #ovShop,#ovDead{--c:#3ef0ff;--m:#ff3cbe;--l:#a6ff3a;--y:#ffe628;--v:#8a5cff;--lav:#b9a8e8;
+  #ovShop,#ovDead,#ovPick{--c:#3ef0ff;--m:#ff3cbe;--l:#a6ff3a;--y:#ffe628;--v:#8a5cff;--lav:#b9a8e8;
     --k:min(1.4px,calc(100vh / 900),calc(100vw / 1440));
     font-family:'NPS','Avenir Next Condensed','Helvetica Neue',Arial,sans-serif;color:#e9f6ff;text-align:left;}
-  #ovShop{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.80),rgba(4,1,12,.94));}
+  #ovShop,#ovPick{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.80),rgba(4,1,12,.94));}
   #ovDead{background:radial-gradient(ellipse at 34% 40%,rgba(80,6,40,.62),rgba(4,1,12,.94));}
-  #ovShop *,#ovDead *{box-sizing:border-box;}
+  #ovShop *,#ovDead *,#ovPick *{box-sizing:border-box;}
   .zcz{--ch:calc(12 * var(--k));
     clip-path:polygon(var(--ch) 0,100% 0,100% calc(100% - var(--ch)),calc(100% - var(--ch)) 100%,0 100%,0 var(--ch));}
   .zf{position:relative;padding:2px;background:linear-gradient(135deg,var(--c),var(--v) 55%,var(--m));}
@@ -627,7 +627,7 @@
   }
   /* desktop / tablet (anything taller than a phone in landscape) */
   @media (min-height:561px){
-    #ovShop,#ovDead{--k:min(1.4px,calc(100vh / 900),calc(100vw / 1440));}
+    #ovShop,#ovDead,#ovPick{--k:min(1.4px,calc(100vh / 900),calc(100vw / 1440));}
     .shp{width:calc(1120 * var(--k));min-height:0;margin:auto;max-width:96vw;}
     .shHead{padding:0;align-items:flex-end;}
     .shH1{font-size:calc(52 * var(--k));}
@@ -682,8 +682,8 @@
     .zghost{font-size:max(11px,calc(14 * var(--k)));flex-basis:calc(150 * var(--k));}
   }
   @media (max-height:560px){
-    #ovShop,#ovDead{--k:min(1px,calc(100svh / 392));-webkit-backdrop-filter:none;backdrop-filter:none;}
-    #ovShop{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.97),rgba(4,1,12,.99));}
+    #ovShop,#ovDead,#ovPick{--k:min(1px,calc(100svh / 392));-webkit-backdrop-filter:none;backdrop-filter:none;}
+    #ovShop,#ovPick{background:radial-gradient(ellipse at 50% 40%,rgba(30,8,60,.97),rgba(4,1,12,.99));}
     #ovDead{background:radial-gradient(ellipse at 34% 40%,rgba(80,6,40,.97),rgba(4,1,12,.99));}
     .zline .zdk{display:none;}
   }
@@ -803,6 +803,35 @@
     font-size:clamp(14px,2.3vw,22px);font-weight:800;letter-spacing:.14em;white-space:nowrap;}
   .gp svg{width:1.35em;height:1.25em;flex:0 0 auto;}
   .gp.s{background:rgba(40,0,0,.78);color:#ff3c3c;border:2px solid #ff3c3c;box-shadow:0 0 18px rgba(255,60,60,.5);}
+  /* _51: the special-kill pill -- FILLED gold (the warnings are outlined), dark text, a star */
+  .gp.k{background:linear-gradient(180deg,#fff3a6,#ffc21f);color:#241400;border:2px solid #fff8d0;box-shadow:0 0 22px rgba(255,200,40,.8);}
+  .gp.k b{font-weight:800;margin-left:.35em;}
+  /* above the scanlines / vignette / damage flash (5-7) and the HUD (10): it lives one second and the number is the point */
+  #galFloats{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:12;}
+  #galFloats i{position:absolute;transform:translate(-50%,-100%);font-style:normal;font-weight:800;white-space:nowrap;
+    font-size:clamp(20px,3.8vw,36px);letter-spacing:.05em;color:#ff6ad0;
+    text-shadow:0 0 2px #1a0010,0 0 3px #1a0010,0 2px 1px #1a0010,0 0 14px rgba(255,60,190,.95);}
+  #galFloats i .c{color:#ffe628;text-shadow:0 0 2px #1a1000,0 0 3px #1a1000,0 2px 1px #1a1000,0 0 14px rgba(255,220,40,.9);}
+  #galFloats i span+span{margin-left:.45em;}
+  #safefx{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:8;
+    box-shadow:inset 0 0 0 3px rgba(62,240,255,.9),inset 0 0 90px rgba(62,240,255,.5);}
+  /* _51: the free-card screen reuses the shop's card style */
+  #ovPick{z-index:22;}
+  #ovPick .pkp{justify-content:center;gap:calc(18 * var(--k));}
+  #ovPick .shH1{color:#ffe628;text-shadow:0 0 18px rgba(255,220,40,.55);}
+  #ovPick .shHead{justify-content:center;text-align:center;}
+  .pkBody{display:flex;justify-content:center;}
+  .pkRail{display:flex;gap:calc(16 * var(--k));justify-content:center;flex-wrap:nowrap;padding:calc(6 * var(--k)) calc(12 * var(--k));}
+  #ovPick .zc{flex:0 0 calc(200 * var(--k));min-width:132px;max-width:31vw;cursor:pointer;position:relative;}
+  #ovPick .zc .zi{display:flex;flex-direction:column;padding:calc(12 * var(--k)) calc(12 * var(--k));gap:calc(6 * var(--k));align-items:stretch;}
+  #ovPick .zc .ic{height:calc(48 * var(--k));min-height:30px;display:flex;align-items:center;justify-content:center;}
+  #ovPick .zc .ic svg{height:100%;width:auto;}
+  #ovPick .pkn{position:absolute;top:calc(8 * var(--k));left:calc(10 * var(--k));font-weight:800;color:#ffe628;opacity:.8;font-size:max(12px,calc(15 * var(--k)));}
+  #ovPick .zbuy{background:linear-gradient(180deg,#fff3a6,#ffc21f);color:#241400;letter-spacing:.2em;}
+  #ovPick .zpips i.nx{background:rgba(255,230,40,.55);box-shadow:0 0 6px rgba(255,230,40,.7);}
+  #ovPick .zc:hover .zf{filter:brightness(1.18);}
+  .pkFoot{display:flex;justify-content:center;}
+  #pkHint{letter-spacing:.18em;opacity:.8;}
   .gp.c{background:rgba(30,20,0,.78);color:#ffd65a;border:2px solid #ffd65a;box-shadow:0 0 18px rgba(255,214,90,.5);}
   .gp.on{display:flex;opacity:1;transition:opacity .28s linear;animation:gpin .14s ease-out;}
   .gp.on.fade{opacity:0;}
@@ -1323,6 +1352,8 @@
   <div id="crt"></div>
   <div id="vig"></div>
   <div id="dmgv"></div>
+  <div id="safefx"></div>
+  <div id="galFloats"></div>
   <div id="slickfx"><i class="l"></i><i class="r"></i></div>
   <div id="perfHud" aria-hidden="true"></div>
   <div id="galWarn"></div>
@@ -1373,6 +1404,7 @@
       <div class="sub" id="brSub"></div>
     </div>
     <div id="galPill">
+      <div class="gp k" id="galPillK"><svg viewBox="0 0 30 28" aria-hidden="true"><path d="M15 2l3.6 7.6 8.3 1-6.1 5.7 1.6 8.2L15 20.4 7.6 24.5l1.6-8.2L3.1 10.6l8.3-1z" fill="currentColor"/></svg><span></span></div>
       <div class="gp s" id="galPillS"><svg viewBox="0 0 30 28" aria-hidden="true"><circle cx="15" cy="14" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 2v24M3 14h24" stroke="currentColor" stroke-width="2.5"/></svg><span></span></div>
       <div class="gp c" id="galPillC"><svg viewBox="0 0 30 28" aria-hidden="true"><path d="M6 24l9-10-9-10M17 24l9-10-9-10" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg><span></span></div>
     </div>
@@ -1467,6 +1499,18 @@
     </div>
   </div>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="sp1"><path d="M73.3 40.0C70.4 41.2 69.8 41.5 68.5 42.2C67.2 42.9 66.9 43.2 66.3 43.9C65.6 44.5 65.4 44.9 65.1 45.5C64.7 46.1 64.5 46.5 64.3 47.3C64.1 48.0 64.4 49.0 64.0 49.6C63.6 50.2 62.3 49.6 62.0 50.6C61.6 51.5 62.4 53.1 62.3 54.7C62.1 56.2 62.0 57.8 61.4 58.8C60.7 59.9 59.8 60.8 58.5 60.5C57.3 60.1 55.9 58.1 54.7 57.1C53.5 56.1 52.9 55.7 52.0 55.1C51.1 54.4 50.6 54.1 49.8 53.8C49.0 53.6 48.5 53.6 47.6 53.7C46.8 53.7 46.1 53.9 45.1 53.9C44.1 54.0 43.4 54.0 42.2 54.1C40.9 54.2 39.9 54.5 38.3 54.5C36.8 54.6 35.4 54.7 33.9 54.4C32.3 54.2 30.7 54.0 29.9 53.0C29.1 52.1 29.9 50.6 29.6 49.4C29.2 48.2 29.2 47.5 28.0 46.5C26.9 45.4 24.3 45.0 23.4 43.8C22.5 42.6 22.5 41.3 23.2 40.0C23.9 38.7 25.5 37.7 27.2 36.7C29.0 35.8 31.0 35.4 32.7 34.8C34.5 34.2 36.4 34.5 36.7 33.6C37.0 32.6 35.9 31.9 34.2 29.5C32.6 27.1 28.3 22.8 27.8 20.7C27.3 18.6 29.3 17.9 31.6 18.3C33.9 18.8 37.5 21.4 40.1 23.0C42.7 24.7 44.2 26.6 45.6 27.2C47.0 27.8 46.9 26.7 47.7 26.4C48.4 26.2 49.0 26.2 49.8 25.8C50.6 25.3 51.0 24.8 52.0 23.9C53.0 23.1 53.8 21.9 54.9 21.2C56.1 20.5 57.3 19.7 58.4 20.0C59.4 20.4 60.0 21.7 60.5 23.0C61.0 24.3 60.7 25.9 61.1 27.0C61.4 28.2 61.7 28.5 62.2 29.2C62.6 29.9 62.9 30.3 63.5 30.8C64.1 31.4 63.4 32.1 65.4 32.1C67.4 32.1 70.5 30.9 74.1 30.7C77.7 30.5 82.9 30.2 84.8 31.2C86.7 32.1 86.5 34.1 84.4 35.7C82.3 37.4 76.3 38.8 73.3 40.0Z"/><ellipse cx="43.3" cy="79.9" rx="4.0" ry="2.5" transform="rotate(-38 43.3 79.9)"/><ellipse cx="8.0" cy="40.5" rx="4.0" ry="2.5" transform="rotate(-37 8.0 40.5)"/><ellipse cx="5.5" cy="38.5" rx="4.8" ry="3.2" transform="rotate(54 5.5 38.5)"/><ellipse cx="88.4" cy="11.9" rx="4.0" ry="2.8" transform="rotate(3 88.4 11.9)"/><ellipse cx="25.6" cy="16.3" rx="2.6" ry="2.1" transform="rotate(-51 25.6 16.3)"/><ellipse cx="42.7" cy="-9.0" rx="4.8" ry="4.0" transform="rotate(-8 42.7 -9.0)"/><ellipse cx="15.6" cy="56.3" rx="1.5" ry="1.3" transform="rotate(-66 15.6 56.3)"/><ellipse cx="89.5" cy="10.6" rx="1.5" ry="1.4" transform="rotate(58 89.5 10.6)"/></g><g id="sp2"><path d="M84.0 40.0C85.6 41.4 86.1 43.0 85.1 44.4C84.2 45.7 81.5 46.6 78.9 47.3C76.2 47.9 73.3 47.8 70.9 47.9C68.5 48.1 66.9 47.8 65.8 48.2C64.6 48.6 64.7 49.0 64.7 50.1C64.7 51.3 65.3 52.5 65.5 54.4C65.8 56.2 66.1 57.7 66.1 60.2C66.2 62.7 66.7 66.2 65.9 68.0C65.0 69.7 63.3 70.2 61.5 69.8C59.7 69.4 57.8 67.8 56.1 65.9C54.3 64.0 53.2 61.2 52.0 59.5C50.8 57.8 50.4 57.2 49.4 56.9C48.3 56.5 47.9 56.8 46.4 57.7C44.9 58.5 43.4 60.3 41.3 61.6C39.2 62.8 37.2 63.9 34.9 64.4C32.7 65.0 30.9 64.9 29.0 64.4C27.1 63.9 25.5 63.3 24.7 61.8C23.8 60.3 24.2 58.3 24.3 56.4C24.3 54.5 24.7 53.1 25.0 51.3C25.3 49.6 25.2 48.6 26.1 47.0C27.1 45.4 28.8 44.2 30.1 42.9C31.4 41.6 32.2 40.9 33.3 40.0C34.3 39.1 35.3 38.6 35.9 37.9C36.5 37.1 36.3 36.6 36.6 35.8C36.9 35.1 37.1 34.5 37.6 34.0C38.2 33.4 39.3 33.4 39.7 32.7C40.1 32.0 39.7 31.2 39.8 30.3C39.9 29.3 40.0 28.7 40.1 27.4C40.3 26.1 40.1 24.9 40.4 23.5C40.7 22.0 41.0 20.7 41.8 19.5C42.6 18.3 43.4 17.4 44.7 17.0C45.9 16.5 47.1 17.4 48.4 17.1C49.8 16.8 50.6 15.8 52.0 15.4C53.4 15.0 54.5 14.9 55.9 14.9C57.4 15.0 58.7 14.5 59.8 15.5C60.9 16.5 61.4 18.4 61.8 20.2C62.2 22.1 62.0 23.9 62.1 25.5C62.2 27.1 62.1 28.0 62.4 29.0C62.6 30.0 62.9 30.3 63.5 30.8C64.0 31.4 64.9 31.5 65.3 32.1C65.8 32.7 65.1 33.6 65.9 34.2C66.6 34.8 67.4 34.8 69.3 35.3C71.3 35.8 73.6 35.9 76.4 36.8C79.1 37.6 82.4 38.6 84.0 40.0Z"/><ellipse cx="36.0" cy="-5.4" rx="4.8" ry="3.1" transform="rotate(45 36.0 -5.4)"/><ellipse cx="38.5" cy="85.1" rx="4.8" ry="3.0" transform="rotate(-34 38.5 85.1)"/><ellipse cx="23.1" cy="70.2" rx="3.2" ry="1.9" transform="rotate(-58 23.1 70.2)"/><ellipse cx="73.5" cy="69.0" rx="4.8" ry="4.3" transform="rotate(63 73.5 69.0)"/><ellipse cx="76.5" cy="76.8" rx="4.0" ry="3.1" transform="rotate(63 76.5 76.8)"/><ellipse cx="93.7" cy="23.3" rx="2.0" ry="1.3" transform="rotate(-59 93.7 23.3)"/><ellipse cx="62.1" cy="3.4" rx="3.2" ry="2.3" transform="rotate(30 62.1 3.4)"/><ellipse cx="2.2" cy="34.7" rx="2.0" ry="1.8" transform="rotate(55 2.2 34.7)"/></g><g id="sp3"><path d="M72.4 40.0C71.2 41.0 69.8 41.5 68.8 42.2C67.8 43.0 67.3 43.3 67.0 44.1C66.8 44.8 66.8 45.3 67.3 46.4C67.7 47.6 68.5 48.5 69.5 50.3C70.5 52.2 72.8 55.0 72.7 56.5C72.6 58.0 71.1 58.5 69.2 58.2C67.3 57.9 64.4 55.9 62.4 54.9C60.4 53.8 59.4 52.9 58.2 52.5C57.0 52.1 56.8 52.4 56.1 52.7C55.3 53.0 55.0 54.0 54.2 54.3C53.5 54.5 52.8 54.2 52.0 54.2C51.2 54.2 50.8 53.7 49.8 54.4C48.7 55.1 47.9 56.4 46.3 58.0C44.6 59.5 42.6 61.8 40.7 62.7C38.8 63.7 36.8 64.1 35.9 63.1C35.0 62.1 35.4 59.4 35.7 57.3C36.1 55.1 37.4 53.0 37.9 51.2C38.4 49.5 38.6 48.9 38.5 48.0C38.3 47.1 37.7 46.9 37.2 46.2C36.7 45.5 36.6 45.0 35.9 44.3C35.2 43.6 34.1 43.3 33.4 42.5C32.8 41.7 33.1 41.0 32.5 40.0C31.9 39.0 30.9 38.3 30.4 37.1C29.8 36.0 29.2 35.0 29.5 33.9C29.9 32.9 31.0 32.4 32.1 31.6C33.1 30.9 34.2 30.7 35.0 30.0C35.9 29.2 36.3 28.9 36.5 27.6C36.7 26.4 35.9 24.6 36.2 23.2C36.5 21.8 36.9 20.5 38.1 20.1C39.3 19.7 41.1 20.5 42.7 21.2C44.3 21.8 45.5 22.9 46.7 23.5C48.0 24.2 48.7 24.7 49.6 24.9C50.6 25.1 51.1 24.7 52.0 24.5C52.9 24.2 53.5 24.0 54.6 23.4C55.7 22.8 56.8 21.6 58.0 21.1C59.3 20.7 60.3 20.8 61.4 21.1C62.5 21.4 63.4 21.7 64.1 22.7C64.8 23.6 65.0 24.7 65.2 26.0C65.3 27.3 64.7 28.7 65.0 29.7C65.3 30.6 65.8 30.7 66.9 31.2C67.9 31.7 69.2 31.7 70.6 32.2C72.0 32.7 73.6 33.0 74.5 33.9C75.4 34.8 75.7 35.8 75.4 36.9C75.0 38.0 73.7 39.0 72.4 40.0Z"/><ellipse cx="21.2" cy="14.5" rx="1.5" ry="0.9" transform="rotate(41 21.2 14.5)"/><ellipse cx="76.5" cy="0.8" rx="3.2" ry="2.5" transform="rotate(40 76.5 0.8)"/><ellipse cx="25.4" cy="11.7" rx="3.2" ry="3.0" transform="rotate(-36 25.4 11.7)"/><ellipse cx="3.0" cy="62.2" rx="2.6" ry="2.2" transform="rotate(18 3.0 62.2)"/><ellipse cx="90.9" cy="20.2" rx="1.5" ry="1.2" transform="rotate(-46 90.9 20.2)"/><ellipse cx="68.9" cy="79.7" rx="4.8" ry="4.0" transform="rotate(-44 68.9 79.7)"/><ellipse cx="86.0" cy="76.0" rx="4.0" ry="3.4" transform="rotate(-34 86.0 76.0)"/><ellipse cx="0.5" cy="32.4" rx="2.6" ry="1.8" transform="rotate(-40 0.5 32.4)"/></g></defs></svg>
+
+  <!-- _51: the Gallery full-clear reward -- one free upgrade out of three (shop card style) -->
+  <div class="ov" id="ovPick">
+    <div class="shp pkp">
+      <div class="shHead">
+        <div><div class="shH1" data-t="PK_HEAD">GALLERY CLEARED</div>
+             <div class="zsub shSub" data-t="PK_SUB">FULL INTEGRITY  ·  TAKE ONE UPGRADE, FREE</div></div>
+      </div>
+      <div class="pkBody"><div class="pkRail" id="pkCards"></div></div>
+      <div class="pkFoot"><div class="shHint" id="pkHint"></div></div>
+    </div>
+  </div>
 
   <div class="ov" id="ovShop">
     <div class="shp">
@@ -1749,6 +1793,11 @@ en:{
   TO_GALSUB_T:'%n SECONDS  ·  YOUR LEGS STAY PUT  ·  HOLD COVER TO DUCK',
   TO_GALCLR:'GALLERY CLEAR', TO_GALOUT:'TIME',
   TO_GALPAY:'+%n CR', TO_GALNOHIT:'+%n CR  ·  NEVER TOUCHED ×%m',
+  GK_0:'SNIPE KILL', GK_1:'RUSH KILL', GK_2:'VAULT KILL', GK_3:'LEAP KILL',
+  TO_KO:'KNOCKED OUT', TO_KOSUB:'−%n CR  ·  THIS SCENE PAYS NOTHING', TO_KOSUB0:'THIS SCENE PAYS NOTHING', TO_KOBACK:'BACK AT %p %  ·  −%n CR',
+  PK_HEAD:'GALLERY CLEARED', PK_SUB:'FULL INTEGRITY  ·  TAKE ONE UPGRADE, FREE', PK_FREE:'FREE',
+  PK_HINT_K:'CLICK A CARD  ·  OR PRESS 1  2  3', PK_HINT_T:'TAP A CARD', TO_PKSUB:'FREE UPGRADE  ·  FULL INTEGRITY',
+  U_MX20:'MAX INTEGRITY +20', D_MX20:'+20 max integrity, no cap',
   AL_GALCLOSE:'THE GALLERY IS CLOSING — %n SECONDS',
 TO_GALSCN:'SCENE CLEAR', TO_GALSC:'SCENE %a / %b  ·  %n LEFT', GAL_PLUS:'+%n S', GAL_PAUSED:'CLOCK PAUSED  %n',
 GAL_LOADING:'loading the next scene…', GAL_FLR:'FLOOR %n',
@@ -1890,6 +1939,11 @@ es:{
   TO_GALSUB_T:'%n SEGUNDOS  ·  NO PUEDES MOVERTE  ·  MANTÉN CUBRIRSE PARA AGACHARTE',
   TO_GALCLR:'GALERÍA DESPEJADA', TO_GALOUT:'SE ACABÓ EL TIEMPO',
   TO_GALPAY:'+%n CR', TO_GALNOHIT:'+%n CR  ·  SIN UN RASGUÑO ×%m',
+  GK_0:'FRANCOTIRADOR', GK_1:'¡FRENADO!', GK_2:'¡EN EL SALTO!', GK_3:'¡AL VUELO!',
+  TO_KO:'NOQUEADO', TO_KOSUB:'−%n CR  ·  ESTA ESCENA NO PAGA', TO_KOSUB0:'ESTA ESCENA NO PAGA', TO_KOBACK:'DE VUELTA AL %p %  ·  −%n CR',
+  PK_HEAD:'GALERÍA SUPERADA', PK_SUB:'INTEGRIDAD AL MÁXIMO  ·  ELIGE UNA MEJORA GRATIS', PK_FREE:'GRATIS',
+  PK_HINT_K:'HAZ CLIC EN UNA CARTA  ·  O PULSA 1  2  3', PK_HINT_T:'TOCA UNA CARTA', TO_PKSUB:'MEJORA GRATIS  ·  INTEGRIDAD AL MÁXIMO',
+  U_MX20:'INTEGRIDAD MÁX +20', D_MX20:'+20 integridad máx., sin límite',
   AL_GALCLOSE:'LA GALERÍA CIERRA — %n SEGUNDOS',
 TO_GALSCN:'ESCENA DESPEJADA', TO_GALSC:'ESCENA %a / %b  ·  QUEDAN %n', GAL_PLUS:'+%n S', GAL_PAUSED:'RELOJ EN PAUSA  %n',
 GAL_LOADING:'cargando la siguiente escena…', GAL_FLR:'PISO %n',
@@ -4496,7 +4550,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_50';
+const BUILD='_51';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5218,6 +5272,85 @@ function LAUGH_FX(C,dest,t,v,nb){
 /* _50: the Grove hearts' pickup sound (Carlos picked set 2, WOOD & WINGS, in grove-heart-picker.html; no landing tick).
    BERRY (people, the small heart): a wooden tok-tok. DRAGONFLY (insects, the big heart): a wing flutter, then two soft bells.
    Builds on whatever context it is given, so it plays live or renders offline. Never dropped by the voice budget (A.gheart). */
+/* _51 — Gallery special-kill voices (all 12 candidates stay in; GALK_PICK chooses). GALK_FX(C,dest,t,tier,v,nb) builds the graph on context C at time t
+   and returns its length in seconds. tier 0 SNIPE, 1 RUSH, 2 VAULT, 3 LEAP (each one bigger than the last, so the
+   ear learns the ladder). v = family: 0 ARCADE (chip arpeggios), 1 COINS (struck metal), 2 NEON HIT (whoosh + punch + stab).
+   None of them uses a lone square blip — that shape is the Gallery's THREAT chirp, and a reward must never sound like a warning.
+   Only uses the context it is given, so it plays live or renders offline. Levelled with GALK_LV (peak ~0.42 before GALK_VOL). */
+let GALK_VOL=1.0;
+const GALK_TIERS=['SNIPE','RUSH','VAULT','LEAP'];
+const GALK_FAM=['ARCADE','COINS','NEON HIT'];
+/* per voice: weighted-loudness match, SNIPE 0.090 < RUSH 0.100 < VAULT 0.112 < LEAP 0.127 (the game's kill = 0.057), peaks <= 0.62 */
+let GALK_LV=[[1.45, 0.83, 0.96], [1.69, 0.78, 1.45], [1.93, 1.13, 1.22], [0.7, 1.21, 1.41]];
+function GALK_FX(C,dest,t,tier,v,nb){
+  const out=C.createGain(); out.gain.value=GALK_VOL*GALK_LV[tier][v]; out.connect(dest);
+  /* tone: exponential glide f0 -> f1, fast attack, exponential tail */
+  const T=(type,f0,f1,s,dur,g,o)=>{ o=o||{}; const os=C.createOscillator(); os.type=type;
+    os.frequency.setValueAtTime(f0,t+s); os.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+s+dur);
+    if(o.vib){ const l=C.createOscillator(), lg=C.createGain(); l.frequency.value=o.vib; lg.gain.setValueAtTime(f1*(o.vd||0.03),t+s);
+      if(o.vdec) lg.gain.exponentialRampToValueAtTime(Math.max(0.01,f1*0.002),t+s+dur);
+      l.connect(lg); lg.connect(os.frequency); l.start(t+s); l.stop(t+s+dur+0.03); }
+    const a=C.createGain(); a.gain.setValueAtTime(0.0001,t+s); a.gain.exponentialRampToValueAtTime(g,t+s+(o.atk||0.006));
+    if(o.hold) a.gain.setValueAtTime(g,t+s+dur*o.hold);
+    a.gain.exponentialRampToValueAtTime(0.0006,t+s+dur);
+    let head=a;
+    if(o.lp){ const f=C.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(o.lp,t+s); if(o.lp1) f.frequency.exponentialRampToValueAtTime(o.lp1,t+s+dur); f.Q.value=o.lq||0.8; a.connect(f); head=f; }
+    os.connect(a); head.connect(o.to||out); os.start(t+s); os.stop(t+s+dur+0.03); };
+  /* band-passed noise sweep; rise:true swells IN instead of decaying */
+  const N=(s,dur,f0,f1,g,q,rise)=>{ if(!nb) return; const n=C.createBufferSource(); n.buffer=nb;
+    const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=q||1.5;
+    bp.frequency.setValueAtTime(f0,t+s); bp.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+s+dur);
+    const a=C.createGain();
+    if(rise){ a.gain.setValueAtTime(0.0008,t+s); a.gain.exponentialRampToValueAtTime(g,t+s+dur*0.92); a.gain.exponentialRampToValueAtTime(0.0008,t+s+dur); }
+    else { a.gain.setValueAtTime(g,t+s); a.gain.exponentialRampToValueAtTime(0.0008,t+s+dur); }
+    n.connect(bp); bp.connect(a); a.connect(out); n.start(t+s,(s*7.31)%0.6); n.stop(t+s+dur+0.03); };
+  /* struck metal: the tone plus two inharmonic partials (the coin / bell colour) */
+  const bell=(f,s,dur,g)=>{ T('sine',f,f,s,dur,g); T('sine',f*2.76,f*2.76,s,dur*0.45,g*0.32); T('sine',f*5.4,f*5.4,s,dur*0.16,g*0.10); };
+  const click=(s,g)=>N(s,0.014,7200,5200,g||0.16,2.2);
+  const echo=(d,fb,w)=>{ const dl=C.createDelay(1); dl.delayTime.value=d; const f=C.createGain(); f.gain.value=fb; const wg=C.createGain(); wg.gain.value=w;
+    out.connect(dl); dl.connect(f); f.connect(dl); dl.connect(wg); wg.connect(dest); };
+
+  if(v===0){            /* ---- ARCADE: triangle arpeggios, a soft square shadow an octave down ---- */
+    const ar=(notes,s,step,dur,g)=>notes.forEach((f,i)=>{ T('triangle',f,f,s+i*step,dur,g); T('square',f/2,f/2,s+i*step,dur*0.8,g*0.16,{lp:2400}); });
+    if(tier===0){ ar([1568,2093],0,0.055,0.07,0.22); return 0.2; }                                   /* bip-BIP */
+    if(tier===1){ ar([784,988,1175,1568],0,0.045,0.06,0.20); T('triangle',1568,3136,0.19,0.13,0.18); return 0.36; }   /* run up + zip */
+    if(tier===2){ T('triangle',392,1175,0,0.10,0.22); T('triangle',1175,784,0.10,0.08,0.20); T('triangle',784,1568,0.18,0.12,0.20);  /* boing-oing */
+                  ar([1319,1760],0.31,0.07,0.09,0.19); return 0.5; }
+    echo(0.11,0.24,0.30);                                                                              /* LEAP: fanfare + trill */
+    ar([1047,1319,1568,2093],0,0.06,0.08,0.20);
+    [523,659,784].forEach(f=>T('square',f,f,0.26,0.30,0.05,{lp:2200}));
+    T('triangle',2637,2637,0.26,0.46,0.18,{vib:16,vd:0.025,hold:0.5});
+    return 0.85;
+  }
+  if(v===1){            /* ---- COINS: struck metal, a little click for the hit ---- */
+    if(tier===0){ click(0); bell(2637,0,0.34,0.17); return 0.36; }                                   /* ting */
+    if(tier===1){ N(0,0.045,5200,2800,0.20,1.4); bell(2093,0.05,0.40,0.15); bell(2637,0.10,0.46,0.14); return 0.58; }  /* ka-CHING */
+    if(tier===2){ [1760,2217,2637].forEach((f,i)=>{ click(i*0.095,0.12); bell(f,i*0.095,0.34,0.15); });             /* three coins up the stairs */
+                  bell(3520,0.33,0.22,0.08); return 0.6; }
+    echo(0.09,0.22,0.26);                                                                              /* LEAP: a shower of coins + shimmer */
+    const P=[2093,2637,2349,3136,2637,3520,3136,4186];
+    P.forEach((f,i)=>{ click(i*0.05,0.10); bell(f,i*0.05,0.30,0.13-i*0.007); });
+    N(0.06,0.70,9000,7000,0.05,0.9);
+    bell(4186,0.44,0.55,0.10);
+    return 1.0;
+  }
+  /* ---- NEON HIT: whoosh, punch, bright stab ---- */
+  if(tier===0){ N(0,0.06,2200,8000,0.16,1.6,true); T('sine',2349,2349,0.05,0.20,0.20); T('sine',4698,4698,0.05,0.08,0.05); return 0.27; }   /* zip-ting */
+  if(tier===1){ N(0,0.16,500,3200,0.22,1.1,true); T('sine',160,52,0.14,0.18,0.20); T('sine',1760,1760,0.15,0.20,0.10);                                                          /* whoosh-PUNCH */
+                [1175,1760].forEach(f=>T('sawtooth',f,f,0.14,0.22,0.09,{lp:5200,lp1:1400})); return 0.4; }
+  if(tier===2){ T('sine',240,700,0,0.34,0.24,{vib:26,vd:0.09,vdec:1,atk:0.004}); T('sine',150,50,0.02,0.16,0.20);                          /* spring twang + punch */
+                T('sine',1568,1568,0.26,0.24,0.16); T('sine',2349,2349,0.30,0.20,0.10); return 0.52; }
+  echo(0.12,0.26,0.30);                                                                                /* LEAP: riser, boom, chord, sparkle */
+  N(0,0.30,300,6000,0.20,0.9,true);
+  T('sine',92,32,0.28,0.52,0.26);
+  N(0.28,0.22,1800,200,0.20,0.8);
+  [523,659,784,1047].forEach(f=>T('sawtooth',f,f,0.28,0.50,0.07,{lp:6000,lp1:900,hold:0.25}));
+  [2093,2637,3136].forEach((f,i)=>T('sine',f,f,0.40+i*0.06,0.40,0.09));
+  return 1.05;
+}
+/* Carlos picked S1 (ARCADE bip-BIP), R1 (ARCADE run-up + zip), V3 (NEON HIT spring twang), L3 (NEON HIT big hit).
+   Console: GALK_PICK=[0,0,2,2] -> try another family per tier (0 ARCADE, 1 COINS, 2 NEON HIT). */
+let GALK_PICK=[0,0,2,2];
 let GH_VOL=1.25;
 function GHEART_FX(C,dest,t,ins,nb){
   const out=C.createGain(); out.gain.value=GH_VOL; out.connect(dest);
@@ -5387,6 +5520,8 @@ const A={
   breach(){ this.noise(0.9,1800,60,0.45,0.6); this.tone('sawtooth',90,28,0.9,0.28); },
   heart(){ [0,90,180,300].forEach((d,i)=>setTimeout(()=>this.tone('triangle',523*Math.pow(1.26,i),523*Math.pow(1.26,i)*1.5,0.18,0.16),d)); },
   /* _50: the Grove hearts -- exempt from ok() like the chirp and the laugh: picking up health is never dropped */
+  /* _51: Gallery special kills -- exempt from ok(): a skill kill is never silent. Starts 40 ms after the kill thud. */
+  galk(t){ if(!this.on||!sfxOn()) return; try{ GALK_FX(this.ctx,this.sfxGain,this.ctx.currentTime+0.04,t,GALK_PICK[t],this.noiseBuf); }catch(e){} },
   gheart(ins){ if(!this.on||!sfxOn()) return; try{ GHEART_FX(this.ctx,this.sfxGain,this.ctx.currentTime+0.01,ins,this.noiseBuf); }catch(e){} },
   /* closing-time klaxon: a falling two-tone, three times, unmistakably an exit cue */
   /* _22: the Gallery's threat chirp. The klaxon below used to fire on EVERY
@@ -5649,6 +5784,7 @@ function setLookSens(v){
 })();
 addEventListener('keydown',e=>{
   keys[e.code]=true;
+  if(G&&G.mode==='pick'){ const n=['Digit1','Digit2','Digit3','Numpad1','Numpad2','Numpad3'].indexOf(e.code); if(n>=0) takeGalPick(n%3); return; }   /* _51 */
   if(typeof menuKey==='function'&&menuKey(e)) return;
   if(e.code==='KeyR') tryReload();
   if(e.code==='Space'&&G&&G.mode==='shop'){ startWave(); }
@@ -7240,6 +7376,7 @@ function killEnemy(e,pan){
   const ET=ETYPE[e.t];   /* NOT `T`: that shadows the translator T(), and
                             the fracture alert below calls it */
   A.kill(pan);
+  const gtier=(G.inGal&&e.gal)?galTier(e):-1;   /* _51: read before galRelease() clears the charge state */
   const i=G.alive.indexOf(e); if(i>=0) G.alive.splice(i,1);
   G.kills++;
   G.combo++; G.comboT=3.0;
@@ -7249,6 +7386,7 @@ function killEnemy(e,pan){
   G.credits+=gain; G.waveCredits+=gain;
   /* what the scene paid, so the no-hit bonus has something to multiply */
   if(G.inGal) G.galCredits+=gain;
+  if(gtier>=0) galSpecial(e,ET,gtier);   /* _51 */
   if(e.gal) galRelease(e,true);
   if(G.combo>=3) showCombo(G.combo,mult);
   /* a kill while a breach is open feeds its own chain, paid as one lump when
@@ -7866,6 +8004,7 @@ function leaveGrove(){
   if(!canStand(G.px,G.py)){ G.px=PORTAL_X; G.py=PORTAL_Y; unstick(); }
   for(let k=0;k<46;k++)
     burst(PORTAL_X,PORTAL_Y,0.5,[170,110,255],1,(Math.random()-0.5)*2.4,(Math.random()-0.5)*2.4);
+  G.safeT=SAFE_T;   /* _51: Carlos -- the same 2 s coming out of the Grove */
   updHud();
 }
 function groveSpawn(){
@@ -7988,7 +8127,30 @@ const GAL_WARN_A=0.40;          /* peak opacity of the red screen-edge warning *
 const GAL_EDGE=0.52;
 const GAL_COVMIN=0.55;          /* how far up it has to be to actually stop a shot */
 const GAL_COVFIRE=0.12;         /* above this you cannot shoot either — the trade */
-const GAL_NOHIT=1.5;            /* untouched-scene multiplier on what the scene paid */
+const GAL_NOHIT=1.5;
+/* _51 (Carlos 2026-10-10) -- SPECIAL KILLS. Tier 0 SNIPE: killed during its tell (a shooter's red wind-up, a charger's
+   rear-up, a hatch leaper still climbing out). 1 RUSH: killed on its way at you (launched chargers, door runners).
+   2 VAULT: killed mid-hop (its own crates / drums, or the barrier). 3 LEAP: a hatch leaper killed in the air.
+   Credits are FLAT -- not multiplied by the combo or BLACK-MARKET TAP -- and go into what the scene paid (so the
+   no-hit x1.5 counts them, and a knockout takes them back). Health is instant, % of max, no cap; the part that does
+   not fit pays GALH_CRPP credits per 1 % of max (the Grove hearts' rate: a whole 10 % heart at full = 30 cr). */
+let GALR_ON=1;
+let GALR_CR=[30,40,50,80];
+let GALR_HP=[0.06,0.08,0.10,0.15];
+let GALH_CRPP=3;
+const GALK_PILL_MS=1300;
+/* _51 -- THE KNOCKOUT. Integrity 0 in the Gallery is no longer FLATLINE: a GALKO_T beat, then back to the precinct
+   at GALKO_HP of max. The scene you fell in pays nothing (G.galCredits is taken back); floors already cleared stay
+   banked; the rest of the visit is lost. GALKO_ON=0 restores the FLATLINE. */
+let GALKO_ON=1, GALKO_HP=0.50, GALKO_T=1.6;
+/* _51 -- arrival protection: SAFE_T seconds in which nothing in the precinct can hurt you, after every return
+   from the Gallery (knockout, clock-out, full clear -- it starts once the free card is taken) and from the Grove. */
+let SAFE_T=2.0;
+/* _51 -- FULL CLEAR (all GAL_VISIT scenes): full integrity + one free upgrade out of three. An upgrade that is
+   already maxed shows as MAX INTEGRITY +GALC_MXN instead (uncapped). GALC_ON=0 turns the reward off. */
+let GALC_ON=1, GALC_MXN=20;
+/* the floating "+N heart" / "+N CR" over a special kill */
+const GALF_T=1.05, GALF_RISE=0.55;            /* untouched-scene multiplier on what the scene paid */
 /* Fourteen targets against four concurrent and a 42s clock. Two BULWARKs so
    there is something that does not die to one trigger pull; no MONOLITH,
    because a thing that fractures into three zippers has nowhere to put them in
@@ -8986,6 +9148,7 @@ function leaveGallery(){
   G.flash=1.4; G.shake=Math.max(G.shake,0.8);
   A.warp();
   showToast(T('R_PRECINCT'),T('TO_BACK'),1);
+  G.safeT=SAFE_T;   /* _51 */
   updHud();
 }
 /* how many anchors are live: telegraphing, or holding a target */
@@ -9065,6 +9228,151 @@ function galAppear(i){
   A.hitWall(clamp((a.x-G.px)*0.22,-1,1));
 }
 /* killed -> killEnemy already took it off G.alive; ducked -> we do */
+/* ---------- _51: special kills ---------- */
+function galTier(e){
+  if(!GALR_ON) return -1;
+  if(e.chg===2){
+    if(e.leap) return e.rise>0?0:3;    /* still climbing out = its tell; airborne = LEAP */
+    return e.hop?2:1;                  /* going over crates / drums / the barrier = VAULT; otherwise on its way = RUSH */
+  }
+  if(e.gwind>0) return 0;              /* a charger's rear-up (chg 1) or a shooter's red wind-up */
+  return -1;
+}
+/* heal pct of max now; the part that does not fit pays GALH_CRPP cr per 1 % of max, pro rata. Returns what it did. */
+function galHeal(pct){
+  const heal=Math.max(1,Math.round(G.maxhp*pct)), crFull=Math.round(GALH_CRPP*pct*100);
+  let got=Math.min(heal,G.maxhp-G.hp); if(got<1) got=0;
+  const cr=Math.round(crFull*(heal-got)/heal);
+  if(got>0) G.hp=Math.min(G.maxhp,G.hp+got);
+  if(cr>0){ G.credits+=cr; G.waveCredits+=cr; if(G.inGal) G.galCredits+=cr; }
+  return {got:Math.round(got),cr:cr};
+}
+function galSpecial(e,ET,t){
+  const cr=GALR_CR[t];
+  G.credits+=cr; G.waveCredits+=cr; G.galCredits+=cr;
+  const h=galHeal(GALR_HP[t]);
+  (G.galSpec||(G.galSpec=[0,0,0,0]))[t]++;
+  galKillPill(t,cr);
+  /* integrity in pink, overheal credits in yellow -- the HUD's own two colours */
+  const html=(h.got>0?'<span>+'+h.got+' \u2665</span>':'')+(h.cr>0?'<span class="c">+'+h.cr+' '+T('CR')+'</span>':'');
+  galFloat(e.x,e.y,e.lz+ET.sc*0.95,html);
+  A.galk(t);
+  updHud();
+}
+let galKillUntil=0, galKillSt=0;
+function galKillPill(t,cr){
+  const pe=document.getElementById('galPillK'); if(!pe) return;
+  pe.lastElementChild.innerHTML=T('GK_'+t)+' <b>+'+cr+'</b>';
+  galKillUntil=performance.now()+GALK_PILL_MS; galKillSt=1;
+  pe.classList.remove('on','fade'); void pe.offsetWidth; pe.classList.add('on');
+}
+/* the floating text: anchored to the kill point in the world (re-projected every frame with the renderer's own camera
+   maths), rising GALF_RISE over GALF_T and fading out. DOM, so it stays crisp at any render resolution. */
+const galFl=[];
+function galFloat(x,y,z,html){
+  if(!html) return;
+  const box=document.getElementById('galFloats'); if(!box) return;
+  const d=document.createElement('i'); d.innerHTML=html;
+  box.appendChild(d); galFl.push({d:d,x:x,y:y,z:z,t:0}); galFloatTick(0);
+}
+function galFloatTick(dt){
+  if(!galFl.length) return;
+  const dirX=Math.cos(G.ang), dirY=Math.sin(G.ang), plX=-dirY*FOV, plY=dirX*FOV, inv=1/(plX*dirY-dirX*plY);
+  const hor=0.5+clamp(G.pitch,-PITCH_DN,PITCH_UP);
+  for(let i=galFl.length-1;i>=0;i--){
+    const f=galFl[i]; f.t+=dt;
+    if(f.t>=GALF_T||!G.inGal){ f.d.remove(); galFl.splice(i,1); continue; }
+    const sx=f.x-G.px, sy=f.y-G.py, trX=inv*(dirY*sx-dirX*sy), trY=inv*(-plY*sx+plX*sy);
+    if(trY<=0.14){ f.d.style.opacity='0'; continue; }
+    const z=f.z+GALF_RISE*f.t/GALF_T;
+    f.d.style.left=(50*(1+trX/trY)).toFixed(2)+'%';
+    f.d.style.top=(Math.max(0.37,hor+(EYE_Z-z)/trY)*100).toFixed(2)+'%';   /* never up into the clock */
+    const a=f.t<0.08?f.t/0.08:(f.t>GALF_T-0.35?(GALF_T-f.t)/0.35:1);
+    f.d.style.opacity=a.toFixed(2);
+  }
+}
+
+/* ---------- _51: the knockout ---------- */
+function galDown(){ if(GALKO_ON) galKnockout(); else die(); }
+function galKnockout(){
+  G.hp=0; G.galKO=GALKO_T;
+  G.galOver=true; G.galEndT=0; G.galNext=false; G.galFull=false;
+  for(let i=G.alive.length-1;i>=0;i--){ const e=G.alive[i]; if(e.gal){ e.gal=0; G.alive.splice(i,1); } }
+  for(let i=0;i<G.galSpots.length;i++){ G.galSpots[i].busy=false; G.galSpots[i].tell=0; }
+  G.bolts.length=0; G.galWarn=0; G.galCovWant=0;
+  /* the pills and floats would sit on top of the KNOCKED OUT toast's money line */
+  galPillUntil[0]=galPillUntil[1]=0; galKillUntil=0; galFl.forEach(f=>f.d.remove()); galFl.length=0;
+  /* the scene you fell in pays nothing: everything it paid so far (kills, crates, special kills, overheal) */
+  const take=Math.max(0,Math.min(G.credits,Math.round(G.galCredits||0)));
+  G.credits-=take; G.waveCredits=Math.max(0,G.waveCredits-take); G.galCredits=0;
+  G.galKOTake=take; G.galKOs=(G.galKOs||0)+1;
+  G.flash=1.6; G.shake=Math.max(G.shake,1.1);
+  A.hurt(); A.breach();
+  showToast(T('TO_KO'),take?T('TO_KOSUB',{n:take}):T('TO_KOSUB0'),1);
+  updHud();
+}
+function galKOFinish(){
+  leaveGallery();   /* also starts the arrival protection */
+  G.hp=Math.max(1,Math.round(G.maxhp*GALKO_HP));
+  showToast(T('TO_KO'),T('TO_KOBACK',{p:Math.round(GALKO_HP*100),n:G.galKOTake||0}),1);
+  updHud();
+}
+
+/* ---------- _51: the full-clear reward -- pick one of three, free ---------- */
+const GALC_MX={id:'mx20',k:'U_MX20',dk:'D_MX20',ic:'hp',f:()=>{ G.maxhp+=GALC_MXN; G.hp=G.maxhp; }};
+function galPickDeal(){
+  const pool=UPGRADES.filter(u=>!u.rep), out=[];
+  while(out.length<3&&pool.length){
+    let tot=0; for(const u of pool) tot+=(u.w||1);
+    let r=Math.random()*tot, k=pool.length-1;
+    for(let i=0;i<pool.length;i++){ r-=(pool[i].w||1); if(r<0){ k=i; break; } }
+    const u=pool.splice(k,1)[0];
+    out.push(maxedOut(u)?GALC_MX:u);   /* Carlos: a maxed card becomes MAX INTEGRITY +20 */
+  }
+  return out;
+}
+function openGalPick(){
+  G.mode='pick'; mouse.down=false; tFire=false;
+  if(document.pointerLockElement) document.exitPointerLock();
+  G.hp=G.maxhp;
+  toastT=0; document.getElementById('toast').style.opacity='0';   /* the PRECINCT toast would show through */
+  G.pkCards=galPickDeal();
+  renderGalPick();
+  document.getElementById('ovPick').classList.add('on');
+  A.heart(); updHud();
+}
+function renderGalPick(){
+  const r=document.getElementById('pkCards'); r.innerHTML='';
+  G.pkCards.forEach((u,i)=>{
+    const d=document.createElement('div'), lv=G.bought[u.id]||0; let pips='';
+    if(u.max) for(let j=0;j<u.max;j++) pips+='<i'+(j<lv?' class="on"':(j===lv?' class="nx"':''))+'></i>';
+    d.className='zc pk';
+    d.innerHTML='<div class="zf zcz"><div class="zi zcz"><div class="pkn">'+(i+1)+'</div><div class="ic">'+shGlyph(u)+'</div><div class="tx"><div class="nm">'+
+      T(u.k)+'</div><div class="ds">'+T(u.dk)+'</div></div><div class="zpips">'+pips+'</div><div class="zbuy zcz">'+T('PK_FREE')+'</div></div></div>';
+    d.addEventListener('click',()=>takeGalPick(i));
+    r.appendChild(d);
+  });
+  document.getElementById('pkHint').textContent=T(touchMode?'PK_HINT_T':'PK_HINT_K');
+}
+function takeGalPick(i){
+  if(!G||G.mode!=='pick'||!G.pkCards) return;
+  const u=G.pkCards[i]; if(!u) return;
+  u.f();
+  if(u.id==='mx20') G.mx20=(G.mx20||0)+1; else G.bought[u.id]=(G.bought[u.id]||0)+1;
+  G.hp=G.maxhp; G.pkCards=null;
+  document.getElementById('ovPick').classList.remove('on');
+  G.mode='play'; G.safeT=G.inGal?0:SAFE_T;
+  A.buy();
+  showToast(T(u.k),T('TO_PKSUB'),1);
+  updHud(); lockIfDesktop();
+}
+
+/* ---------- _51: arrival protection ---------- */
+let safeShown=false;
+function safeFx(){
+  const o=(G.safeT>0)?clamp(G.safeT/0.4,0,1)*(0.62+0.38*Math.sin(G.t*13)):0;
+  if(o>0||safeShown){ const n=document.getElementById('safefx'); if(n) n.style.opacity=o.toFixed(2); safeShown=o>0; }
+}
 function galRelease(e,killed){
   const sp=G.galSpots[e.gsp];
   if(sp){ sp.busy=false; sp.tell=0; sp.pt=0; }
@@ -9111,7 +9419,7 @@ function boltLands(b){
   G.hp-=b.dmg; G.galHit=true;
   G.flash=1; G.shake=Math.max(G.shake,0.62);
   A.hurt(); updHud();
-  if(G.hp<=0){ die(); return true; }
+  if(G.hp<=0){ galDown(); return true; }   /* _51 */
   return false;
 }
 function updBolts(dt){
@@ -9186,7 +9494,7 @@ function galSlam(e){
   if(covered){ G.flash=Math.max(G.flash,0.35); return false; }
   G.hp-=Math.round(ET.dmg*GAL_CHG_DMG); G.galHit=true;
   G.flash=1.3; A.hurt(); updHud();
-  if(G.hp<=0){ die(); return true; }
+  if(G.hp<=0){ galDown(); return true; }   /* _51 */
   return false;
 }
 /* _22: who is attacking right now. A shooter holds its turn from the wind-up
@@ -9236,6 +9544,7 @@ function galEnemy(e,dt){
      send it back, which is the deal — once it launches it either dies or
      lands, and the only two answers are the trigger and the parapet. */
   if(e.chg===2){
+    e.hop=false;   /* _51: set below while it is going over crates / drums / the barrier */
     if(e.leap){
       /* _24 hatch: out of the floor, then one arc that comes down on you */
       if(e.rise>0){
@@ -9274,6 +9583,7 @@ function galEnemy(e,dt){
       if(top>0){
         const q=(e.y-sp.y)/Math.max(0.2,P.y+0.45-sp.y);
         if(q<1) e.lz=Math.max(e.lz, lerp(Math.min(e.lzL,top),top,Math.sin(Math.PI*0.5*clamp(q*2.2,0,1))));
+        if(q<1||e.lz>0.30) e.hop=true;   /* _51: over its stack, or still coming down off it */
       }
       galPropPush(e,ET);
     }
@@ -9281,6 +9591,7 @@ function galEnemy(e,dt){
     if(!e.leap&&G.galRoll&&G.galRoll.mid==='barrier'){
       const q=(e.y-(GAL_BAR_Y-0.75))/1.5;
       if(q>0&&q<1) e.lz=Math.max(e.lz,0.10+GAL_BAR_HOP*Math.sin(Math.PI*q));
+      if(q>0.06&&q<0.94) e.hop=true;   /* _51 */
     }
     e.gt=1.10;
     e.auraT-=dt;
@@ -9371,6 +9682,7 @@ function endGalScene(cleared){
   }
   /* _38: a cleared scene with floors left goes down the elevator, +GAL_FAST s on the clock */
   G.galNext=cleared&&G.galStep<GAL_VISIT-1&&G.galT>0;
+  G.galFull=cleared&&G.galStep>=GAL_VISIT-1;   /* _51: the last floor, cleared */
   showToast(T(G.galNext?'TO_GALSCN':(cleared?'TO_GALCLR':'TO_GALOUT')),
             (bonus ? T('TO_GALNOHIT',{n:G.galCredits+bonus, m:GAL_NOHIT})
                    : T('TO_GALPAY',{n:G.galCredits}))+(G.galNext?'  \u00B7  '+T('GAL_PLUS',{n:GAL_FAST}):''), 1);
@@ -9383,13 +9695,17 @@ function endGalScene(cleared){
 function updGallery(dt){
   if(G.galIn){ galInTick(dt); return; }   /* _39: the entry; the clock and the scene are frozen */
   if(G.galLift){ liftTick(dt); return; }   /* _38: the ride; the clock is frozen */
+  if(G.galKO>0){ G.galKO-=dt; if(G.galKO<=0){ G.galKO=0; galKOFinish(); } return; }   /* _51: the knockout beat */
   if(G.galOver){
     if(G.galEndT>0){ G.galEndT-=dt;   /* _37 */
       if(G.galEndT<=0){ G.galEndT=0;
         /* _22: the TEST loop refills integrity between scenes. It used to carry
            damage from one restart to the next, so a feel test always ended dead. */
         if(G.galNext) liftStart();   /* _38 */
-        else if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galVisitBegin(); galStart(); } else leaveGallery(); } }
+        else { const full=G.galFull&&GALC_ON; G.galFull=false;   /* _51 */
+          if(G.galEndLoop){ G.hp=G.maxhp; updHud(); galVisitBegin(); galStart(); }
+          else leaveGallery();
+          if(full) openGalPick(); } } }
     return;
   }
   G.galT-=dt;
@@ -10030,7 +10346,7 @@ const SH_IC={
 const shPhoneMQ=matchMedia('(max-height:560px)');
 const shCat=u=>(u.id==='heal'||u.id==='fix'||u.id==='map')?'rep':'upg';
 function shGlyph(u){
-  const id=u.weapon===1?'gun':u.weapon===2?'bucket':u.id;
+  const id=u.ic||(u.weapon===1?'gun':u.weapon===2?'bucket':u.id);   /* _51: u.ic */
   return '<svg viewBox="0 0 52 52" aria-hidden="true">'+(SH_IC[id]||SH_IC.cr)+'</svg>';
 }
 function mkCard(u,cls,onClick){
@@ -10403,6 +10719,10 @@ function updGalHud(){
       galPillSt[k]=st; pe.classList.toggle('on',st>0); pe.classList.toggle('fade',st===2);
     }
   }
+  { /* _51: the special-kill pill -- shown in cover too (you earned it) */
+    const rem=G.inGal?galKillUntil-nowp:0, st=rem>GAL_PILL_FADE?1:(rem>0?2:0);
+    if(st!==galKillSt){ galKillSt=st; const pe=document.getElementById('galPillK'); pe.classList.toggle('on',st>0); pe.classList.toggle('fade',st===2); }
+  }
   /* anything in the air and you are not behind cover: the COVER button pulses (touch) and the C hint teaches (until used up) */
   const pr=G.inGal&&G.galWarn>0.5&&!covd;
   const hint=pr&&covUses<GAL_HINT_USES;
@@ -10531,6 +10851,8 @@ function update(dt){
   if(toastT>0){toastT-=dt; if(toastT<=0) el('toast').style.opacity='0';}
   if(comboT2>0){comboT2-=dt; if(comboT2<=0) el('combo').style.opacity='0';}
   if(alertT>0){alertT-=dt; if(alertT<=0) el('alertMsg').style.opacity='0';}
+  if(G.safeT>0&&G.mode==='play') G.safeT=Math.max(0,G.safeT-dt);   /* _51 */
+  safeFx(); galFloatTick(dt);
   if(G.flash>0){G.flash-=dt*3.2; el('dmgv').style.opacity=String(clamp(G.flash,0,1)*0.8);}
   if(G.swap>0) G.swap-=dt;
   updateRockets(dt);
@@ -10809,7 +11131,7 @@ function update(dt){
       if(cd<reach){
         e.cT+=dt; if(lat>e.cL) e.cL=lat;
         const need=GRAZE_T*clamp((e.cL-0.45)/0.45,0,1);
-        if(e.atk<=0&&e.cT>=need){
+        if(e.atk<=0&&e.cT>=need&&!(G.safeT>0)){
           e.atk=T.atkCd/ATK_RATE; e.back=T.knock;
           G.hp-=(e.dmg!==undefined?e.dmg:T.dmg); /* _46: a Warden carries its own bite */ G.flash=1; G.shake=Math.max(G.shake,0.55);
           A.hurt(); updHud();
@@ -11006,7 +11328,7 @@ function frame(ts){
     paintTitleGround();
     if(MODEL&&ovTitle.classList.contains('arenaLit')&&!ovTitle.classList.contains('bgOnly')) MODEL.step(dt);
     return;
-  } else if(G.mode!=='paused'){
+  } else if(G.mode!=='paused'&&G.mode!=='pick'){   /* _51: the free-card screen freezes the world */
     if(PF.on){ const u0=performance.now(); update(dt); PF.acc[0]+=performance.now()-u0; }
     else update(dt);
   }
