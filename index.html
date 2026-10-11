@@ -501,7 +501,7 @@
     min-width:calc(84 * var(--k));}
   .zchip b{font-size:max(10px,calc(10 * var(--k)));letter-spacing:.2em;color:var(--lav);font-weight:700;white-space:nowrap;}
   .zchip span{font-size:calc(20 * var(--k));font-weight:800;white-space:nowrap;}
-  .zchip .zdk{display:none;}
+  .zchip .zdk{display:inline;}   /* _53: the '/ max' part shows on a phone too (it was display:none there) */
   .shTabs{display:flex;gap:calc(8 * var(--k));padding:calc(10 * var(--k)) calc(26 * var(--k)) 0;}
   .shTabs:empty{display:none;}
   .ztab{--ch:calc(8 * var(--k));padding:calc(8 * var(--k)) calc(16 * var(--k));font-weight:800;letter-spacing:.14em;
@@ -1126,6 +1126,30 @@
   .cnote{position:absolute;left:calc(90 * var(--u));right:calc(90 * var(--u));top:calc(584 * var(--u));
     font-weight:700;font-size:max(var(--fmin),calc(25 * var(--u)));letter-spacing:.06em;line-height:1.55;color:var(--n-lav2);}
   .cnote b{color:#ff8ff2;font-weight:800;}
+  /* _53 (Carlos: "the buttons described there do not match with the actual HUD"): on the TOUCH tab FIRE / RELOAD / SWAP /
+     BREACH / COVER are small copies of the real thumb buttons (same colours, same icons; the ring round FIRE is the ammo
+     ring, shown full). MOVE, LOOK and PAUSE keep their keycaps. Sizes are in --u so they scale with the sheet. */
+  .cgrid{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);}   /* the right column holds the longer lines */
+  .cgrid.tch .kr{height:calc(100 * var(--u));}
+  .cgrid .act{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.1;}   /* BREACH AN OUTER WALL wraps instead of ending in ... */
+  .cgrid .kslot{flex:0 0 auto;min-width:calc(150 * var(--u));height:calc(90 * var(--u));display:inline-flex;align-items:center;justify-content:center;}
+  .mb{position:relative;box-sizing:border-box;flex:0 0 auto;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    font-style:normal;font-weight:800;line-height:1;white-space:nowrap;}
+  .mb svg{fill:none;stroke:currentColor;stroke-width:3.8;stroke-linejoin:round;overflow:visible;}
+  .mb svg.bart{stroke:none;}
+  .mb.fire{width:calc(84 * var(--u));height:calc(84 * var(--u));border:max(1.5px,calc(3.4 * var(--u))) solid rgba(255,45,149,.9);
+    background:rgba(40,0,24,.5);color:#fff;box-shadow:0 0 calc(20 * var(--u)) rgba(255,45,149,.45);}
+  .mb.fire svg:not(.aring){width:58%;height:auto;}
+  .mb .aring{display:block;position:absolute;left:50%;top:50%;width:calc(116 * var(--u));height:calc(116 * var(--u));
+    transform:translate(-50%,-50%) rotate(-90deg);pointer-events:none;overflow:visible;}
+  .mb .aring circle{fill:none;stroke-width:5;}
+  .mb .aring .trk{stroke:rgba(255,255,255,.18);}
+  .mb .aring .lit{stroke:#b6ff00;}
+  .mb.re,.mb.swap,.mb.br{width:calc(80 * var(--u));height:calc(80 * var(--u));border:0;background:none;box-shadow:none;}   /* _54: the art is the whole button */
+  .mb.re svg.bart,.mb.swap svg.bart,.mb.br svg.bart{width:100%;height:100%;}
+  .mb .bart .h{display:none;}
+  .mb.cov{width:calc(92 * var(--u));height:calc(92 * var(--u));border:max(1.5px,calc(3.4 * var(--u))) solid rgba(0,240,255,.8);
+    background:rgba(0,240,255,.14);color:#00f0ff;letter-spacing:.1em;box-shadow:0 0 calc(22 * var(--u)) rgba(0,240,255,.45);}
   .crule{position:absolute;left:calc(70 * var(--u));right:calc(70 * var(--u));top:calc(566 * var(--u));height:1px;
     background:linear-gradient(90deg,rgba(60,80,210,0),rgba(60,80,210,.32) 12%,rgba(60,80,210,.26) 80%,rgba(60,80,210,0));}
   /* BACK sits top-right, level with the tabs, so the breach note owns the bottom */
@@ -1362,9 +1386,23 @@
   #ovDead .zb1 svg{color:var(--m);}
   #ovDead .zb2{background:none;padding:0;flex:.8;}
   #ovDead .zb2 .zi2{background:none;color:#b9a8e8;box-shadow:inset 0 0 0 1px rgba(160,140,220,.35);}
+  /* ---- _54 (Carlos, 2026-10-11): RELOAD / SWAP / BREACH wear the new family art. Each button is now one full-face <svg class="bart">
+     (ticked ring, dark disc, icon); the button itself is just a transparent circle that takes the touches. FIRE and COVER keep
+     their own look. BREACH carries two groups: .c (resting) and .h (the crosshair is on an outer wall: lime disc), switched by
+     #brBtn.hot. The gradients live in one hidden <svg> at the top of <body>. The CONTROLS legend clones these svgs. */
+  #touch #reBtn,#touch #swapBtn,#touch #brBtn{background:none;border:0;box-shadow:none;padding:0;animation:none;}
+  .tbtn svg.bart{display:block;width:100%;height:100%;fill:none;stroke:none;stroke-width:0;pointer-events:none;transition:transform .06s,filter .06s;}   /* .tbtn svg.bart beats the shared .tbtn svg stroke rule */
+  .bart .h{display:none;}
+  #brBtn.hot .bart .h{display:inline;} #brBtn.hot .bart .c{display:none;}
+  #touch #reBtn.dn .bart,#touch #swapBtn.dn .bart,#touch #brBtn.dn .bart{filter:brightness(1.5);transform:scale(.93);}
+  #touch #brBtn{animation:brpulse2 1.1s ease-in-out infinite;}
+  #touch #brBtn.hot{animation:brhot .55s ease-in-out infinite;}
+  @keyframes brpulse2{0%,100%{opacity:.72}50%{opacity:1}}
+  @keyframes brhot{0%,100%{transform:scale(1);filter:drop-shadow(0 0 4px rgba(182,255,0,.6))}50%{transform:scale(1.08);filter:drop-shadow(0 0 12px rgba(182,255,0,.95))}}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="bDisc" cx=".5" cy=".38" r=".75"><stop offset="0" stop-color="#3a3f4c"/><stop offset="1" stop-color="#1b1e26"/></radialGradient><radialGradient id="bHot" cx=".5" cy=".38" r=".8"><stop offset="0" stop-color="#d9ff5e"/><stop offset="1" stop-color="#8fcc00"/></radialGradient></defs></svg>
 <div id="wrap">
   <canvas id="view"></canvas>
   <div id="crt"></div>
@@ -1445,30 +1483,14 @@
       <svg class="aring" viewBox="0 0 120 120" aria-hidden="true"><circle class="trk" cx="60" cy="60" r="53"/><circle class="lit" cx="60" cy="60" r="53"/></svg>
     </div>
     <div class="tbtn" id="reBtn">
-      <svg viewBox="0 0 48 32" width="30" height="20" aria-hidden="true">
-        <path d="M13 13 Q24 0 35 13"/>
-        <polyline points="26,4 35,13 27,18"/>
-        <path d="M35 19 Q24 32 13 19"/>
-        <polyline points="22,28 13,19 21,14"/>
-      </svg>
+      <svg class="bart" viewBox="0 0 200 200" aria-hidden="true"><g transform="translate(100 100)"><circle r="92" fill="#16181d"/><path d="M0 -79L0 -89M20.45 -76.31L23.03 -85.97M39.5 -68.42L44.5 -77.08M55.86 -55.86L62.93 -62.93M68.42 -39.5L77.08 -44.5M76.31 -20.45L85.97 -23.03M79 -0L89 -0M76.31 20.45L85.97 23.03M68.42 39.5L77.08 44.5M55.86 55.86L62.93 62.93M39.5 68.42L44.5 77.08M20.45 76.31L23.03 85.97M0 79L0 89M-20.45 76.31L-23.03 85.97M-39.5 68.42L-44.5 77.08M-55.86 55.86L-62.93 62.93M-68.42 39.5L-77.08 44.5M-76.31 20.45L-85.97 23.03M-79 0L-89 0M-76.31 -20.45L-85.97 -23.03M-68.42 -39.5L-77.08 -44.5M-55.86 -55.86L-62.93 -62.93M-39.5 -68.42L-44.5 -77.08M-20.45 -76.31L-23.03 -85.97" stroke="#8d97a8" stroke-width="5.2"/><circle r="75.5" fill="#23262d"/><circle r="72" fill="url(#bDisc)"/><circle r="68.5" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/><path d="M-44.5 -17.98A48 48 0 0 1 38.57 -28.57" stroke="#b6ff00" stroke-width="7" stroke-linecap="round"/><path d="M47.87 -12.2L35.26 -18.75L49.5 -26.32Z" fill="#b6ff00" stroke="#b6ff00" stroke-width="2" stroke-linejoin="round"/><path d="M44.5 17.98A48 48 0 0 1 -38.57 28.57" stroke="#b6ff00" stroke-width="7" stroke-linecap="round"/><path d="M-47.87 12.2L-35.26 18.75L-49.5 26.32Z" fill="#b6ff00" stroke="#b6ff00" stroke-width="2" stroke-linejoin="round"/><path d="M-21 -11 C-25 -37 25 -37 21 -11" stroke="#e9edf3" stroke-width="3.6" stroke-linecap="round"/><path d="M-23 -9 L-17.5 24 Q0 31 17.5 24 L23 -9 Z" fill="#e9edf3"/><ellipse cy="-9" rx="23" ry="6.5" fill="#e9edf3"/><ellipse cy="-9" rx="18.5" ry="3.8" fill="#ff2d95"/><path d="M-23 -9 Q-19.5 -6 -15 -9 Q-13 3 -15.5 5.5 Q-18.5 8 -21 4 Q-24 -1 -23 -9 Z" fill="#ff2d95"/><ellipse cx="-18.4" cy="9" rx="2.4" ry="3.4" fill="#ff2d95"/></g></svg>
     </div>
     <div class="tbtn" id="brBtn">
-      <svg viewBox="0 0 48 32" width="40" height="27" aria-hidden="true">
-        <rect x="14" y="4" width="16" height="24"/>
-        <circle cx="27" cy="17" r="1.4" fill="currentColor" stroke="none"/>
-        <line x1="33" y1="8" x2="40" y2="6"/>
-        <line x1="34" y1="16" x2="42" y2="16"/>
-        <line x1="33" y1="24" x2="40" y2="26"/>
-      </svg>
+      <svg class="bart" viewBox="0 0 200 200" aria-hidden="true"><g class="c" transform="translate(100 100)"><circle r="92" fill="#16181d"/><path d="M0 -79L0 -89M20.45 -76.31L23.03 -85.97M39.5 -68.42L44.5 -77.08M55.86 -55.86L62.93 -62.93M68.42 -39.5L77.08 -44.5M76.31 -20.45L85.97 -23.03M79 -0L89 -0M76.31 20.45L85.97 23.03M68.42 39.5L77.08 44.5M55.86 55.86L62.93 62.93M39.5 68.42L44.5 77.08M20.45 76.31L23.03 85.97M0 79L0 89M-20.45 76.31L-23.03 85.97M-39.5 68.42L-44.5 77.08M-55.86 55.86L-62.93 62.93M-68.42 39.5L-77.08 44.5M-76.31 20.45L-85.97 23.03M-79 0L-89 0M-76.31 -20.45L-85.97 -23.03M-68.42 -39.5L-77.08 -44.5M-55.86 -55.86L-62.93 -62.93M-39.5 -68.42L-44.5 -77.08M-20.45 -76.31L-23.03 -85.97" stroke="#8d97a8" stroke-width="5.2"/><circle r="75.5" fill="#23262d"/><circle r="72" fill="url(#bDisc)"/><circle r="68.5" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/><rect x="-46" y="-34" width="92" height="68" rx="6" fill="#e9edf3"/><path d="M-46 -11.33H46M-46 11.33H46M-15 -34V-11.33M-15 11.33V34M16 -34V-11.33M16 11.33V34M-30 -11.33V11.33M1 -11.33V11.33M32 -11.33V11.33" stroke="#b9c0cc" stroke-width="3.2"/><polygon points="8.38,-30.53 12.64,-11.49 27.43,-8.89 15.8,2.26 28.28,21.21 7.79,13.16 -1.34,24.62 -7.28,12.26 -25.19,10.26 -9.8,-2.26 -17.68,-17.36 -2.13,-14.1" fill="#b6ff00" stroke="#1b1e26" stroke-width="4" stroke-linejoin="round"/><polygon points="8.38,-30.53 12.64,-11.49 27.43,-8.89 15.8,2.26 28.28,21.21 7.79,13.16 -1.34,24.62 -7.28,12.26 -25.19,10.26 -9.8,-2.26 -17.68,-17.36 -2.13,-14.1" fill="#b6ff00"/><circle cx="3" cy="0" r="7.5" fill="#1b1e26"/></g><g class="h" transform="translate(100 100)"><circle r="92" fill="#16181d"/><path d="M0 -79L0 -89M20.45 -76.31L23.03 -85.97M39.5 -68.42L44.5 -77.08M55.86 -55.86L62.93 -62.93M68.42 -39.5L77.08 -44.5M76.31 -20.45L85.97 -23.03M79 -0L89 -0M76.31 20.45L85.97 23.03M68.42 39.5L77.08 44.5M55.86 55.86L62.93 62.93M39.5 68.42L44.5 77.08M20.45 76.31L23.03 85.97M0 79L0 89M-20.45 76.31L-23.03 85.97M-39.5 68.42L-44.5 77.08M-55.86 55.86L-62.93 62.93M-68.42 39.5L-77.08 44.5M-76.31 20.45L-85.97 23.03M-79 0L-89 0M-76.31 -20.45L-85.97 -23.03M-68.42 -39.5L-77.08 -44.5M-55.86 -55.86L-62.93 -62.93M-39.5 -68.42L-44.5 -77.08M-20.45 -76.31L-23.03 -85.97" stroke="#b6ff00" stroke-width="5.2"/><circle r="75.5" fill="#23262d"/><circle r="72" fill="url(#bHot)"/><circle r="68.5" stroke="rgba(255,255,255,.35)" stroke-width="1.6"/><rect x="-46" y="-34" width="92" height="68" rx="6" fill="#16240a"/><path d="M-46 -11.33H46M-46 11.33H46M-15 -34V-11.33M-15 11.33V34M16 -34V-11.33M16 11.33V34M-30 -11.33V11.33M1 -11.33V11.33M32 -11.33V11.33" stroke="#2d4310" stroke-width="3.2"/><polygon points="8.38,-30.53 12.64,-11.49 27.43,-8.89 15.8,2.26 28.28,21.21 7.79,13.16 -1.34,24.62 -7.28,12.26 -25.19,10.26 -9.8,-2.26 -17.68,-17.36 -2.13,-14.1" fill="#f2ffc7" stroke="#8fcc00" stroke-width="4" stroke-linejoin="round"/><polygon points="8.38,-30.53 12.64,-11.49 27.43,-8.89 15.8,2.26 28.28,21.21 7.79,13.16 -1.34,24.62 -7.28,12.26 -25.19,10.26 -9.8,-2.26 -17.68,-17.36 -2.13,-14.1" fill="#f2ffc7"/><circle cx="3" cy="0" r="7.5" fill="#8fcc00"/></g></svg>
     </div>
     <div class="tbtn" id="covBtn" data-t="COVER_BTN">COVER</div>
     <div class="tbtn" id="swapBtn">
-      <svg viewBox="0 0 48 32" width="30" height="20" aria-hidden="true">
-        <path d="M10 11 H34"/>
-        <polyline points="29,6 34,11 29,16"/>
-        <path d="M38 21 H14"/>
-        <polyline points="19,26 14,21 19,16"/>
-      </svg>
+      <svg class="bart" viewBox="0 0 200 200" aria-hidden="true"><g transform="translate(100 100)"><circle r="92" fill="#16181d"/><path d="M0 -79L0 -89M20.45 -76.31L23.03 -85.97M39.5 -68.42L44.5 -77.08M55.86 -55.86L62.93 -62.93M68.42 -39.5L77.08 -44.5M76.31 -20.45L85.97 -23.03M79 -0L89 -0M76.31 20.45L85.97 23.03M68.42 39.5L77.08 44.5M55.86 55.86L62.93 62.93M39.5 68.42L44.5 77.08M20.45 76.31L23.03 85.97M0 79L0 89M-20.45 76.31L-23.03 85.97M-39.5 68.42L-44.5 77.08M-55.86 55.86L-62.93 62.93M-68.42 39.5L-77.08 44.5M-76.31 20.45L-85.97 23.03M-79 0L-89 0M-76.31 -20.45L-85.97 -23.03M-68.42 -39.5L-77.08 -44.5M-55.86 -55.86L-62.93 -62.93M-39.5 -68.42L-44.5 -77.08M-20.45 -76.31L-23.03 -85.97" stroke="#8d97a8" stroke-width="5.2"/><circle r="75.5" fill="#23262d"/><circle r="72" fill="url(#bDisc)"/><circle r="68.5" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/><path d="M-30 -42H22.85" stroke="#b6ff00" stroke-width="7" stroke-linecap="round"/><path d="M34.55 -42L20.9 -50.84L20.9 -33.16Z" fill="#b6ff00" stroke="#b6ff00" stroke-width="2" stroke-linejoin="round"/><path d="M30 45H-22.85" stroke="#b6ff00" stroke-width="7" stroke-linecap="round"/><path d="M-34.55 45L-20.9 36.16L-20.9 53.84Z" fill="#b6ff00" stroke="#b6ff00" stroke-width="2" stroke-linejoin="round"/><g transform="translate(3 -2) scale(0.85)" fill="#e9edf3"><rect x="-40" y="-18" width="74" height="17" rx="4"/><rect x="30" y="-14" width="8" height="9" rx="2"/><path d="M-30 -2L-6 -2L-12 28Q-13 31 -16 31L-31 31Q-35 31 -34 27Z"/><path d="M-5 -1L-5 9Q-5 13 0 13L9 13" fill="none" stroke="#e9edf3" stroke-width="3.6" stroke-linecap="round"/></g></g></svg>
     </div>
   </div>
   <div id="sysbtns">
@@ -1742,8 +1764,8 @@ en:{
   PR_NOCOPY:'SELECT + COPY', PR_EMPTY:'Nothing recorded yet. Keep FPS METER on and play a run.',
   C_KEYS:'KEYBOARD', C_TOUCH:'TOUCH',
   CT_FIRE:'HOLD TO SHOOT', CT_RELOAD:'RELOAD', CT_SWAPK:'SWAP', CT_SWAP:'NEXT WEAPON',
-  CT_BREACH:'BREACH A WALL', CT_COVER:'TAKE COVER', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSE',
-  CTRL_NOTE_T:'THE HULL OPENS ONLY WHEN YOU OPEN IT — FROM WAVE 3, FACE AN OUTER WALL AND TAP BREACH. '+
+  CT_BREACH:'BREACH AN OUTER WALL', CT_COVER:'TAKE COVER', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSE',
+  CTRL_NOTE_T:'AN OUTER WALL OPENS ONLY WHEN YOU BREACH IT — FROM WAVE 3, FACE ONE AND TAP BREACH. '+
        'IT STAYS OPEN FOR 20 SECONDS: CHARGED HOSTILES THAT PAY MORE, AND A CHAIN BONUS WHEN IT SEALS. '+
        'ONE TIME IN FOUR, SOMETHING BIG COMES THROUGH LAST.',
   AB_T:'ABANDON RUN?', AB_KEEP:'KEEP PLAYING',
@@ -1755,12 +1777,12 @@ en:{
   K_ESC:'ESC', PAUSE_SUB:'THE PAINT IS STILL WET', PS_KILLS:'KILLS',
   /* the control sheet: pairs of key + what it does, laid out as a grid */
   CTRL_ROWS:[['WASD','MOVE'],['MOUSE','LOOK'],['CLICK','FIRE'],['R','RELOAD'],
-             ['1 / 2 / 3','WEAPON'],['Q','CYCLE WEAPON'],['E','BREACH A WALL'],
+             ['1 / 2 / 3','WEAPON'],['Q','CYCLE WEAPON'],['E','BREACH AN OUTER WALL'],
              ['C','TAKE COVER'],['M','AUDIO MODE'],['L','LANGUAGE'],
              ['ESC / P','PAUSE'],['SPACE','START NEXT WAVE']],
   CTRL_TOUCH:['LEFT THUMB','MOVE'],
   CTRL_TOUCH2:['RIGHT THUMB','LOOK'],
-  CTRL_NOTE:'THE HULL OPENS ONLY WHEN YOU OPEN IT — FROM WAVE 3, PRESS E AT AN OUTER WALL.<br>'+
+  CTRL_NOTE:'AN OUTER WALL OPENS ONLY WHEN YOU BREACH IT — FROM WAVE 3, FACE ONE AND PRESS E.<br>'+
        'IT STAYS OPEN FOR 20 SECONDS: CHARGED HOSTILES THAT PAY MORE, AND A CHAIN BONUS WHEN IT SEALS.<br>'+
        'ONE TIME IN FOUR, SOMETHING BIG COMES THROUGH LAST.',
   HU_LEFT:'LEFT', HU_PAY:'THIS WAVE',
@@ -1896,8 +1918,8 @@ es:{
   PR_NOCOPY:'SELECCIONA Y COPIA', PR_EMPTY:'Aún no hay nada grabado. Deja el MEDIDOR FPS encendido y juega una partida.',
   C_KEYS:'TECLADO', C_TOUCH:'TÁCTIL',
   CT_FIRE:'DISPARAR', CT_RELOAD:'RECARGAR', CT_SWAPK:'CAMBIO', CT_SWAP:'SIGUIENTE ARMA',
-  CT_BREACH:'ABRIR UN MURO', CT_COVER:'A CUBIERTO', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSA',
-  CTRL_NOTE_T:'EL CASCO SOLO SE ABRE SI TÚ LO ABRES — DESDE LA OLEADA 3, MIRA UN MURO EXTERIOR Y TOCA BRECHA. '+
+  CT_BREACH:'ABRIR UN MURO EXTERIOR', CT_COVER:'A CUBIERTO', CT_PAUSEK:'❙❙', CT_PAUSE:'PAUSA',
+  CTRL_NOTE_T:'UN MURO EXTERIOR SOLO SE ABRE SI TÚ LO ABRES — DESDE LA OLEADA 3, MÍRALO Y TOCA BRECHA. '+
        'QUEDA ABIERTO 20 SEGUNDOS: ENEMIGOS CARGADOS QUE PAGAN MÁS, Y UN BONO DE CADENA AL SELLARSE. '+
        'UNA DE CADA CUATRO VECES, ALGO GRANDE ENTRA AL FINAL.',
   AB_T:'¿ABANDONAR?', AB_KEEP:'SEGUIR JUGANDO',
@@ -1908,12 +1930,12 @@ es:{
   M_ENDARM:'PULSA OTRA VEZ PARA TERMINAR', M_ENDARMSUB:'O CUALQUIER OTRA TECLA PARA CANCELAR',
   K_ESC:'ESC', PAUSE_SUB:'LA PINTURA SIGUE FRESCA', PS_KILLS:'BAJAS',
   CTRL_ROWS:[['WASD','MOVERSE'],['MOUSE','MIRAR'],['CLIC','DISPARAR'],['R','RECARGAR'],
-             ['1 / 2 / 3','ARMA'],['Q','CAMBIAR ARMA'],['E','ABRIR UN MURO'],
+             ['1 / 2 / 3','ARMA'],['Q','CAMBIAR ARMA'],['E','ABRIR UN MURO EXTERIOR'],
              ['C','CUBRIRSE'],['M','MODO DE AUDIO'],['L','IDIOMA'],
              ['ESC / P','PAUSA'],['ESPACIO','EMPEZAR LA OLEADA']],
   CTRL_TOUCH:['PULGAR IZQ.','MOVERSE'],
   CTRL_TOUCH2:['PULGAR DER.','MIRAR'],
-  CTRL_NOTE:'EL CASCO SOLO SE ABRE SI TÚ LO ABRES — DESDE LA OLEADA 3, PULSA E EN UN MURO EXTERIOR.<br>'+
+  CTRL_NOTE:'UN MURO EXTERIOR SOLO SE ABRE SI TÚ LO ABRES — DESDE LA OLEADA 3, MÍRALO Y PULSA E.<br>'+
        'QUEDA ABIERTO 20 SEGUNDOS: ENEMIGOS CARGADOS QUE PAGAN MÁS, Y UN BONO DE CADENA AL SELLARSE.<br>'+
        'UNA DE CADA CUATRO VECES, ALGO GRANDE ENTRA AL FINAL.',
   HU_LEFT:'QUEDAN', HU_PAY:'ESTA OLEADA',
@@ -4606,7 +4628,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_52';
+const BUILD='_54';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -12370,6 +12392,23 @@ addListSwipe(el('ovOpt'),OPTS,()=>el('ovOpt').classList.contains('on'));
 
 /* ---------- controls ---------- */
 let ctrlTab='keys';
+/* _53: mini copies of the real thumb buttons for the TOUCH tab. The icon is cloned from the live button (so it can never drift from
+   the HUD); the ammo ring is rebuilt full (the live one shows whatever the magazine holds right now). */
+const MB_SRC={fire:'fireBtn',re:'reBtn',swap:'swapBtn',br:'brBtn'};
+function miniBtn(kind){
+  if(kind==='cov'){
+    const t=T('COVER_BTN'), n=t.length, fs=Math.min(17,76/(n*0.66));
+    return '<i class="mb cov" style="font-size:calc('+fs.toFixed(1)+' * var(--u));letter-spacing:'+(n<=5?'.1em':'.04em')+'">'+t+'</i>';
+  }
+  const b=document.getElementById(MB_SRC[kind]), ic=b&&b.querySelector('svg:not(.aring)');
+  let h=ic?ic.outerHTML:'';
+  if(kind==='fire'){
+    const C=2*Math.PI*53, seg=C/12, gap=Math.min(seg*0.2,C/60), da=(seg-gap).toFixed(2)+' '+gap.toFixed(2), off=(-gap/2).toFixed(2);
+    h+='<svg class="aring" viewBox="0 0 120 120" aria-hidden="true"><circle class="trk" cx="60" cy="60" r="53" stroke-dasharray="'+da+'" stroke-dashoffset="'+off+'"/>'+
+       '<circle class="lit" cx="60" cy="60" r="53" stroke-dasharray="'+da+'" stroke-dashoffset="'+off+'"/></svg>';
+  }
+  return '<i class="mb '+kind+'">'+h+'</i>';
+}
 function buildCtrl(tab){
   if(tab) ctrlTab=tab;
   const g=el('ctrlGrid'); if(!g) return;
@@ -12377,9 +12416,9 @@ function buildCtrl(tab){
   let rows, hot;
   if(ctrlTab==='touch'){
     rows=[L.CTRL_TOUCH||E.CTRL_TOUCH, L.CTRL_TOUCH2||E.CTRL_TOUCH2,
-          [T('FIRE'),T('CT_FIRE')],[T('RELOAD'),T('CT_RELOAD')],[T('CT_SWAPK'),T('CT_SWAP')],
-          [T('BREACH'),T('CT_BREACH')],[T('COVER_BTN'),T('CT_COVER')],[T('CT_PAUSEK'),T('CT_PAUSE')]];
-    hot=[5,6];
+          [T('FIRE'),T('CT_FIRE'),'fire'],[T('RELOAD'),T('CT_RELOAD'),'re'],[T('CT_SWAPK'),T('CT_SWAP'),'swap'],
+          [T('BREACH'),T('CT_BREACH'),'br'],[T('COVER_BTN'),T('CT_COVER'),'cov'],[T('CT_PAUSEK'),T('CT_PAUSE')]];
+    hot=[];   /* _53: the lime / cyan mini buttons carry the colour now */
     el('ctrlNote').innerHTML=T('CTRL_NOTE_T');
   } else {
     rows=(L.CTRL_ROWS||E.CTRL_ROWS).slice();
@@ -12390,8 +12429,10 @@ function buildCtrl(tab){
   el('ctrlNote').style.display=(touchMode&&ctrlTab==='keys'&&innerHeight<=560)?'none':'';
   const half=Math.ceil(rows.length/2);
   g.style.gridTemplateRows='repeat('+half+',auto)';
-  g.innerHTML=rows.map((r,i)=>'<div class="kr"><span class="keycap'+(hot.indexOf(i)>=0?' hot':'')+'">'+r[0]+
-    '</span><span class="act">'+r[1]+'</span></div>').join('');
+  g.classList.toggle('tch',ctrlTab==='touch');
+  g.innerHTML=rows.map((r,i)=>'<div class="kr">'+(r[2]?'<span class="kslot">'+miniBtn(r[2])+'</span>':
+    '<span class="keycap'+(hot.indexOf(i)>=0?' hot':'')+'">'+r[0]+'</span>')+
+    '<span class="act">'+r[1]+'</span></div>').join('');
   document.querySelectorAll('.ctab').forEach(t=>t.classList.toggle('on',t.dataset.tab===ctrlTab));
 }
 document.querySelectorAll('.ctab').forEach(t=>t.addEventListener('click',e=>{
