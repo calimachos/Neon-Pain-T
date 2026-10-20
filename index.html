@@ -5315,7 +5315,7 @@ function pfShow(ts){
    GPU, GC, the audio thread's neighbours). Kept for the last 5 runs in
    localStorage, so it survives a crash or a reload. PAUSE -> FPS REPORT
    shows it with a COPY button. Nothing here runs while the meter is off. */
-const BUILD='_57';
+const BUILD='_58';
 /* _34: STANDING RULE (Carlos) -- the main menu shows the build, top-right, from BUILD */
 try{ const vt=document.getElementById('verTag'); if(vt) vt.textContent='v'+BUILD.slice(1); }catch(e){}
 const BB={runs:[], cur:null, curG:null, lastTs:0, dirty:false, saveT:0,
@@ -5974,7 +5974,7 @@ function LAUGH_FX(C,dest,t,v,nb){
     if(!nb) return;
     const n=C.createBufferSource(); n.buffer=nb; n.playbackRate.value=0.9+Math.random()*0.2;
     const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=f; bp.Q.value=1.1;
-    const e=C.createGain(); e.gain.setValueAtTime(0.0001,s); e.gain.exponentialRampToValueAtTime(g,s+dur*0.3);
+    const e=C.createGain(); e.gain.value=0; e.gain.setValueAtTime(0.0001,s); e.gain.exponentialRampToValueAtTime(g,s+dur*0.3);   /* _58: no first-sample click */
     e.gain.exponentialRampToValueAtTime(0.0005,s+dur);
     n.connect(bp); bp.connect(e); e.connect(out); n.start(s,Math.random()*0.5); n.stop(s+dur+0.02);
   };
@@ -6065,7 +6065,7 @@ function GALK_FX(C,dest,t,tier,v,nb){
   const N=(s,dur,f0,f1,g,q,rise)=>{ if(!nb) return; const n=C.createBufferSource(); n.buffer=nb;
     const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=q||1.5;
     bp.frequency.setValueAtTime(f0,t+s); bp.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+s+dur);
-    const a=C.createGain();
+    const a=C.createGain(); a.gain.value=0;   /* _58: no first-sample click */
     if(rise){ a.gain.setValueAtTime(0.0008,t+s); a.gain.exponentialRampToValueAtTime(g,t+s+dur*0.92); a.gain.exponentialRampToValueAtTime(0.0008,t+s+dur); }
     else { a.gain.setValueAtTime(g,t+s); a.gain.exponentialRampToValueAtTime(0.0008,t+s+dur); }
     n.connect(bp); bp.connect(a); a.connect(out); n.start(t+s,(s*7.31)%0.6); n.stop(t+s+dur+0.03); };
@@ -6125,7 +6125,7 @@ function GHEART_FX(C,dest,t,ins,nb){
     o.connect(a); a.connect(out); o.start(t+s0); o.stop(t+s0+dur+0.03); };
   const nz=(s0,dur,f0,f1,g,q)=>{ if(!nb) return; const n=C.createBufferSource(); n.buffer=nb;
     const bp=C.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=q||1.5; bp.frequency.setValueAtTime(f0,t+s0); bp.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+s0+dur);
-    const a=C.createGain(); a.gain.setValueAtTime(g,t+s0); a.gain.exponentialRampToValueAtTime(0.0008,t+s0+dur);
+    const a=C.createGain(); a.gain.value=0; a.gain.setValueAtTime(g,t+s0); a.gain.exponentialRampToValueAtTime(0.0008,t+s0+dur);   /* _58: no first-sample click */
     n.connect(bp); bp.connect(a); a.connect(out); n.start(t+s0,Math.random()*0.5); n.stop(t+s0+dur+0.03); };
   if(!ins){ nz(0,0.03,2600,1800,0.12,2); tn('sine',523,500,0,0.13,0.20); tn('sine',1046,1000,0,0.06,0.05);
             tn('sine',784,760,0.085,0.15,0.18); tn('sine',1568,1500,0.085,0.06,0.04); return 0.26; }
